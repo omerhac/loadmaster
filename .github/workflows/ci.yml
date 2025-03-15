@@ -32,10 +32,11 @@ jobs:
       run: |
         cd ios
         pod install
-        
-    - name: Build iOS
-      run: |
-        xcodebuild -workspace ios/loadmaster.xcworkspace -scheme loadmaster -configuration Release -sdk iphonesimulator -derivedDataPath ios/build
+  
+  # TODO: Add build for iOS once we need the app for iPad as well
+  #  - name: Build iOS
+  #    run: |
+  #      xcodebuild -workspace ios/loadmaster.xcworkspace -scheme loadmaster -configuration Release -sdk iphonesimulator -derivedDataPath ios/build
         
   build-and-test-windows:
     runs-on: windows-latest
