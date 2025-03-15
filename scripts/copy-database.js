@@ -9,18 +9,18 @@ const destinations = [
   {
     platform: 'Android',
     path: path.join(__dirname, '../android/app/src/main/assets/loadmaster.db'),
-    directory: path.join(__dirname, '../android/app/src/main/assets')
+    directory: path.join(__dirname, '../android/app/src/main/assets'),
   },
   {
     platform: 'iOS',
     path: path.join(__dirname, '../ios/loadmaster/loadmaster.db'),
-    directory: path.join(__dirname, '../ios/loadmaster')
+    directory: path.join(__dirname, '../ios/loadmaster'),
   },
   {
     platform: 'Windows',
     path: path.join(__dirname, '../windows/loadmaster/Assets/loadmaster.db'),
-    directory: path.join(__dirname, '../windows/loadmaster/Assets')
-  }
+    directory: path.join(__dirname, '../windows/loadmaster/Assets'),
+  },
 ];
 
 // Check if source file exists
@@ -37,7 +37,7 @@ destinations.forEach(dest => {
     if (!fs.existsSync(dest.directory)) {
       fs.mkdirSync(dest.directory, { recursive: true });
     }
-    
+
     // Copy the file
     fs.copyFileSync(sourceDbPath, dest.path);
     console.log(`Successfully copied database to ${dest.platform} location: ${dest.path}`);
@@ -46,4 +46,4 @@ destinations.forEach(dest => {
   }
 });
 
-console.log('Database copy process completed'); 
+console.log('Database copy process completed');

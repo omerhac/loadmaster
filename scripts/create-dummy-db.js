@@ -39,12 +39,12 @@ db.serialize(() => {
   const products = [
     { name: 'Product 1', description: 'Description for product 1', weight: 5.2 },
     { name: 'Product 2', description: 'Description for product 2', weight: 3.8 },
-    { name: 'Product 3', description: 'Description for product 3', weight: 7.1 }
+    { name: 'Product 3', description: 'Description for product 3', weight: 7.1 },
   ];
 
   const categories = [
     { name: 'Category 1', description: 'First category' },
-    { name: 'Category 2', description: 'Second category' }
+    { name: 'Category 2', description: 'Second category' },
   ];
 
   // Insert products
@@ -69,4 +69,4 @@ db.close((err) => {
   } else {
     console.log(`Database created at ${dbPath}`);
   }
-}); 
+});
