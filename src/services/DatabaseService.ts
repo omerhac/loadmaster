@@ -12,11 +12,23 @@ export const initDatabase = async (): Promise<SQLiteDatabase> => {
   let databasePath: string = DATABASE_NAME;
   
   if (Platform.OS === 'android') {
-    return await SQLite.openDatabase({
-      name: DATABASE_NAME,
+    // Define writable location
+    const writablePath = `${RNFS.DocumentDirectoryPath}/${DATABASE_NAME}`;
+    
+    // Check if DB already exists in writable location
+    const exists = await RNFS.exists(writablePath);
+    if (!exists) {
+      // First run - copy the pre-populated DB from assets to writable location
+      await RNFS.copyFileAssets(DATABASE_NAME, writablePath);
+    }
+    
+    // Open the writable copy
+    database = await SQLite.openDatabase({
+      name: writablePath,
       location: 'default',
-      createFromLocation: 1,
     });
+    
+    return database;
   } else if (Platform.OS === 'ios') {
     databasePath = DATABASE_NAME;
   } else if (Platform.OS === 'windows') {
