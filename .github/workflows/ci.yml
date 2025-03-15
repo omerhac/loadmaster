@@ -59,6 +59,7 @@ jobs:
     - name: Run tests
       run: npm test
       
-    - name: Build Windows
-      run: |
-        npx react-native run-windows --no-launch --no-deploy --release
+# TODO: Add build for Windows once we need the app for Windows as well
+#    - name: Build Windows
+#     run: |
+#      npx react-native run-windows --no-launch --no-deploy --release

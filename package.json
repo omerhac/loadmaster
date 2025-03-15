@@ -8,11 +8,17 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "windows": "npx @react-native-community/cli run-windows"
+    "windows": "npx @react-native-community/cli run-windows",
+    "create-db": "node scripts/create-dummy-db.js",
+    "copy-db": "node scripts/copy-database.js",
+    "setup-db": "npm run create-db && npm run copy-db",
+    "postinstall": "npm run copy-db"
   },
   "dependencies": {
     "react": "19.0.0",
     "react-native": "0.78.0",
+    "react-native-fs": "^2.20.0",
+    "react-native-sqlite-storage": "^6.0.1",
     "react-native-windows": "^0.78.0"
   },
   "devDependencies": {
@@ -28,13 +34,15 @@
     "@react-native/typescript-config": "0.78.0",
     "@types/jest": "^29.5.13",
     "@types/react": "^19.0.0",
+    "@types/react-native-sqlite-storage": "^6.0.5",
     "@types/react-test-renderer": "^19.0.0",
     "eslint": "^8.19.0",
     "jest": "^29.6.3",
+    "metro-config": "^0.81.3",
     "prettier": "2.8.8",
     "react-test-renderer": "19.0.0",
-    "typescript": "5.0.4",
-    "metro-config": "^0.81.3"
+    "sqlite3": "^5.1.7",
+    "typescript": "5.0.4"
   },
   "engines": {
     "node": ">=18"
