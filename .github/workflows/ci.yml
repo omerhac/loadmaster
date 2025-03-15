@@ -37,12 +37,6 @@ jobs:
       run: |
         xcodebuild -workspace ios/loadmaster.xcworkspace -scheme loadmaster -configuration Release -sdk iphonesimulator -derivedDataPath ios/build
         
-    - name: Upload iOS artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: ios-build
-        path: loadmaster/ios/Build/Products/Release-iphonesimulator
-
   build-and-test-windows:
     runs-on: windows-latest
     
@@ -72,9 +66,3 @@ jobs:
     - name: Build Windows
       run: |
         npx react-native run-windows --no-launch --no-deploy --release
-        
-    - name: Upload Windows artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: windows-build
-        path: loadmaster/windows/AppPackages 
