@@ -17,6 +17,6 @@ export const reverseString = (str: string): string => {
  * @returns The string with first letter capitalized
  */
 export const capitalizeFirstLetter = (str: string): string => {
-  if (!str || str.length === 0) return str;
+  if (!str || str.length === 0) {return str;}
   return str.charAt(0).toUpperCase() + str.slice(1);
-}; 
+};

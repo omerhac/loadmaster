@@ -32,4 +32,4 @@ describe('String Utilities', () => {
       expect(capitalizeFirstLetter('a')).toBe('A');
     });
   });
-}); 
+});
