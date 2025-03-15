@@ -61,7 +61,7 @@ jobs:
     - name: Install Windows extension
       run: |
         npm install --save-dev react-native-windows
-        npx react-native-windows-init --overwrite
+        npx react-native autolink-windows
         
     - name: Build Windows
       run: |
