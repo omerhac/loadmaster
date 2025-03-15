@@ -7,9 +7,9 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-
+  build-and-test-ios:
+    runs-on: macos-latest
+    
     steps:
     - uses: actions/checkout@v4
     
@@ -25,8 +25,56 @@ jobs:
     - name: Run linter
       run: npm run lint
       
-    - name: Build project for ios
-      run: npm run ios
+    - name: Run tests
+      run: npm test
+      
+    - name: Install Pod dependencies
+      run: |
+        cd ios
+        pod install
+        
+    - name: Build iOS
+      run: |
+        xcodebuild -workspace ios/loadmaster.xcworkspace -scheme loadmaster -configuration Release -sdk iphonesimulator -derivedDataPath ios/build
+        
+    - name: Upload iOS artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ios-build
+        path: loadmaster/ios/Build/Products/Release-iphonesimulator
+
+  build-and-test-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run linter
+      run: npm run lint
       
     - name: Run tests
       run: npm test
+      
+    - name: Install Windows extension
+      run: |
+        npm install --save-dev react-native-windows
+        npx react-native-windows-init --overwrite
+        
+    - name: Build Windows
+      run: |
+        npx react-native run-windows --no-launch --no-deploy --release
+        
+    - name: Upload Windows artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: windows-build
+        path: loadmaster/windows/AppPackages 
