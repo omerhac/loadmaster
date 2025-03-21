@@ -1,5 +1,6 @@
 import { DatabaseInterface } from './DatabaseService';
 import { DatabaseResponse, SqlStatement } from './DatabaseTypes';
+import path from 'path';
 
 /**
  * Implementation of DatabaseInterface for test environments using better-sqlite3.
@@ -8,31 +9,74 @@ import { DatabaseResponse, SqlStatement } from './DatabaseTypes';
 export class TestDatabaseService implements DatabaseInterface {
   private static instance: TestDatabaseService | null = null;
   private db: any; // We'll use any type here to avoid importing better-sqlite3 in production code
+  private static readonly DATABASE_NAME = 'loadmaster.db';
 
   private constructor(database: any) {
     this.db = database;
   }
 
   /**
-   * Initialize an in-memory SQLite database for testing.
+   * Initialize the test database service.
+   * By default, loads data from the loadmaster.db file.
    * Creates a singleton instance to be reused across tests.
    */
   static async initialize(): Promise<TestDatabaseService> {
     if (!this.instance) {
       try {
-        // Use require instead of dynamic import to avoid ESM issues in Jest
+        // Try to load from the loadmaster.db file
+        // Construct an absolute path that should work in Jest environment
+        const dbPath = path.resolve(__dirname, '../../assets/database/loadmaster.db');
+        console.log('Attempting to load database from path:', dbPath);
 
-        const BetterSQLite = require('better-sqlite3');
-        const db = new BetterSQLite(':memory:');
-
-        // Create a new instance (schema will be initialized separately)
-        this.instance = new TestDatabaseService(db);
+        return this.initializeFromFile(dbPath, false);
       } catch (error) {
-        console.error('Error initializing test database:', error);
-        throw error;
+        console.warn('Error loading database file, falling back to in-memory database:', error);
+        return this.initializeInMemory();
       }
     }
     return this.instance;
+  }
+
+  /**
+   * Initialize an in-memory SQLite database for testing.
+   * This is used for tests that need an empty database.
+   */
+  static async initializeInMemory(): Promise<TestDatabaseService> {
+    // Reset any existing instance
+    this.resetInstance();
+
+    try {
+      const BetterSQLite = require('better-sqlite3');
+      const db = new BetterSQLite(':memory:');
+
+      // Create a new instance (schema will be initialized separately)
+      this.instance = new TestDatabaseService(db);
+      return this.instance;
+    } catch (error) {
+      console.error('Error initializing in-memory test database:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Initialize a SQLite database from an existing file.
+   * @param dbPath Path to the SQLite database file.
+   * @param readOnly Whether to open the database in read-only mode.
+   */
+  static async initializeFromFile(dbPath: string, readOnly = false): Promise<TestDatabaseService> {
+    // Reset any existing instance
+    this.resetInstance();
+
+    try {
+      const BetterSQLite = require('better-sqlite3');
+      const db = new BetterSQLite(dbPath, { readonly: readOnly });
+
+      this.instance = new TestDatabaseService(db);
+      return this.instance;
+    } catch (error) {
+      console.error(`Error initializing database from file ${dbPath}:`, error);
+      throw error;
+    }
   }
 
   /**

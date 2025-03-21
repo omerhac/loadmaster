@@ -35,16 +35,45 @@ db.serialize(() => {
     description TEXT
   )`);
 
+  // Create a special test_markers table to identify this as the loadmaster.db file
+  db.run(`CREATE TABLE test_markers (
+    id INTEGER PRIMARY KEY,
+    marker_name TEXT NOT NULL,
+    value TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )`);
+
   // Insert sample data
   const products = [
     { name: 'Product 1', description: 'Description for product 1', weight: 5.2 },
     { name: 'Product 2', description: 'Description for product 2', weight: 3.8 },
     { name: 'Product 3', description: 'Description for product 3', weight: 7.1 },
+    { name: 'LoadMaster Special Product', description: 'This is a unique product only found in loadmaster.db', weight: 9.9 },
   ];
 
   const categories = [
     { name: 'Category 1', description: 'First category' },
     { name: 'Category 2', description: 'Second category' },
+    { name: 'LoadMaster Special Category', description: 'This category only exists in the loadmaster.db file' },
+  ];
+
+  // Insert a unique test marker to verify we're reading from this specific database
+  const testMarkers = [
+    {
+      marker_name: 'database_version',
+      value: '1.0',
+      created_at: new Date().toISOString(),
+    },
+    {
+      marker_name: 'database_id',
+      value: `loadmaster-${Date.now()}`,
+      created_at: new Date().toISOString(),
+    },
+    {
+      marker_name: 'unique_test_marker',
+      value: 'LoadMaster Special Test Database',
+      created_at: new Date().toISOString(),
+    },
   ];
 
   // Insert products
@@ -60,6 +89,13 @@ db.serialize(() => {
     categoryStmt.run(category.name, category.description);
   });
   categoryStmt.finalize();
+
+  // Insert test markers
+  const markerStmt = db.prepare('INSERT INTO test_markers (marker_name, value, created_at) VALUES (?, ?, ?)');
+  testMarkers.forEach(marker => {
+    markerStmt.run(marker.marker_name, marker.value, marker.created_at);
+  });
+  markerStmt.finalize();
 });
 
 // Close the database
