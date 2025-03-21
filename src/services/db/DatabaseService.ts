@@ -1,8 +1,8 @@
 import SQLite, { SQLiteDatabase } from 'react-native-sqlite-storage';
 import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
-import { DatabaseResponse, SqlStatement, QueryResult } from './DatabaseTypes';
-import { TestDatabaseService } from './TestDatabaseService';
+import { DatabaseResponse, SqlStatement, QueryResult } from '../DatabaseTypes';
+import { TestDatabaseService } from '../TestDatabaseService';
 
 declare const process: {
   env: {

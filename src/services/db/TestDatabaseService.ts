@@ -1,5 +1,5 @@
-import { DatabaseInterface } from './db/DatabaseService';
-import { DatabaseResponse, SqlStatement } from './db/DatabaseTypes';
+import { DatabaseInterface } from './DatabaseService';
+import { DatabaseResponse, SqlStatement } from '../DatabaseTypes';
 import path from 'path';
 
 /**
@@ -25,7 +25,7 @@ export class TestDatabaseService implements DatabaseInterface {
       try {
         // Try to load from the loadmaster.db file
         // Construct an absolute path that should work in Jest environment
-        const dbPath = path.resolve(__dirname, '../../assets/database/loadmaster.db');
+        const dbPath = path.resolve(__dirname, '../../../assets/database/loadmaster.db');
         console.log('Attempting to load database from path:', dbPath);
 
         return this.initializeFromFile(dbPath, false);

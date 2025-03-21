@@ -1,8 +1,8 @@
-import { DatabaseResponse } from '@/services/DatabaseTypes';
+import { DatabaseResponse } from '@/services/db/DatabaseTypes';
 import { mockDatabaseService, executeQueryMock, initializeSchemaMock, executeTransactionMock } from './__mock__/mock-database';
 
 // Mock the DatabaseFactory to return our mock service
-jest.mock('@/services/DatabaseService', () => ({
+jest.mock('@/services/db/DatabaseService', () => ({
   DatabaseFactory: {
     getDatabase: jest.fn().mockResolvedValue(mockDatabaseService),
     resetInstance: jest.fn(),
@@ -10,7 +10,7 @@ jest.mock('@/services/DatabaseService', () => ({
 }));
 
 // Import after mocking
-import { DatabaseFactory } from '@/services/DatabaseService';
+import { DatabaseFactory } from '@/services/db/DatabaseService';
 
 describe('Database Service Mock Tests', () => {
   beforeEach(() => {

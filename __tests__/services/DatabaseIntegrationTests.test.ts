@@ -1,10 +1,10 @@
 // Force unmock of modules we need for integration tests
-jest.unmock('@/services/DatabaseService');
+jest.unmock('@/services/db/DatabaseService');
 jest.unmock('better-sqlite3');
-jest.unmock('@/services/TestDatabaseService');
+jest.unmock('@/services/db/TestDatabaseService');
 
 // Now import the necessary modules
-import { TestDatabaseService } from '@/services/TestDatabaseService';
+import { TestDatabaseService } from '@/services/db/TestDatabaseService';
 
 const TEST_SCHEMA = `
   -- Test table for CRUD operations
