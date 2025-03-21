@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Ensure directory exists
-const dbDir = path.join(__dirname, '../src/assets/database');
+const dbDir = path.join(__dirname, '../assets/database');
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }

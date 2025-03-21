@@ -6,7 +6,7 @@ import RNFS from 'react-native-fs';
 SQLite.enablePromise(true);
 
 const DATABASE_NAME = 'loadmaster.db';
-let database: SQLiteDatabase | null = null;
+let g_database: SQLiteDatabase | null = null;
 
 export const initDatabase = async (): Promise<SQLiteDatabase> => {
   let databasePath: string = DATABASE_NAME;
@@ -23,12 +23,12 @@ export const initDatabase = async (): Promise<SQLiteDatabase> => {
     }
 
     // Open the writable copy
-    database = await SQLite.openDatabase({
+    g_database = await SQLite.openDatabase({
       name: writablePath,
       location: 'default',
     });
 
-    return database;
+    return g_database;
   } else if (Platform.OS === 'ios') {
     databasePath = DATABASE_NAME;
   } else if (Platform.OS === 'windows') {
@@ -41,13 +41,13 @@ export const initDatabase = async (): Promise<SQLiteDatabase> => {
   }
 
   try {
-    database = await SQLite.openDatabase({
+    g_database = await SQLite.openDatabase({
       name: DATABASE_NAME,
       location: 'default',
       createFromLocation: databasePath,
     });
     console.log('Database initialized successfully');
-    return database;
+    return g_database;
   } catch (error) {
     console.error('Error initializing database:', error);
     throw error;
@@ -55,10 +55,10 @@ export const initDatabase = async (): Promise<SQLiteDatabase> => {
 };
 
 export const getDatabase = (): SQLiteDatabase => {
-  if (!database) {
+  if (!g_database) {
     throw new Error('Database not initialized. Call initDatabase first.');
   }
-  return database;
+  return g_database;
 };
 
 export const executeQuery = async (query: string, params: any[] = []): Promise<any[]> => {
