@@ -14,7 +14,7 @@ const config = {
     '/node_modules/',
     '/__mock__/',
     '/__mocks__/',
-    '/.history/'
+    '/.history/',
   ],
   // Use specific resolver to handle better-sqlite3 mapping
   resolver: '<rootDir>/jest.resolver.js',

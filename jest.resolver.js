@@ -5,16 +5,16 @@ module.exports = (path, options) => {
     ...options,
     // Don't mock these specific test files that need real implementation
     packageFilter: pkg => {
-      // Handle special cases for tests that need real modules 
+      // Handle special cases for tests that need real modules
       if (path.includes('__tests__/services/DatabaseIntegrationTests.test.ts')) {
         // For these paths, we want to use the real implementations
         if (pkg.name === 'better-sqlite3') {
           return pkg;
         }
       }
-      
+
       // For all other cases, use the default package
       return pkg;
     },
   });
-}; 
+};

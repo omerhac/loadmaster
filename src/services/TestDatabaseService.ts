@@ -21,10 +21,10 @@ export class TestDatabaseService implements DatabaseInterface {
     if (!this.instance) {
       try {
         // Use require instead of dynamic import to avoid ESM issues in Jest
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+
         const BetterSQLite = require('better-sqlite3');
         const db = new BetterSQLite(':memory:');
-        
+
         // Create a new instance (schema will be initialized separately)
         this.instance = new TestDatabaseService(db);
       } catch (error) {
@@ -77,19 +77,19 @@ export class TestDatabaseService implements DatabaseInterface {
    */
   async executeTransaction(statements: SqlStatement[]): Promise<DatabaseResponse[]> {
     const results: DatabaseResponse[] = [];
-    
+
     try {
       // Start a transaction
       this.db.exec('BEGIN TRANSACTION;');
-      
+
       for (const statement of statements) {
         const result = await this.executeQuery(statement.sql, statement.params);
         results.push(result);
       }
-      
+
       // Commit the transaction
       this.db.exec('COMMIT;');
-      
+
       return results;
     } catch (error) {
       // Rollback on error
@@ -108,14 +108,14 @@ export class TestDatabaseService implements DatabaseInterface {
   async executeQuery(sql: string, params: any[] = []): Promise<DatabaseResponse> {
     try {
       const stmt = this.db.prepare(sql);
-      
+
       // Handle different query types
       if (sql.trim().toLowerCase().startsWith('select')) {
         // For SELECT queries, return all results
         const rows = stmt.all(...params);
         return {
           results: rows.map(row => ({ data: row })),
-          count: rows.length
+          count: rows.length,
         };
       } else {
         // For INSERT, UPDATE, DELETE, etc.
@@ -123,22 +123,22 @@ export class TestDatabaseService implements DatabaseInterface {
         return {
           results: [{
             changes: result.changes,
-            lastInsertId: result.lastInsertRowid
+            lastInsertId: result.lastInsertRowid,
           }],
-          count: 1
+          count: 1,
         };
       }
     } catch (error) {
       console.error('Error executing query:', sql, error);
-      
+
       return {
         results: [],
         count: 0,
         error: {
           message: error instanceof Error ? error.message : 'Unknown error',
-          code: 'DB_ERROR'
-        }
+          code: 'DB_ERROR',
+        },
       };
     }
   }
-} 
+}

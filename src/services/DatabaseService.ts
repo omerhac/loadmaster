@@ -19,7 +19,7 @@ let TestDatabaseService: any = null;
 if (isTestEnvironment) {
   try {
     // This will only execute in Jest environment
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+
     TestDatabaseService = require('./TestDatabaseService').TestDatabaseService;
   } catch (error) {
     console.error('Error loading TestDatabaseService, make sure better-sqlite3 is installed');
@@ -35,13 +35,13 @@ export interface DatabaseInterface {
    * @returns A promise resolving to the database response
    */
   executeQuery(sql: string, params?: any[]): Promise<DatabaseResponse>;
-  
+
   /**
    * Initialize the database schema
    * @param sql SQL to execute for schema initialization
    */
   initializeSchema(sql: string): Promise<void>;
-  
+
   /**
    * Execute multiple statements in a transaction
    * @param statements Array of SQL statements to execute
@@ -63,12 +63,12 @@ export class DatabaseFactory {
         this.instance = await NativeDatabaseService.initialize();
       }
     }
-    
+
     // At this point, instance should be initialized
     if (!this.instance) {
       throw new Error('Failed to initialize a database implementation');
     }
-    
+
     return this.instance;
   }
 
@@ -92,7 +92,7 @@ export class NativeDatabaseService implements DatabaseInterface {
     if (!this.instance) {
       // Enable SQLite Promises
       SQLite.enablePromise(true);
-      
+
       const database = await this.openDatabase();
       this.instance = new NativeDatabaseService(database);
     }
@@ -147,11 +147,11 @@ export class NativeDatabaseService implements DatabaseInterface {
     if (!this.database) {
       throw new Error('Database not initialized.');
     }
-    
+
     try {
       // Split the SQL into individual statements
       const statements = sql.split(';').filter(stmt => stmt.trim().length > 0);
-      
+
       // Execute each statement
       for (const statement of statements) {
         await this.database.executeSql(statement + ';');
@@ -166,19 +166,19 @@ export class NativeDatabaseService implements DatabaseInterface {
     if (!this.database) {
       throw new Error('Database not initialized.');
     }
-    
+
     const results: DatabaseResponse[] = [];
-    
+
     try {
       await this.database.transaction(async (tx) => {
         for (const stmt of statements) {
           const result = await tx.executeSql(stmt.sql, stmt.params || []);
-          
+
           const response = this.formatQueryResponse(result);
           results.push(response);
         }
       });
-      
+
       return results;
     } catch (error) {
       console.error('Error executing transaction:', error);
@@ -190,7 +190,7 @@ export class NativeDatabaseService implements DatabaseInterface {
     if (!this.database) {
       throw new Error('Database not initialized.');
     }
-    
+
     try {
       const [results] = await this.database.executeSql(sql, params);
       return this.formatQueryResponse([results]);
@@ -201,22 +201,22 @@ export class NativeDatabaseService implements DatabaseInterface {
         count: 0,
         error: {
           message: error instanceof Error ? error.message : 'Unknown error',
-          code: 'DB_ERROR'
-        }
+          code: 'DB_ERROR',
+        },
       };
     }
   }
-  
+
   private formatQueryResponse(results: any[]): DatabaseResponse {
     const formattedResults: QueryResult[] = [];
     let totalCount = 0;
-    
+
     for (const result of results) {
       if (result.rows && result.rows.length > 0) {
         const rows: QueryResult[] = [];
         for (let i = 0; i < result.rows.length; i++) {
           rows.push({
-            data: result.rows.item(i)
+            data: result.rows.item(i),
           });
         }
         formattedResults.push(...rows);
@@ -224,14 +224,14 @@ export class NativeDatabaseService implements DatabaseInterface {
       } else if (result.rowsAffected) {
         formattedResults.push({
           changes: result.rowsAffected,
-          lastInsertId: result.insertId
+          lastInsertId: result.insertId,
         });
       }
     }
-    
+
     return {
       results: formattedResults,
-      count: totalCount
+      count: totalCount,
     };
   }
 }

@@ -16,11 +16,11 @@ export class MockDatabaseService implements DatabaseInterface {
   executeQuery(sql: string, params: any[] = []): Promise<DatabaseResponse> {
     return executeQueryMock(sql, params);
   }
-  
+
   initializeSchema(sql: string): Promise<void> {
     return initializeSchemaMock(sql);
   }
-  
+
   executeTransaction(statements: SqlStatement[]): Promise<DatabaseResponse[]> {
     return executeTransactionMock(statements);
   }
@@ -34,4 +34,4 @@ export class MockDatabaseService implements DatabaseInterface {
 }
 
 // Create singleton instance for tests
-export const mockDatabaseService = new MockDatabaseService(); 
+export const mockDatabaseService = new MockDatabaseService();
