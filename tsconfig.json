@@ -5,6 +5,14 @@
     "paths": {
       "@utils/*": ["src/utils/*"],
       "@/*": ["src/*"]
-    }
-  }
+    },
+    "moduleResolution": "node16",
+    "module": "Node16",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "noImplicitAny": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/node_modules/*"]
 }

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Source database file
-const sourceDbPath = path.join(__dirname, '../src/assets/database/loadmaster.db');
+const sourceDbPath = path.join(__dirname, '../assets/database/loadmaster.db');
 
 // Destination paths for each platform
 const destinations = [
