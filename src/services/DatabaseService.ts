@@ -2,29 +2,14 @@ import SQLite, { SQLiteDatabase } from 'react-native-sqlite-storage';
 import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
 import { DatabaseResponse, SqlStatement, QueryResult } from './DatabaseTypes';
+import { TestDatabaseService } from './TestDatabaseService';
 
-// For TypeScript Node.js types
 declare const process: {
   env: {
     NODE_ENV?: string;
   };
 };
 
-// Check if we're in a test environment
-const isTestEnvironment = process.env.NODE_ENV === 'test';
-
-// Conditionally import the test database service if we're in a test environment
-// This avoids TypeScript errors about missing modules in production
-let TestDatabaseService: any = null;
-if (isTestEnvironment) {
-  try {
-    // This will only execute in Jest environment
-
-    TestDatabaseService = require('./TestDatabaseService').TestDatabaseService;
-  } catch (error) {
-    console.error('Error loading TestDatabaseService, make sure better-sqlite3 is installed');
-  }
-}
 
 // DatabaseInterface defines the contract for database implementations
 export interface DatabaseInterface {
@@ -55,7 +40,8 @@ export class DatabaseFactory {
 
   static async getDatabase(): Promise<DatabaseInterface> {
     if (!this.instance) {
-      if (isTestEnvironment && TestDatabaseService) {
+      const isTestEnvironment = process.env.NODE_ENV === 'test';
+      if (isTestEnvironment) {
         // For Jest tests, we'll use the TestDatabaseService
         this.instance = await TestDatabaseService.initialize();
       } else {
