@@ -1,6 +1,7 @@
 import SQLite, { SQLiteDatabase } from 'react-native-sqlite-storage';
 import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
+import { DatabaseResponse, SqlStatement, QueryResult } from './DatabaseTypes';
 
 // For TypeScript Node.js types
 declare const process: {
@@ -27,8 +28,25 @@ if (isTestEnvironment) {
 
 // DatabaseInterface defines the contract for database implementations
 export interface DatabaseInterface {
-  executeQuery(query: string, params?: any[]): Promise<any[]>;
-  // Add other database operations as needed
+  /**
+   * Execute a SQL query and return the results in a standardized format
+   * @param sql The SQL query to execute
+   * @param params Optional parameters for the query
+   * @returns A promise resolving to the database response
+   */
+  executeQuery(sql: string, params?: any[]): Promise<DatabaseResponse>;
+  
+  /**
+   * Initialize the database schema
+   * @param sql SQL to execute for schema initialization
+   */
+  initializeSchema(sql: string): Promise<void>;
+  
+  /**
+   * Execute multiple statements in a transaction
+   * @param statements Array of SQL statements to execute
+   */
+  executeTransaction(statements: SqlStatement[]): Promise<DatabaseResponse[]>;
 }
 
 // Factory to create the appropriate database implementation
@@ -53,13 +71,17 @@ export class DatabaseFactory {
     
     return this.instance;
   }
+
+  // For testing purposes only - allows resetting the singleton
+  static resetInstance(): void {
+    this.instance = null;
+  }
 }
 
 // Native implementation using react-native-sqlite-storage
 export class NativeDatabaseService implements DatabaseInterface {
   private static instance: NativeDatabaseService | null = null;
   private database: SQLiteDatabase | null = null;
-  // Make this static field accessible to the module for backward compatibility
   static DATABASE_NAME = 'loadmaster.db';
 
   private constructor(database: SQLiteDatabase) {
@@ -121,90 +143,95 @@ export class NativeDatabaseService implements DatabaseInterface {
     }
   }
 
-  async executeQuery(query: string, params: any[] = []): Promise<any[]> {
+  async initializeSchema(sql: string): Promise<void> {
     if (!this.database) {
       throw new Error('Database not initialized.');
     }
     
     try {
-      const [results] = await this.database.executeSql(query, params);
-      const rows: any[] = [];
-      for (let i = 0; i < results.rows.length; i++) {
-        rows.push(results.rows.item(i));
+      // Split the SQL into individual statements
+      const statements = sql.split(';').filter(stmt => stmt.trim().length > 0);
+      
+      // Execute each statement
+      for (const statement of statements) {
+        await this.database.executeSql(statement + ';');
       }
-      return rows;
     } catch (error) {
-      console.error('Error executing query:', query, error);
+      console.error('Error initializing schema:', error);
       throw error;
     }
   }
-}
 
-// Legacy API compatibility - these will use the factory pattern internally
-let g_database: SQLiteDatabase | null = null;
-
-// Reset the global database when importing in tests
-if (isTestEnvironment) {
-  g_database = null;
-}
-
-export const initDatabase = async (): Promise<SQLiteDatabase> => {
-  if (!g_database) {
-    // In test environment, we need to make sure we're using mocked SQLite
-    if (isTestEnvironment) {
-      // This setup helps existing tests that directly mock SQLite.openDatabase
-      const db = await SQLite.openDatabase({
-        name: Platform.OS === 'android' 
-          ? `${RNFS.DocumentDirectoryPath}/${NativeDatabaseService.DATABASE_NAME}`
-          : NativeDatabaseService.DATABASE_NAME,
-        location: 'default',
-        createFromLocation: Platform.OS === 'windows'
-          ? `${RNFS.DocumentDirectoryPath}/${NativeDatabaseService.DATABASE_NAME}` 
-          : NativeDatabaseService.DATABASE_NAME,
-      });
-      g_database = db;
-      return db;
+  async executeTransaction(statements: SqlStatement[]): Promise<DatabaseResponse[]> {
+    if (!this.database) {
+      throw new Error('Database not initialized.');
     }
     
-    // For production, use the NativeDatabaseService
-    const nativeService = await NativeDatabaseService.initialize();
-    // Fix the null assignment error with a non-null assertion since we know it exists after initialization
-    g_database = (nativeService as any).database!;
-  }
-  return g_database!;
-};
-
-export const getDatabase = (): SQLiteDatabase => {
-  if (!g_database) {
-    throw new Error('Database not initialized. Call initDatabase first.');
-  }
-  return g_database;
-};
-
-export const executeQuery = async (query: string, params: any[] = []): Promise<any[]> => {
-  if (isTestEnvironment && TestDatabaseService) {
-    // For tests using our test database implementation
+    const results: DatabaseResponse[] = [];
+    
     try {
-      const dbService = await DatabaseFactory.getDatabase();
-      return dbService.executeQuery(query, params);
-    } catch (error) {
-      // If there's an error with our test DB, fall back to the mock behavior
-      const db = getDatabase();
-      try {
-        const [results] = await db.executeSql(query, params);
-        const rows: any[] = [];
-        for (let i = 0; i < results.rows.length; i++) {
-          rows.push(results.rows.item(i));
+      await this.database.transaction(async (tx) => {
+        for (const stmt of statements) {
+          const result = await tx.executeSql(stmt.sql, stmt.params || []);
+          
+          const response = this.formatQueryResponse(result);
+          results.push(response);
         }
-        return rows;
-      } catch (error) {
-        console.error('Error executing query (legacy fallback):', query, error);
-        throw error;
+      });
+      
+      return results;
+    } catch (error) {
+      console.error('Error executing transaction:', error);
+      throw error;
+    }
+  }
+
+  async executeQuery(sql: string, params: any[] = []): Promise<DatabaseResponse> {
+    if (!this.database) {
+      throw new Error('Database not initialized.');
+    }
+    
+    try {
+      const [results] = await this.database.executeSql(sql, params);
+      return this.formatQueryResponse([results]);
+    } catch (error) {
+      console.error('Error executing query:', sql, error);
+      return {
+        results: [],
+        count: 0,
+        error: {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          code: 'DB_ERROR'
+        }
+      };
+    }
+  }
+  
+  private formatQueryResponse(results: any[]): DatabaseResponse {
+    const formattedResults: QueryResult[] = [];
+    let totalCount = 0;
+    
+    for (const result of results) {
+      if (result.rows && result.rows.length > 0) {
+        const rows: QueryResult[] = [];
+        for (let i = 0; i < result.rows.length; i++) {
+          rows.push({
+            data: result.rows.item(i)
+          });
+        }
+        formattedResults.push(...rows);
+        totalCount += result.rows.length;
+      } else if (result.rowsAffected) {
+        formattedResults.push({
+          changes: result.rowsAffected,
+          lastInsertId: result.insertId
+        });
       }
     }
-  } else {
-    // For production
-    const dbService = await DatabaseFactory.getDatabase();
-    return dbService.executeQuery(query, params);
+    
+    return {
+      results: formattedResults,
+      count: totalCount
+    };
   }
-};
+}

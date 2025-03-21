@@ -1,9 +1,6 @@
 // Set environment to test explicitly
 process.env.NODE_ENV = 'test';
 
-// Auto-mock the database service for the older tests
-// This applies the implementation from __mocks__ folder for any import of DatabaseService
-jest.mock('@/services/DatabaseService');
 
 // Setup for __tests__/services/DatabaseService.test.ts tests
 // Legacy mocks for the old style tests that expect these functions to be available

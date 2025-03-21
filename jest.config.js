@@ -1,4 +1,5 @@
-module.exports = {
+/** @type {import('jest').Config} */
+const config = {
   preset: 'react-native',
   moduleNameMapper: {
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
@@ -7,12 +8,13 @@ module.exports = {
   testEnvironment: 'node',
   setupFiles: ['<rootDir>/jest.setup.js'],
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|better-sqlite3)/)',
   ],
-  // Exclude .history files and __snapshots__
+  // Explicitly exclude mock files and history files from test runs
   testPathIgnorePatterns: [
-    '<rootDir>/node_modules/',
-    '<rootDir>/.history/'
+    '/node_modules/',
+    '/__mock__/',
+    '/__mocks__/',
+    '/.history/'
   ],
   // Use specific resolver to handle better-sqlite3 mapping
   resolver: '<rootDir>/jest.resolver.js',
@@ -21,3 +23,5 @@ module.exports = {
   // Each test file gets a fresh module cache
   resetModules: true,
 };
+
+module.exports = config;
