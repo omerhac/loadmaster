@@ -12,4 +12,4 @@ export * from './MissionOperations';
 export * from './CargoTypeOperations';
 export * from './CargoItemOperations';
 export * from './FuelOperations';
-export * from './CompartmentOperations'; 
+export * from './CompartmentOperations';

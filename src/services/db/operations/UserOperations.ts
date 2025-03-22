@@ -57,4 +57,4 @@ export async function updateUser(user: User): Promise<DatabaseResponse> {
 export async function deleteUser(id: number): Promise<DatabaseResponse> {
   const db = await DatabaseFactory.getDatabase();
   return db.executeQuery('DELETE FROM user WHERE id = ?;', [id]);
-} 
+}

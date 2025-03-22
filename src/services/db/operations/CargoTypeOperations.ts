@@ -91,4 +91,4 @@ export async function updateCargoType(cargoType: CargoType): Promise<DatabaseRes
 export async function deleteCargoType(id: number): Promise<DatabaseResponse> {
   const db = await DatabaseFactory.getDatabase();
   return db.executeQuery('DELETE FROM cargo_type WHERE id = ?;', [id]);
-} 
+}

@@ -189,7 +189,7 @@ describe('Loadmaster SQLite File Database Tests', () => {
   beforeAll(async () => {
     originalDbPath = path.resolve(__dirname, '../../../assets/database/loadmaster.db');
     tempDbPath = path.join(os.tmpdir(), `loadmaster_test_${Date.now()}.db`);
-    
+
     // Copy the database file to temp location
     if (fs.existsSync(originalDbPath)) {
       fs.copyFileSync(originalDbPath, tempDbPath);

@@ -96,4 +96,4 @@ export interface User {
   id?: number;
   username: string;
   last_login?: string;
-} 
+}

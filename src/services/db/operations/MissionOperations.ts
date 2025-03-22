@@ -83,4 +83,4 @@ export async function updateMission(mission: Mission): Promise<DatabaseResponse>
 export async function deleteMission(id: number): Promise<DatabaseResponse> {
   const db = await DatabaseFactory.getDatabase();
   return db.executeQuery('DELETE FROM mission WHERE id = ?;', [id]);
-} 
+}

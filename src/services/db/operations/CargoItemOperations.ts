@@ -73,4 +73,4 @@ export async function updateCargoItem(cargoItem: CargoItem): Promise<DatabaseRes
 export async function deleteCargoItem(id: number): Promise<DatabaseResponse> {
   const db = await DatabaseFactory.getDatabase();
   return db.executeQuery('DELETE FROM cargo_item WHERE id = ?;', [id]);
-} 
+}

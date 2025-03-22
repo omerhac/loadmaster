@@ -90,13 +90,13 @@ describe('SchemaService Integration Tests', () => {
     // Set up test data for join tests
     beforeEach(async () => {
       await initializeLoadmasterDatabase(testDb);
-      
+
       // Insert test user
       await testDb.executeQuery(`
         INSERT INTO user (id, username, last_login) 
         VALUES (1, 'testuser', '2023-01-01T00:00:00.000Z')
       `);
-      
+
       // Insert test aircraft
       await testDb.executeQuery(`
         INSERT INTO aircraft (id, type, name, empty_weight, empty_mac, cargo_bay_width, 
@@ -104,7 +104,7 @@ describe('SchemaService Integration Tests', () => {
                             ramp_max_incline, ramp_min_incline) 
         VALUES (1, 'C-130', 'Hercules', 36000, 25.5, 10.3, 2.5, 1.2, 3.5, 15, 5)
       `);
-      
+
       // Insert test mission
       await testDb.executeQuery(`
         INSERT INTO mission (id, name, created_date, modified_date, total_weight, 
@@ -112,7 +112,7 @@ describe('SchemaService Integration Tests', () => {
         VALUES (1, 'Test Mission', '2023-01-01T00:00:00.000Z', '2023-01-01T00:00:00.000Z', 
                 50000, 30, 1)
       `);
-      
+
       // Insert test cargo type
       await testDb.executeQuery(`
         INSERT INTO cargo_type (id, user_id, name, default_weight, default_length, 
@@ -120,13 +120,13 @@ describe('SchemaService Integration Tests', () => {
                               default_back_overhang, type)
         VALUES (1, 1, 'Test Cargo', 1000, 5, 2, 2, 0.5, 0.5, 'bulk')
       `);
-      
+
       // Insert test cargo item
       await testDb.executeQuery(`
         INSERT INTO cargo_item (id, mission_id, cargo_type_id, name, x_start_position, y_start_position)
         VALUES (1, 1, 1, 'Cargo Item 1', 10, 5)
       `);
-      
+
       // Insert test fuel state
       await testDb.executeQuery(`
         INSERT INTO fuel_state (id, mission_id, total_fuel, main_tank_1_fuel, main_tank_2_fuel, 
@@ -134,20 +134,20 @@ describe('SchemaService Integration Tests', () => {
                               external_2_fuel, mac_contribution)
         VALUES (1, 1, 5000, 1000, 1000, 1000, 1000, 500, 500, 2.5)
       `);
-      
+
       // Insert test compartment
       await testDb.executeQuery(`
         INSERT INTO compartment (id, aircraft_id, name, x_start, x_end, floor_area, usable_volume)
         VALUES (1, 1, 'Main Compartment', 0, 20, 200, 600)
       `);
-      
+
       // Insert test load constraint
       await testDb.executeQuery(`
         INSERT INTO load_constraints (id, compartment_id, constraint_type, max_cumulative_weight)
         VALUES (1, 1, 'WEIGHT', 10000)
       `);
     });
-    
+
     it('should verify mission to aircraft relationship', async () => {
       const result = await testDb.executeQuery(`
         SELECT m.id as mission_id, m.name as mission_name, 
@@ -156,14 +156,14 @@ describe('SchemaService Integration Tests', () => {
         JOIN aircraft a ON m.aircraft_id = a.id
         WHERE m.id = 1
       `);
-      
+
       expect(result.count).toBe(1);
       const row = result.results[0].data;
       expect(row?.mission_name).toBe('Test Mission');
       expect(row?.aircraft_name).toBe('Hercules');
       expect(row?.type).toBe('C-130');
     });
-    
+
     it('should verify cargo item to cargo type relationship', async () => {
       const result = await testDb.executeQuery(`
         SELECT ci.id as item_id, ci.name as item_name, 
@@ -172,14 +172,14 @@ describe('SchemaService Integration Tests', () => {
         JOIN cargo_type ct ON ci.cargo_type_id = ct.id
         WHERE ci.id = 1
       `);
-      
+
       expect(result.count).toBe(1);
       const row = result.results[0].data;
       expect(row?.item_name).toBe('Cargo Item 1');
       expect(row?.type_name).toBe('Test Cargo');
       expect(row?.type).toBe('bulk');
     });
-    
+
     it('should verify cargo type to user relationship', async () => {
       const result = await testDb.executeQuery(`
         SELECT ct.id as type_id, ct.name as type_name,
@@ -188,13 +188,13 @@ describe('SchemaService Integration Tests', () => {
         JOIN user u ON ct.user_id = u.id
         WHERE ct.id = 1
       `);
-      
+
       expect(result.count).toBe(1);
       const row = result.results[0].data;
       expect(row?.type_name).toBe('Test Cargo');
       expect(row?.username).toBe('testuser');
     });
-    
+
     it('should verify mission to fuel state relationship', async () => {
       const result = await testDb.executeQuery(`
         SELECT m.id as mission_id, m.name as mission_name,
@@ -203,13 +203,13 @@ describe('SchemaService Integration Tests', () => {
         JOIN fuel_state fs ON m.id = fs.mission_id
         WHERE m.id = 1
       `);
-      
+
       expect(result.count).toBe(1);
       const row = result.results[0].data;
       expect(row?.mission_name).toBe('Test Mission');
       expect(row?.total_fuel).toBe(5000);
     });
-    
+
     it('should verify aircraft to compartment to load constraints relationships', async () => {
       const result = await testDb.executeQuery(`
         SELECT a.id as aircraft_id, a.name as aircraft_name,
@@ -220,7 +220,7 @@ describe('SchemaService Integration Tests', () => {
         JOIN load_constraints lc ON c.id = lc.compartment_id
         WHERE a.id = 1
       `);
-      
+
       expect(result.count).toBe(1);
       const row = result.results[0].data;
       expect(row?.aircraft_name).toBe('Hercules');
@@ -228,7 +228,7 @@ describe('SchemaService Integration Tests', () => {
       expect(row?.constraint_type).toBe('WEIGHT');
       expect(row?.max_cumulative_weight).toBe(10000);
     });
-    
+
     it('should verify complex multi-table relationship (mission → aircraft → compartment)', async () => {
       const result = await testDb.executeQuery(`
         SELECT m.id as mission_id, m.name as mission_name,
@@ -239,14 +239,14 @@ describe('SchemaService Integration Tests', () => {
         JOIN compartment c ON a.id = c.aircraft_id
         WHERE m.id = 1
       `);
-      
+
       expect(result.count).toBe(1);
       const row = result.results[0].data;
       expect(row?.mission_name).toBe('Test Mission');
       expect(row?.aircraft_name).toBe('Hercules');
       expect(row?.compartment_name).toBe('Main Compartment');
     });
-    
+
     it('should verify complete cargo loading chain (user → cargo type → cargo item → mission)', async () => {
       const result = await testDb.executeQuery(`
         SELECT u.username, 
@@ -259,7 +259,7 @@ describe('SchemaService Integration Tests', () => {
         JOIN mission m ON ci.mission_id = m.id
         WHERE u.id = 1
       `);
-      
+
       expect(result.count).toBe(1);
       const row = result.results[0].data;
       expect(row?.username).toBe('testuser');

@@ -103,4 +103,4 @@ export async function createFuelMacQuant(fuelMacQuant: FuelMacQuant): Promise<Da
 export async function getAllFuelMacQuants(): Promise<DatabaseResponse> {
   const db = await DatabaseFactory.getDatabase();
   return db.executeQuery('SELECT * FROM fuel_mac_quants;');
-} 
+}

@@ -143,4 +143,4 @@ export async function updateLoadConstraint(loadConstraint: LoadConstraint): Prom
 export async function deleteLoadConstraint(id: number): Promise<DatabaseResponse> {
   const db = await DatabaseFactory.getDatabase();
   return db.executeQuery('DELETE FROM load_constraints WHERE id = ?;', [id]);
-} 
+}
