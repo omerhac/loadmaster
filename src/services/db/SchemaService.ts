@@ -4,13 +4,17 @@
 
 import { SchemaDefinition } from './DatabaseTypes';
 import { DatabaseFactory } from './DatabaseService';
-
+import { TestDatabaseService } from './TestDatabaseService';
 /**
  * Creates the complete database schema for the LoadMaster application
  */
-export async function initializeLoadmasterDatabase(): Promise<void> {
-  const db = await DatabaseFactory.getDatabase();
-  await db.initializeSchema(generateSchemaSQL());
+export async function initializeLoadmasterDatabase(db: TestDatabaseService | null = null): Promise<void> {
+  if (db) {
+    await db.initializeSchema(generateSchemaSQL());
+  } else {
+    const db = await DatabaseFactory.getDatabase();
+    await db.initializeSchema(generateSchemaSQL());
+  }
 }
 
 /**
