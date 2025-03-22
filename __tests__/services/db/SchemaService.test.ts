@@ -13,7 +13,8 @@ describe('SchemaService Integration Tests', () => {
   beforeEach(async () => {
     // Clear the database before each test
     try {
-      await TestDatabaseService.initialize(true) as TestDatabaseService;
+      TestDatabaseService.resetInstance();
+      testDb = await TestDatabaseService.initialize(true) as TestDatabaseService;
     } catch (error) {
       // If tables don't exist yet, that's fine for some tests
       console.log('Could not clear tables, they may not exist yet');

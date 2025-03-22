@@ -57,55 +57,28 @@ import { TestDatabaseService } from '@/services/db/TestDatabaseService';
 describe('DatabaseOperations Integration Tests', () => {
   let testDb: TestDatabaseService;
 
-  // Helper function to clear the database tables
-  async function clearDatabaseTables(db: TestDatabaseService) {
-    await db.executeQuery('DELETE FROM load_constraints;');
-    await db.executeQuery('DELETE FROM compartment;');
-    await db.executeQuery('DELETE FROM fuel_mac_quants;');
-    await db.executeQuery('DELETE FROM fuel_state;');
-    await db.executeQuery('DELETE FROM cargo_item;');
-    await db.executeQuery('DELETE FROM cargo_type;');
-    await db.executeQuery('DELETE FROM mission;');
-    await db.executeQuery('DELETE FROM aircraft;');
-    await db.executeQuery('DELETE FROM user;');
-  }
-
   beforeAll(async () => {
-    // Reset the database factory singleton for testing
     DatabaseFactory.resetInstance();
+    testDb = await TestDatabaseService.initialize(true) as TestDatabaseService;
 
-    // Get the test database service
-    testDb = await TestDatabaseService.initialize() as TestDatabaseService;
-
-    // Ensure it's used by the DatabaseFactory
     jest.spyOn(DatabaseFactory, 'getDatabase').mockResolvedValue(testDb);
-
-    // Initialize database schema
-    await initializeLoadmasterDatabase();
+    await initializeLoadmasterDatabase(testDb);
   });
 
   beforeEach(async () => {
-    // Clear all table data before each test
-    await testDb.executeQuery('DELETE FROM load_constraints;');
-    await testDb.executeQuery('DELETE FROM compartment;');
-    await testDb.executeQuery('DELETE FROM fuel_mac_quants;');
-    await testDb.executeQuery('DELETE FROM fuel_state;');
-    await testDb.executeQuery('DELETE FROM cargo_item;');
-    await testDb.executeQuery('DELETE FROM cargo_type;');
-    await testDb.executeQuery('DELETE FROM mission;');
-    await testDb.executeQuery('DELETE FROM aircraft;');
-    await testDb.executeQuery('DELETE FROM user;');
+    // Explicitly reset the database instance before initializing a new one
+    DatabaseFactory.resetInstance();
+    TestDatabaseService.resetInstance();
+
+    // Initialize a new in-memory database
+    testDb = await TestDatabaseService.initialize(true) as TestDatabaseService;
+    await initializeLoadmasterDatabase(testDb);
+    jest.spyOn(DatabaseFactory, 'getDatabase').mockResolvedValue(testDb);
   });
 
   afterAll(async () => {
     // Reset the spy and database
     jest.restoreAllMocks();
-    try {
-      await clearDatabaseTables(testDb);
-    } catch (error) {
-      console.log('Could not clear tables in afterAll');
-    }
-    DatabaseFactory.resetInstance();
   });
 
   // ===== User Tests =====
@@ -193,7 +166,7 @@ describe('DatabaseOperations Integration Tests', () => {
       const aircraft: Aircraft = {
         type: 'C-130',
         name: 'Hercules',
-        empty_weight: 35000,
+        empty_weight: 36000,
         empty_mac: 25.5,
         cargo_bay_width: 10.3,
         treadways_width: 2.5,
