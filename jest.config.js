@@ -15,6 +15,8 @@ const config = {
     '/__mock__/',
     '/__mocks__/',
     '/.history/',
+    '/__tests__/.*Helpers\\.ts$',
+    '/__tests__/.*/testHelpers\\.ts$',
   ],
   // Use specific resolver to handle better-sqlite3 mapping
   resolver: '<rootDir>/jest.resolver.js',
