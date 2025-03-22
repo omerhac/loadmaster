@@ -5,6 +5,10 @@ jest.unmock('@/services/db/TestDatabaseService');
 
 // Now import the necessary modules
 import { TestDatabaseService } from '@/services/db/TestDatabaseService';
+import { DatabaseInterface } from '@/services/db/DatabaseService';
+import path from 'path';
+import fs from 'fs';
+import os from 'os';
 
 const TEST_SCHEMA = `
   -- Test table for CRUD operations
@@ -179,14 +183,40 @@ describe('In-Memory SQLite Integration Tests', () => {
 // Test suite for testing the actual database file created by create-dummy-db.js
 describe('Loadmaster SQLite File Database Tests', () => {
   let dbService: DatabaseInterface;
+  let tempDbPath: string;
+  let originalDbPath: string;
 
-  beforeEach(async () => {
-    TestDatabaseService.resetInstance();
-    dbService = await TestDatabaseService.initialize();
+  beforeAll(async () => {
+    originalDbPath = path.resolve(__dirname, '../../../assets/database/loadmaster.db');
+    tempDbPath = path.join(os.tmpdir(), `loadmaster_test_${Date.now()}.db`);
+    
+    // Copy the database file to temp location
+    if (fs.existsSync(originalDbPath)) {
+      fs.copyFileSync(originalDbPath, tempDbPath);
+      console.log(`Created temporary database copy at: ${tempDbPath}`);
+    } else {
+      console.warn(`Original database not found at: ${originalDbPath}`);
+      // The tests will likely fail, but let them run
+    }
   });
 
   afterAll(() => {
+    // Clean up the temporary database file
     TestDatabaseService.resetInstance();
+    if (fs.existsSync(tempDbPath)) {
+      try {
+        fs.unlinkSync(tempDbPath);
+        console.log(`Removed temporary database file: ${tempDbPath}`);
+      } catch (err) {
+        console.error(`Failed to remove temporary database file: ${err}`);
+      }
+    }
+  });
+
+  beforeEach(async () => {
+    TestDatabaseService.resetInstance();
+    // Initialize with our temporary database copy
+    dbService = await TestDatabaseService.initializeFromFile(tempDbPath);
   });
 
   it('should load and connect to the loadmaster database file by default', async () => {
