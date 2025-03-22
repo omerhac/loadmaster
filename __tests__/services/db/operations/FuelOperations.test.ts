@@ -12,14 +12,12 @@ import {
   getAllFuelMacQuants,
 } from '../../../../src/services/db/operations';
 import { setupTestDatabase, cleanupTestDatabase } from '../testHelpers';
-import { TestDatabaseService } from '../../../../src/services/db/TestDatabaseService';
 
 describe('Fuel Operations', () => {
-  let testDb: TestDatabaseService;
   let missionId: number;
 
   beforeEach(async () => {
-    testDb = await setupTestDatabase();
+    await setupTestDatabase();
 
     // Create an aircraft
     const aircraft: Aircraft = {

@@ -10,14 +10,12 @@ import {
   createUser,
 } from '../../../../src/services/db/operations';
 import { setupTestDatabase, cleanupTestDatabase } from '../testHelpers';
-import { TestDatabaseService } from '../../../../src/services/db/TestDatabaseService';
 
 describe('CargoType Operations', () => {
-  let testDb: TestDatabaseService;
   let userId: number;
 
   beforeEach(async () => {
-    testDb = await setupTestDatabase();
+    await setupTestDatabase();
 
     // Create a user for cargo type tests that need user association
     const user: User = {

@@ -14,14 +14,12 @@ import {
   deleteLoadConstraint,
 } from '../../../../src/services/db/operations';
 import { setupTestDatabase, cleanupTestDatabase } from '../testHelpers';
-import { TestDatabaseService } from '../../../../src/services/db/TestDatabaseService';
 
 describe('Compartment Operations', () => {
-  let testDb: TestDatabaseService;
   let aircraftId: number;
 
   beforeEach(async () => {
-    testDb = await setupTestDatabase();
+    await setupTestDatabase();
 
     // Create an aircraft for compartment tests
     const aircraft: Aircraft = {
@@ -181,8 +179,6 @@ describe('Compartment Operations', () => {
 
       const createResult = await createLoadConstraint(loadConstraint);
       expect(createResult.results[0].lastInsertId).toBeTruthy();
-
-      const constraintId = createResult.results[0].lastInsertId;
 
       // Get load constraints by compartment ID
       const getResult = await getLoadConstraintsByCompartmentId(compartmentId);

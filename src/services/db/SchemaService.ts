@@ -8,9 +8,9 @@ import { TestDatabaseService } from './TestDatabaseService';
 /**
  * Creates the complete database schema for the LoadMaster application
  */
-export async function initializeLoadmasterDatabase(db: TestDatabaseService | null = null): Promise<void> {
-  if (db) {
-    await db.initializeSchema(generateSchemaSQL());
+export async function initializeLoadmasterDatabase(provided_db: TestDatabaseService | null = null): Promise<void> {
+  if (provided_db) {
+    await provided_db.initializeSchema(generateSchemaSQL());
   } else {
     const db = await DatabaseFactory.getDatabase();
     await db.initializeSchema(generateSchemaSQL());

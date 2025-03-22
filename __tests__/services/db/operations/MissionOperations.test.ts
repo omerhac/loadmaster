@@ -10,14 +10,12 @@ import {
   deleteMission,
 } from '../../../../src/services/db/operations';
 import { setupTestDatabase, cleanupTestDatabase } from '../testHelpers';
-import { TestDatabaseService } from '../../../../src/services/db/TestDatabaseService';
 
 describe('Mission Operations', () => {
-  let testDb: TestDatabaseService;
   let aircraftId: number;
 
   beforeEach(async () => {
-    testDb = await setupTestDatabase();
+    await setupTestDatabase();
 
     // Create an aircraft for mission tests
     const aircraft: Aircraft = {

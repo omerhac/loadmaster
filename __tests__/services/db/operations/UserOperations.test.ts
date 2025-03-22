@@ -1,12 +1,9 @@
 import { User, createUser, getUserById, getUserByUsername, updateUser, deleteUser } from '../../../../src/services/db/operations';
 import { setupTestDatabase, cleanupTestDatabase } from '../testHelpers';
-import { TestDatabaseService } from '../../../../src/services/db/TestDatabaseService';
 
 describe('User Operations', () => {
-  let testDb: TestDatabaseService;
-
   beforeEach(async () => {
-    testDb = await setupTestDatabase();
+    await setupTestDatabase();
   });
 
   afterAll(() => {

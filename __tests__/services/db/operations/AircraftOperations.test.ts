@@ -7,13 +7,10 @@ import {
   deleteAircraft,
 } from '../../../../src/services/db/operations';
 import { setupTestDatabase, cleanupTestDatabase } from '../testHelpers';
-import { TestDatabaseService } from '../../../../src/services/db/TestDatabaseService';
 
 describe('Aircraft Operations', () => {
-  let testDb: TestDatabaseService;
-
   beforeEach(async () => {
-    testDb = await setupTestDatabase();
+    await setupTestDatabase();
   });
 
   afterAll(() => {
