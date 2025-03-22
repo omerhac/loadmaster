@@ -1,6 +1,9 @@
 import {
   DatabaseFactory,
   initializeLoadmasterDatabase,
+} from '../../../src/services/db';
+
+import {
   Aircraft,
   Mission,
   CargoType,
@@ -51,8 +54,9 @@ import {
   getUserByUsername,
   updateUser,
   deleteUser,
-} from '@/services/db';
-import { TestDatabaseService } from '@/services/db/TestDatabaseService';
+} from '../../../src/services/db/operations';
+
+import { TestDatabaseService } from '../../../src/services/db/TestDatabaseService';
 
 describe('DatabaseOperations Integration Tests', () => {
   let testDb: TestDatabaseService;

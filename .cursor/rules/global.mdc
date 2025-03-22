@@ -32,6 +32,7 @@ description: TypeScript coding standards and best practices for modern web devel
 - Co-locate component props with their components
 - Place tests only in <root_dir>/__tests__ dir
 - Testing code should follow source code organization in directories
+- Files sshould be <300 LOC
 
 ## Functions
 - Have very descriptive names

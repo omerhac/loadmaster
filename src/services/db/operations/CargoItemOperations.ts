@@ -1,0 +1,76 @@
+/**
+ * Database operations for CargoItem entities
+ */
+
+import { DatabaseFactory } from '../DatabaseService';
+import { DatabaseResponse } from '../DatabaseTypes';
+import { CargoItem } from './types';
+
+/**
+ * Create a new cargo item
+ */
+export async function createCargoItem(cargoItem: CargoItem): Promise<DatabaseResponse> {
+  const db = await DatabaseFactory.getDatabase();
+  const sql = `
+    INSERT INTO cargo_item (
+      mission_id, cargo_type_id, name, x_start_position, y_start_position
+    )
+    VALUES (?, ?, ?, ?, ?);
+  `;
+  return db.executeQuery(sql, [
+    cargoItem.mission_id,
+    cargoItem.cargo_type_id,
+    cargoItem.name,
+    cargoItem.x_start_position,
+    cargoItem.y_start_position,
+  ]);
+}
+
+/**
+ * Get cargo item by ID
+ */
+export async function getCargoItemById(id: number): Promise<DatabaseResponse> {
+  const db = await DatabaseFactory.getDatabase();
+  return db.executeQuery('SELECT * FROM cargo_item WHERE id = ?;', [id]);
+}
+
+/**
+ * Get cargo items by mission ID
+ */
+export async function getCargoItemsByMissionId(missionId: number): Promise<DatabaseResponse> {
+  const db = await DatabaseFactory.getDatabase();
+  return db.executeQuery('SELECT * FROM cargo_item WHERE mission_id = ?;', [missionId]);
+}
+
+/**
+ * Update cargo item
+ */
+export async function updateCargoItem(cargoItem: CargoItem): Promise<DatabaseResponse> {
+  if (!cargoItem.id) {
+    throw new Error('Cargo item ID is required for update');
+  }
+
+  const db = await DatabaseFactory.getDatabase();
+  const sql = `
+    UPDATE cargo_item
+    SET mission_id = ?, cargo_type_id = ?, name = ?,
+        x_start_position = ?, y_start_position = ?
+    WHERE id = ?;
+  `;
+  return db.executeQuery(sql, [
+    cargoItem.mission_id,
+    cargoItem.cargo_type_id,
+    cargoItem.name,
+    cargoItem.x_start_position,
+    cargoItem.y_start_position,
+    cargoItem.id,
+  ]);
+}
+
+/**
+ * Delete cargo item
+ */
+export async function deleteCargoItem(id: number): Promise<DatabaseResponse> {
+  const db = await DatabaseFactory.getDatabase();
+  return db.executeQuery('DELETE FROM cargo_item WHERE id = ?;', [id]);
+} 
