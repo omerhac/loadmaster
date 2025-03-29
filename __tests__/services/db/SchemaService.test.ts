@@ -1,5 +1,5 @@
-import { initializeLoadmasterDatabase, generateSchemaSQL, getSchemaDefinitions } from '@/services/db/SchemaService';
-import { TestDatabaseService } from '@/services/db/TestDatabaseService';
+import { initializeLoadmasterDatabase, generateSchemaSQL, getSchemaDefinitions } from '../../../src/services/db/SchemaService';
+import { TestDatabaseService } from '../../../src/services/db/TestDatabaseService';
 
 describe('SchemaService Integration Tests', () => {
   let testDb: TestDatabaseService;
@@ -108,9 +108,11 @@ describe('SchemaService Integration Tests', () => {
       // Insert test mission
       await testDb.executeQuery(`
         INSERT INTO mission (id, name, created_date, modified_date, total_weight, 
-                           total_mac_percent, aircraft_id)
+                           total_mac_percent, crew_weight, configuration_weights,
+                           crew_gear_weight, food_weight, safety_gear_weight,
+                           etc_weight, aircraft_id)
         VALUES (1, 'Test Mission', '2023-01-01T00:00:00.000Z', '2023-01-01T00:00:00.000Z', 
-                50000, 30, 1)
+                50000, 30, 800, 150, 200, 100, 50, 75, 1)
       `);
 
       // Insert test cargo type

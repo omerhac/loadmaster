@@ -14,9 +14,11 @@ export async function createMission(mission: Mission): Promise<DatabaseResponse>
   const sql = `
     INSERT INTO mission (
       name, created_date, modified_date, total_weight,
-      total_mac_percent, aircraft_id
+      total_mac_percent, crew_weight, configuration_weights,
+      crew_gear_weight, food_weight, safety_gear_weight,
+      etc_weight, aircraft_id
     )
-    VALUES (?, ?, ?, ?, ?, ?);
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
   return db.executeQuery(sql, [
     mission.name,
@@ -24,6 +26,12 @@ export async function createMission(mission: Mission): Promise<DatabaseResponse>
     mission.modified_date,
     mission.total_weight,
     mission.total_mac_percent,
+    mission.crew_weight,
+    mission.configuration_weights,
+    mission.crew_gear_weight,
+    mission.food_weight,
+    mission.safety_gear_weight,
+    mission.etc_weight,
     mission.aircraft_id,
   ]);
 }
@@ -64,7 +72,9 @@ export async function updateMission(mission: Mission): Promise<DatabaseResponse>
   const sql = `
     UPDATE mission
     SET name = ?, modified_date = ?, total_weight = ?,
-        total_mac_percent = ?, aircraft_id = ?
+        total_mac_percent = ?, crew_weight = ?, configuration_weights = ?,
+        crew_gear_weight = ?, food_weight = ?, safety_gear_weight = ?,
+        etc_weight = ?, aircraft_id = ?
     WHERE id = ?;
   `;
   return db.executeQuery(sql, [
@@ -72,6 +82,12 @@ export async function updateMission(mission: Mission): Promise<DatabaseResponse>
     mission.modified_date,
     mission.total_weight,
     mission.total_mac_percent,
+    mission.crew_weight,
+    mission.configuration_weights,
+    mission.crew_gear_weight,
+    mission.food_weight,
+    mission.safety_gear_weight,
+    mission.etc_weight,
     mission.aircraft_id,
     mission.id,
   ]);

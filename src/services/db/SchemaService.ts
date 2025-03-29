@@ -96,6 +96,12 @@ export function getMissionTableSchema(): SchemaDefinition {
         modified_date TEXT NOT NULL,
         total_weight REAL NOT NULL,
         total_mac_percent REAL NOT NULL,
+        crew_weight REAL NOT NULL DEFAULT 0,
+        configuration_weights REAL NOT NULL DEFAULT 0,
+        crew_gear_weight REAL NOT NULL DEFAULT 0,
+        food_weight REAL NOT NULL DEFAULT 0,
+        safety_gear_weight REAL NOT NULL DEFAULT 0,
+        etc_weight REAL NOT NULL DEFAULT 0,
         aircraft_id INTEGER NOT NULL,
         FOREIGN KEY (aircraft_id) REFERENCES aircraft (id)
       );

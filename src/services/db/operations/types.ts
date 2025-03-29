@@ -23,6 +23,12 @@ export interface Mission {
   modified_date: string;
   total_weight: number;
   total_mac_percent: number;
+  crew_weight: number;
+  configuration_weights: number;
+  crew_gear_weight: number;
+  food_weight: number;
+  safety_gear_weight: number;
+  etc_weight: number;
   aircraft_id: number;
 }
 
