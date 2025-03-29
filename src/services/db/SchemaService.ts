@@ -39,6 +39,7 @@ export function getSchemaDefinitions(): SchemaDefinition[] {
     getFuelMacQuantsTableSchema(),
     getCompartmentTableSchema(),
     getLoadConstraintsTableSchema(),
+    getAllowedMacConstraintsTableSchema(),
   ];
 }
 
@@ -96,6 +97,12 @@ export function getMissionTableSchema(): SchemaDefinition {
         modified_date TEXT NOT NULL,
         total_weight REAL NOT NULL,
         total_mac_percent REAL NOT NULL,
+        crew_weight REAL NOT NULL DEFAULT 0,
+        configuration_weights REAL NOT NULL DEFAULT 0,
+        crew_gear_weight REAL NOT NULL DEFAULT 0,
+        food_weight REAL NOT NULL DEFAULT 0,
+        safety_gear_weight REAL NOT NULL DEFAULT 0,
+        etc_weight REAL NOT NULL DEFAULT 0,
         aircraft_id INTEGER NOT NULL,
         FOREIGN KEY (aircraft_id) REFERENCES aircraft (id)
       );
@@ -230,6 +237,23 @@ export function getLoadConstraintsTableSchema(): SchemaDefinition {
         max_running_load_treadway REAL,
         max_running_load_between_treadways REAL,
         FOREIGN KEY (compartment_id) REFERENCES compartment (id)
+      );
+    `,
+  };
+}
+
+/**
+ * Allowed MAC constraints table schema definition
+ */
+export function getAllowedMacConstraintsTableSchema(): SchemaDefinition {
+  return {
+    tableName: 'allowed_mac_constraints',
+    createStatement: `
+      CREATE TABLE IF NOT EXISTS allowed_mac_constraints (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        gross_aircraft_weight REAL NOT NULL,
+        min_mac REAL NOT NULL,
+        max_mac REAL NOT NULL
       );
     `,
   };

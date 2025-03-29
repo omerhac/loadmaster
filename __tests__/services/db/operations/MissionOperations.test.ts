@@ -47,6 +47,12 @@ describe('Mission Operations', () => {
       modified_date: new Date().toISOString(),
       total_weight: 5000,
       total_mac_percent: 30,
+      crew_weight: 800,
+      configuration_weights: 150,
+      crew_gear_weight: 200,
+      food_weight: 100,
+      safety_gear_weight: 50,
+      etc_weight: 75,
       aircraft_id: aircraftId,
     };
 
@@ -70,6 +76,12 @@ describe('Mission Operations', () => {
       modified_date: new Date().toISOString(),
       total_weight: 5000,
       total_mac_percent: 30,
+      crew_weight: 800,
+      configuration_weights: 150,
+      crew_gear_weight: 200,
+      food_weight: 100,
+      safety_gear_weight: 50,
+      etc_weight: 75,
       aircraft_id: aircraftId,
     };
 
@@ -79,6 +91,12 @@ describe('Mission Operations', () => {
       modified_date: new Date().toISOString(),
       total_weight: 6000,
       total_mac_percent: 32,
+      crew_weight: 850,
+      configuration_weights: 175,
+      crew_gear_weight: 225,
+      food_weight: 125,
+      safety_gear_weight: 60,
+      etc_weight: 90,
       aircraft_id: aircraftId,
     };
 
@@ -98,6 +116,12 @@ describe('Mission Operations', () => {
       modified_date: new Date().toISOString(),
       total_weight: 5000,
       total_mac_percent: 30,
+      crew_weight: 800,
+      configuration_weights: 150,
+      crew_gear_weight: 200,
+      food_weight: 100,
+      safety_gear_weight: 50,
+      etc_weight: 75,
       aircraft_id: aircraftId,
     };
 
@@ -107,6 +131,12 @@ describe('Mission Operations', () => {
       modified_date: new Date().toISOString(),
       total_weight: 6000,
       total_mac_percent: 32,
+      crew_weight: 850,
+      configuration_weights: 175,
+      crew_gear_weight: 225,
+      food_weight: 125,
+      safety_gear_weight: 60,
+      etc_weight: 90,
       aircraft_id: aircraftId,
     };
 
@@ -126,6 +156,12 @@ describe('Mission Operations', () => {
       modified_date: new Date().toISOString(),
       total_weight: 5000,
       total_mac_percent: 30,
+      crew_weight: 800,
+      configuration_weights: 150,
+      crew_gear_weight: 200,
+      food_weight: 100,
+      safety_gear_weight: 50,
+      etc_weight: 75,
       aircraft_id: aircraftId,
     };
 
@@ -140,6 +176,12 @@ describe('Mission Operations', () => {
       modified_date: new Date().toISOString(),
       total_weight: 5500,
       total_mac_percent: 32,
+      crew_weight: 850,
+      configuration_weights: 175,
+      crew_gear_weight: 225,
+      food_weight: 125,
+      safety_gear_weight: 60,
+      etc_weight: 90,
       aircraft_id: aircraftId,
     };
 
@@ -159,6 +201,12 @@ describe('Mission Operations', () => {
       modified_date: new Date().toISOString(),
       total_weight: 5000,
       total_mac_percent: 30,
+      crew_weight: 800,
+      configuration_weights: 150,
+      crew_gear_weight: 200,
+      food_weight: 100,
+      safety_gear_weight: 50,
+      etc_weight: 75,
       aircraft_id: aircraftId,
     };
 

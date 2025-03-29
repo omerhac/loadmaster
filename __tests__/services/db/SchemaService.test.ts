@@ -1,5 +1,5 @@
-import { initializeLoadmasterDatabase, generateSchemaSQL, getSchemaDefinitions } from '@/services/db/SchemaService';
-import { TestDatabaseService } from '@/services/db/TestDatabaseService';
+import { initializeLoadmasterDatabase, generateSchemaSQL, getSchemaDefinitions } from '../../../src/services/db/SchemaService';
+import { TestDatabaseService } from '../../../src/services/db/TestDatabaseService';
 
 describe('SchemaService Integration Tests', () => {
   let testDb: TestDatabaseService;
@@ -39,13 +39,14 @@ describe('SchemaService Integration Tests', () => {
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS fuel_mac_quants');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS compartment');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS load_constraints');
+    expect(schema).toContain('CREATE TABLE IF NOT EXISTS allowed_mac_constraints');
   });
 
   it('should return all schema definitions', () => {
     const schemas = getSchemaDefinitions();
 
     // Check if all expected schemas are returned
-    expect(schemas.length).toBe(9);
+    expect(schemas.length).toBe(10);
 
     // Check for specific table names
     const tableNames = schemas.map(schema => schema.tableName);
@@ -58,6 +59,7 @@ describe('SchemaService Integration Tests', () => {
     expect(tableNames).toContain('fuel_mac_quants');
     expect(tableNames).toContain('compartment');
     expect(tableNames).toContain('load_constraints');
+    expect(tableNames).toContain('allowed_mac_constraints');
   });
 
   it('should initialize the database with all tables', async () => {
@@ -84,6 +86,7 @@ describe('SchemaService Integration Tests', () => {
     expect(tableNames).toContain('fuel_mac_quants');
     expect(tableNames).toContain('compartment');
     expect(tableNames).toContain('load_constraints');
+    expect(tableNames).toContain('allowed_mac_constraints');
   });
 
   describe('Table Relationship Tests', () => {
@@ -108,9 +111,11 @@ describe('SchemaService Integration Tests', () => {
       // Insert test mission
       await testDb.executeQuery(`
         INSERT INTO mission (id, name, created_date, modified_date, total_weight, 
-                           total_mac_percent, aircraft_id)
+                           total_mac_percent, crew_weight, configuration_weights,
+                           crew_gear_weight, food_weight, safety_gear_weight,
+                           etc_weight, aircraft_id)
         VALUES (1, 'Test Mission', '2023-01-01T00:00:00.000Z', '2023-01-01T00:00:00.000Z', 
-                50000, 30, 1)
+                50000, 30, 800, 150, 200, 100, 50, 75, 1)
       `);
 
       // Insert test cargo type
@@ -145,6 +150,14 @@ describe('SchemaService Integration Tests', () => {
       await testDb.executeQuery(`
         INSERT INTO load_constraints (id, compartment_id, constraint_type, max_cumulative_weight)
         VALUES (1, 1, 'WEIGHT', 10000)
+      `);
+
+      // Insert test allowed MAC constraints
+      await testDb.executeQuery(`
+        INSERT INTO allowed_mac_constraints (id, gross_aircraft_weight, min_mac, max_mac)
+        VALUES 
+        (1, 160000, 15.0, 25.0),
+        (2, 180000, 18.0, 28.0)
       `);
     });
 
@@ -268,6 +281,25 @@ describe('SchemaService Integration Tests', () => {
       expect(row?.mission_name).toBe('Test Mission');
       expect(row?.x_start_position).toBe(10);
       expect(row?.y_start_position).toBe(5);
+    });
+
+    it('should verify allowed MAC constraints data', async () => {
+      const result = await testDb.executeQuery(`
+        SELECT * FROM allowed_mac_constraints
+        ORDER BY gross_aircraft_weight
+      `);
+
+      expect(result.count).toBe(2);
+      const firstRow = result.results[0].data;
+      const secondRow = result.results[1].data;
+      
+      expect(firstRow?.gross_aircraft_weight).toBe(160000);
+      expect(firstRow?.min_mac).toBe(15.0);
+      expect(firstRow?.max_mac).toBe(25.0);
+      
+      expect(secondRow?.gross_aircraft_weight).toBe(180000);
+      expect(secondRow?.min_mac).toBe(18.0);
+      expect(secondRow?.max_mac).toBe(28.0);
     });
   });
 });
