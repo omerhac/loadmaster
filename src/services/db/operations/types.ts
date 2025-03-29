@@ -103,3 +103,10 @@ export interface User {
   username: string;
   last_login?: string;
 }
+
+export interface AllowedMacConstraint {
+  id?: number;
+  gross_aircraft_weight: number;
+  min_mac: number;
+  max_mac: number;
+}

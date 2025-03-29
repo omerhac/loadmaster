@@ -39,6 +39,7 @@ export function getSchemaDefinitions(): SchemaDefinition[] {
     getFuelMacQuantsTableSchema(),
     getCompartmentTableSchema(),
     getLoadConstraintsTableSchema(),
+    getAllowedMacConstraintsTableSchema(),
   ];
 }
 
@@ -236,6 +237,23 @@ export function getLoadConstraintsTableSchema(): SchemaDefinition {
         max_running_load_treadway REAL,
         max_running_load_between_treadways REAL,
         FOREIGN KEY (compartment_id) REFERENCES compartment (id)
+      );
+    `,
+  };
+}
+
+/**
+ * Allowed MAC constraints table schema definition
+ */
+export function getAllowedMacConstraintsTableSchema(): SchemaDefinition {
+  return {
+    tableName: 'allowed_mac_constraints',
+    createStatement: `
+      CREATE TABLE IF NOT EXISTS allowed_mac_constraints (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        gross_aircraft_weight REAL NOT NULL,
+        min_mac REAL NOT NULL,
+        max_mac REAL NOT NULL
       );
     `,
   };
