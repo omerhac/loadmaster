@@ -27,6 +27,20 @@ calculateMACIndex(cargoItemId: number): Promise<number>
  * @returns The calculated CG value as a float
  */
 calculateAircraftCG(aircraftId: number, totalIndex: number): Promise<number>
+
+/**
+ * Calculates the MAC contribution from additional weights (crew, food, etc.)
+ * @param missionId - The ID of the mission
+ * @returns The MAC index contribution from additional weights
+ */
+calculateAdditionalWeightsMAC(missionId: number): Promise<number>
+
+/**
+ * Calculates the total aircraft weight including all cargo, fuel, and additional weights
+ * @param missionId - The ID of the mission
+ * @returns The total weight of the aircraft in pounds
+ */
+calculateTotalAircraftWeight(missionId: number): Promise<number>
 ```
 
 ## Database Dependencies
@@ -36,6 +50,7 @@ The service relies on the following database tables:
 - `cargo_item`: Stores cargo placement coordinates and references to cargo types
 - `cargo_type`: Defines cargo specifications including weight and dimensions
 - `aircraft`: Stores aircraft configuration data including empty weight
+- `fuel_state`: Contains fuel load information for the mission
 
 ## Implementation Details
 
@@ -52,17 +67,21 @@ async function calculateMACPercent(missionId: number): Promise<number> {
   // 2. Get all cargo items for this mission
   const cargoItems = await getCargoItemsByMissionId(missionId);
   
-  // 3. Calculate total MAC index
+  // 3. Calculate total MAC index from cargo items
   let totalMACIndex = 0;
   for (const cargoItem of cargoItems) {
     const macIndex = await calculateMACIndex(cargoItem.id);
     totalMACIndex += macIndex;
   }
-  
-  // 4. Calculate aircraft CG
+
+  // 4. Add MAC index contribution from additional weights
+  const additionalWeightsMACIndex = await calculateAdditionalWeightsMAC(missionId);
+  totalMACIndex += additionalWeightsMACIndex;
+
+  // 5. Calculate aircraft CG
   const cg = await calculateAircraftCG(mission.aircraft_id, totalMACIndex);
   
-  // 5. Calculate MAC percentage
+  // 6. Calculate MAC percentage
   const macPercent = (cg - 487.4) * 100 / 164.5;
   
   return macPercent;
@@ -105,12 +124,110 @@ async function calculateAircraftCG(aircraftId: number, totalIndex: number): Prom
     throw new Error(`Aircraft with ID ${aircraftId} not found`);
   }
   
-  // 2. Calculate CG
-  const cg = (totalIndex - 100) * 50000 / aircraft.empty_weight;
+  // 2. Get mission associated with this aircraft
+  const mission = await getMissionByAircraftId(aircraftId);
+  if (!mission) {
+    throw new Error(`No mission found for aircraft ID ${aircraftId}`);
+  }
+  
+  // 3. Calculate total aircraft weight
+  const totalWeight = await calculateTotalAircraftWeight(mission.id);
+  
+  // 4. Calculate CG
+  const cg = (totalIndex - 100) * 50000 / totalWeight;
   
   return cg;
 }
 ```
+
+#### calculateAdditionalWeightsMAC
+
+```typescript
+async function calculateAdditionalWeightsMAC(missionId: number): Promise<number> {
+  // 1. Get mission data
+  const mission = await getMissionById(missionId);
+  if (!mission) {
+    throw new Error(`Mission with ID ${missionId} not found`);
+  }
+  
+  // 2. Define standard locations for different weight types
+  // These are the x-coordinates (stations) where these weights are typically located
+  const CREW_STATION = 450.0;
+  const CONFIG_STATION = 500.0;
+  const CREW_GEAR_STATION = 520.0;
+  const FOOD_STATION = 480.0;
+  const SAFETY_GEAR_STATION = 510.0;
+  const ETC_STATION = 490.0;
+  
+  // 3. Calculate MAC index contributions for each weight type
+  let totalAdditionalMAC = 0;
+  
+  // Crew weight
+  totalAdditionalMAC += (CREW_STATION - 533.46) * mission.crew_weight / 50000;
+  
+  // Configuration weights
+  totalAdditionalMAC += (CONFIG_STATION - 533.46) * mission.configuration_weights / 50000;
+  
+  // Crew gear weight
+  totalAdditionalMAC += (CREW_GEAR_STATION - 533.46) * mission.crew_gear_weight / 50000;
+  
+  // Food weight
+  totalAdditionalMAC += (FOOD_STATION - 533.46) * mission.food_weight / 50000;
+  
+  // Safety gear weight
+  totalAdditionalMAC += (SAFETY_GEAR_STATION - 533.46) * mission.safety_gear_weight / 50000;
+  
+  // ETC weight
+  totalAdditionalMAC += (ETC_STATION - 533.46) * mission.etc_weight / 50000;
+  
+  return totalAdditionalMAC;
+}
+```
+
+#### calculateTotalAircraftWeight
+
+```typescript
+async function calculateTotalAircraftWeight(missionId: number): Promise<number> {
+  // 1. Get mission data
+  const mission = await getMissionById(missionId);
+  if (!mission) {
+    throw new Error(`Mission with ID ${missionId} not found`);
+  }
+  
+  // 2. Get aircraft data
+  const aircraft = await getAircraftById(mission.aircraft_id);
+  if (!aircraft) {
+    throw new Error(`Aircraft with ID ${mission.aircraft_id} not found`);
+  }
+  
+  // 3. Get all cargo items for this mission
+  const cargoItems = await getCargoItemsByMissionId(missionId);
+  
+  // 4. Calculate total cargo weight
+  let totalCargoWeight = 0;
+  for (const cargoItem of cargoItems) {
+    const cargoType = await getCargoTypeById(cargoItem.cargo_type_id);
+    totalCargoWeight += cargoType.default_weight;
+  }
+  
+  // 5. Get fuel data
+  const fuelState = await getFuelStateByMissionId(missionId);
+  const totalFuelWeight = fuelState ? fuelState.total_fuel : 0;
+  
+  // 6. Sum all weights to get gross weight
+  const grossWeight = aircraft.empty_weight + 
+                      mission.crew_weight + 
+                      mission.configuration_weights + 
+                      mission.crew_gear_weight + 
+                      mission.food_weight + 
+                      mission.safety_gear_weight + 
+                      mission.etc_weight +
+                      totalCargoWeight +
+                      totalFuelWeight;
+  
+  return grossWeight;
+}
+```§§
 
 ## Error Handling
 
