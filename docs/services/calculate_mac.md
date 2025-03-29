@@ -41,6 +41,13 @@ calculateAdditionalWeightsMAC(missionId: number): Promise<number>
  * @returns The total weight of the aircraft in pounds
  */
 calculateTotalAircraftWeight(missionId: number): Promise<number>
+
+/**
+ * Calculates the MAC contribution from the fuel configuration
+ * @param missionId - The ID of the mission
+ * @returns The MAC index contribution from fuel
+ */
+calculateFuelMAC(missionId: number): Promise<number>
 ```
 
 ## Database Dependencies
@@ -51,6 +58,7 @@ The service relies on the following database tables:
 - `cargo_type`: Defines cargo specifications including weight and dimensions
 - `aircraft`: Stores aircraft configuration data including empty weight
 - `fuel_state`: Contains fuel load information for the mission
+- `fuel_mac_quants`: Reference table with MAC contributions for different fuel configurations
 
 ## Implementation Details
 
@@ -77,11 +85,15 @@ async function calculateMACPercent(missionId: number): Promise<number> {
   // 4. Add MAC index contribution from additional weights
   const additionalWeightsMACIndex = await calculateAdditionalWeightsMAC(missionId);
   totalMACIndex += additionalWeightsMACIndex;
+  
+  // 5. Add MAC index contribution from fuel
+  const fuelMACIndex = await calculateFuelMAC(missionId);
+  totalMACIndex += fuelMACIndex;
 
-  // 5. Calculate aircraft CG
+  // 6. Calculate aircraft CG
   const cg = await calculateAircraftCG(mission.aircraft_id, totalMACIndex);
   
-  // 6. Calculate MAC percentage
+  // 7. Calculate MAC percentage
   const macPercent = (cg - 487.4) * 100 / 164.5;
   
   return macPercent;
@@ -227,7 +239,34 @@ async function calculateTotalAircraftWeight(missionId: number): Promise<number> 
   
   return grossWeight;
 }
-```§§
+```
+
+#### calculateFuelMAC
+
+```typescript
+async function calculateFuelMAC(missionId: number): Promise<number> {
+  // 1. Get fuel state for the mission
+  const fuelState = await getFuelStateByMissionId(missionId);
+  if (!fuelState) {
+    // If no fuel state exists, return 0 as the MAC contribution
+    return 0;
+  }
+  
+  // 2. Find the most closely matching fuel configuration in the reference table
+  const fuelMacQuant = await findClosestFuelMacConfiguration(
+    fuelState.main_tank_1_fuel,
+    fuelState.main_tank_2_fuel,
+    fuelState.main_tank_3_fuel,
+    fuelState.main_tank_4_fuel,
+    fuelState.external_1_fuel,
+    fuelState.external_2_fuel
+  );
+  
+  // 3. Return the MAC contribution from the reference table
+  // If an exact match isn't found, we return the closest match's MAC contribution
+  return fuelMacQuant.mac_contribution;
+}
+```
 
 ## Error Handling
 
