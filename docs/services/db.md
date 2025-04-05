@@ -342,6 +342,22 @@ async function updateFuelState(fuelState: FuelState): Promise<DatabaseResponse>
 
 // Delete a fuel state record
 async function deleteFuelState(id: number): Promise<DatabaseResponse>
+
+// Create a new fuel MAC quantity entry
+async function createFuelMacQuant(fuelMacQuant: FuelMacQuant): Promise<DatabaseResponse>
+
+// Retrieve all fuel MAC quantities
+async function getAllFuelMacQuants(): Promise<DatabaseResponse>
+
+// Find the closest matching fuel configuration in the reference table
+async function findClosestFuelMacConfiguration(
+  tank1: number,
+  tank2: number,
+  tank3: number,
+  tank4: number,
+  ext1: number,
+  ext2: number
+): Promise<{ mac_contribution: number }>
 ```
 
 ### Compartment Operations
