@@ -22,18 +22,18 @@ calculateMACIndex(cargoItemId: number): Promise<number>
 
 /**
  * Calculates the aircraft Center of Gravity (CG)
- * @param aircraftId - The ID of the aircraft
+ * @param missionId - The Mission Id to calculate the CG for
  * @param totalIndex - The accumulated MAC index from all cargo items
  * @returns The calculated CG value as a float
  */
-calculateAircraftCG(aircraftId: number, totalIndex: number): Promise<number>
+calculateAircraftCG(missionID: number, totalIndex: number): Promise<number>
 
 /**
  * Calculates the MAC contribution from additional weights (crew, food, etc.)
  * @param missionId - The ID of the mission
  * @returns The MAC index contribution from additional weights
  */
-calculateAdditionalWeightsMAC(missionId: number): Promise<number>
+calculateAdditionalWeightsMACIndex(missionId: number): Promise<number>
 
 /**
  * Calculates the total aircraft weight including all cargo, fuel, and additional weights
@@ -83,7 +83,7 @@ async function calculateMACPercent(missionId: number): Promise<number> {
   }
 
   // 4. Add MAC index contribution from additional weights
-  const additionalWeightsMACIndex = await calculateAdditionalWeightsMAC(missionId);
+  const additionalWeightsMACIndex = await calculateAdditionalWeightsMACIndex(missionId);
   totalMACIndex += additionalWeightsMACIndex;
   
   // 5. Add MAC index contribution from fuel
@@ -91,7 +91,7 @@ async function calculateMACPercent(missionId: number): Promise<number> {
   totalMACIndex += fuelMACIndex;
 
   // 6. Calculate aircraft CG
-  const cg = await calculateAircraftCG(mission.aircraft_id, totalMACIndex);
+  const cg = await calculateAircraftCG(missionId, totalMACIndex);
   
   // 7. Calculate MAC percentage
   const macPercent = (cg - 487.4) * 100 / 164.5;
@@ -126,23 +126,11 @@ async function calculateMACIndex(cargoItemId: number): Promise<number> {
 #### calculateAircraftCG
 
 ```typescript
-async function calculateAircraftCG(aircraftId: number, totalIndex: number): Promise<number> {
-  // 1. Get aircraft data
-  const aircraft = await getAircraftById(aircraftId);
-  if (!aircraft) {
-    throw new Error(`Aircraft with ID ${aircraftId} not found`);
-  }
+async function calculateAircraftCG(missionId: number, totalIndex: number): Promise<number> {
+  // 1. Calculate total aircraft weight
+  const totalWeight = await calculateTotalAircraftWeight(missionId);
   
-  // 2. Get mission associated with this aircraft
-  const mission = await getMissionByAircraftId(aircraftId);
-  if (!mission) {
-    throw new Error(`No mission found for aircraft ID ${aircraftId}`);
-  }
-  
-  // 3. Calculate total aircraft weight
-  const totalWeight = await calculateTotalAircraftWeight(mission.id);
-  
-  // 4. Calculate CG
+  // 2. Calculate CG
   const cg = (totalIndex - 100) * 50000 / totalWeight;
   
   return cg;
@@ -152,7 +140,7 @@ async function calculateAircraftCG(aircraftId: number, totalIndex: number): Prom
 #### calculateAdditionalWeightsMAC
 
 ```typescript
-async function calculateAdditionalWeightsMAC(missionId: number): Promise<number> {
+async function calculateAdditionalWeightsMACIndex(missionId: number): Promise<number> {
   // 1. Get mission data
   const mission = await getMissionById(missionId);
   if (!mission) {
