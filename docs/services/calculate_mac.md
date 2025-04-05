@@ -48,6 +48,13 @@ calculateTotalAircraftWeight(missionId: number): Promise<number>
  * @returns The MAC index contribution from fuel
  */
 calculateFuelMAC(missionId: number): Promise<number>
+
+/**
+ * Retrieves the empty MAC index value for an aircraft from the database
+ * @param aircraftId - The ID of the aircraft
+ * @returns The empty MAC index of the aircraft
+ */
+getEmptyAircraftMACIndex(aircraftId: number): Promise<number>
 ```
 
 ## Database Dependencies
@@ -89,11 +96,15 @@ async function calculateMACPercent(missionId: number): Promise<number> {
   // 5. Add MAC index contribution from fuel
   const fuelMACIndex = await calculateFuelMAC(missionId);
   totalMACIndex += fuelMACIndex;
+  
+  // 6. Add empty aircraft MAC index
+  const emptyMACIndex = await getEmptyAircraftMACIndex(mission.aircraft_id);
+  totalMACIndex += emptyMACIndex;
 
-  // 6. Calculate aircraft CG
+  // 7. Calculate aircraft CG
   const cg = await calculateAircraftCG(missionId, totalMACIndex);
   
-  // 7. Calculate MAC percentage
+  // 8. Calculate MAC percentage
   const macPercent = (cg - 487.4) * 100 / 164.5;
   
   return macPercent;
@@ -131,7 +142,7 @@ async function calculateAircraftCG(missionId: number, totalIndex: number): Promi
   const totalWeight = await calculateTotalAircraftWeight(missionId);
   
   // 2. Calculate CG
-  const cg = (totalIndex - 100) * 50000 / totalWeight;
+  const cg = (totalIndex - 100) * 50000 / totalWeight + 533.46;
   
   return cg;
 }
@@ -249,6 +260,25 @@ async function calculateFuelMAC(missionId: number): Promise<number> {
   // 3. Return the MAC contribution from the reference table
   // If an exact match isn't found, we return the closest match's MAC contribution
   return fuelMacQuant.mac_contribution;
+}
+```
+
+#### getEmptyAircraftMACIndex
+
+```typescript
+async function getEmptyAircraftMACIndex(aircraftId: number): Promise<number> {
+  // 1. Get aircraft data from the database
+  const aircraft = await getAircraftById(aircraftId);
+  if (!aircraft) {
+    throw new Error(`Aircraft with ID ${aircraftId} not found`);
+  }
+  
+  // 2. Return the empty MAC index from the aircraft record
+  if (aircraft.empty_mac === undefined || aircraft.empty_mac === null) {
+    throw new Error(`Empty MAC index not defined for aircraft with ID ${aircraftId}`);
+  }
+  
+  return aircraft.empty_mac;
 }
 ```
 
