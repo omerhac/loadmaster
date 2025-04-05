@@ -195,7 +195,7 @@ describe('SchemaService Integration Tests', () => {
       expect(row?.item_name).toBe('Cargo Item 1');
       expect(row?.type_name).toBe('Test Cargo');
       expect(row?.type).toBe('bulk');
-      
+
       // Verify the new cargo item fields match the initial values from cargo_type defaults
       expect(row?.weight).toBe(row?.default_weight);
       expect(row?.length).toBe(row?.default_length);
@@ -295,7 +295,7 @@ describe('SchemaService Integration Tests', () => {
       expect(row?.mission_name).toBe('Test Mission');
       expect(row?.x_start_position).toBe(10);
       expect(row?.y_start_position).toBe(5);
-      
+
       expect(row?.weight).toBe(1000);
       expect(row?.length).toBe(5);
       expect(row?.width).toBe(2);
@@ -313,11 +313,11 @@ describe('SchemaService Integration Tests', () => {
       expect(result.count).toBe(2);
       const firstRow = result.results[0].data;
       const secondRow = result.results[1].data;
-      
+
       expect(firstRow?.gross_aircraft_weight).toBe(160000);
       expect(firstRow?.min_mac).toBe(15.0);
       expect(firstRow?.max_mac).toBe(25.0);
-      
+
       expect(secondRow?.gross_aircraft_weight).toBe(180000);
       expect(secondRow?.min_mac).toBe(18.0);
       expect(secondRow?.max_mac).toBe(28.0);

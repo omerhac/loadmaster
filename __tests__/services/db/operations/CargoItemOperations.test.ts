@@ -96,7 +96,7 @@ describe('CargoItem Operations', () => {
     const getResult = await getCargoItemById(cargoItemId as number);
     expect(getResult.count).toBe(1);
     expect(getResult.results[0].data?.name).toBe('Test Item');
-    
+
     // Check that default values from cargo type were applied
     expect(getResult.results[0].data?.weight).toBe(1000); // default_weight from cargo type
     expect(getResult.results[0].data?.length).toBe(2);    // default_length from cargo type
@@ -104,7 +104,7 @@ describe('CargoItem Operations', () => {
     expect(getResult.results[0].data?.height).toBe(1);    // default_height from cargo type
     expect(getResult.results[0].data?.forward_overhang).toBe(0.1); // default_forward_overhang from cargo type
     expect(getResult.results[0].data?.back_overhang).toBe(0.1);    // default_back_overhang from cargo type
-    
+
     expect(getResult.results[0].data?.x_start_position).toBe(10);
     expect(getResult.results[0].data?.y_start_position).toBe(5);
   });
@@ -199,7 +199,7 @@ describe('CargoItem Operations', () => {
     const getResult = await getCargoItemById(cargoItemId);
     expect(getResult.count).toBe(0);
   });
-  
+
   it('should create cargo item with custom values that override defaults', async () => {
     // Create test cargo item with custom values
     const cargoItem: CargoItem = {
@@ -224,7 +224,7 @@ describe('CargoItem Operations', () => {
     // Get cargo item by ID
     const getResult = await getCargoItemById(cargoItemId as number);
     expect(getResult.count).toBe(1);
-    
+
     // Check that custom values were used instead of defaults
     expect(getResult.results[0].data?.weight).toBe(1500);
     expect(getResult.results[0].data?.length).toBe(3);

@@ -149,7 +149,7 @@ describe('Fuel Operations', () => {
       expect(getResult.results[0].data?.mac_contribution).toBe(7.2);
       expect(getResult.results[0].data?.main_tank_1_fuel).toBe(1000);
     });
-    
+
     it('should find the closest fuel MAC configuration', async () => {
       // Create several fuel MAC quantity configurations
       const fuelConfigs = [
@@ -179,56 +179,56 @@ describe('Fuel Operations', () => {
           external_1_fuel: 0,
           external_2_fuel: 0,
           mac_contribution: 8.0,
-        }
+        },
       ];
-      
+
       // Insert all configurations
       for (const config of fuelConfigs) {
         await createFuelMacQuant(config);
       }
-      
+
       // Test exact match
       const exactMatch = await findClosestFuelMacConfiguration(2000, 2000, 2000, 2000, 0, 0);
       expect(exactMatch.mac_contribution).toBe(6.5);
-      
+
       // Note: The implementation searches for the exact value match in the database
       // and doesn't interpolate between values. Each tank's value must match exactly.
-      
+
       // Create additional configurations for better test coverage
       const additionalConfigs = [
         // Configuration for testing upper bounds
-        { 
-          main_tank_1_fuel: 1500, 
-          main_tank_2_fuel: 1500, 
-          main_tank_3_fuel: 1500, 
-          main_tank_4_fuel: 1500, 
-          external_1_fuel: 0, 
-          external_2_fuel: 0, 
-          mac_contribution: 5.8 
+        {
+          main_tank_1_fuel: 1500,
+          main_tank_2_fuel: 1500,
+          main_tank_3_fuel: 1500,
+          main_tank_4_fuel: 1500,
+          external_1_fuel: 0,
+          external_2_fuel: 0,
+          mac_contribution: 5.8,
         },
         // Configuration for testing mixed values
-        { 
-          main_tank_1_fuel: 1500, 
-          main_tank_2_fuel: 2500, 
-          main_tank_3_fuel: 1500, 
-          main_tank_4_fuel: 2500, 
-          external_1_fuel: 0, 
-          external_2_fuel: 0, 
-          mac_contribution: 6.2 
-        }
+        {
+          main_tank_1_fuel: 1500,
+          main_tank_2_fuel: 2500,
+          main_tank_3_fuel: 1500,
+          main_tank_4_fuel: 2500,
+          external_1_fuel: 0,
+          external_2_fuel: 0,
+          mac_contribution: 6.2,
+        },
       ];
-      
+
       for (const config of additionalConfigs) {
         await createFuelMacQuant(config);
       }
-      
+
       // Test with exact match for the new configurations
       const upperMatch = await findClosestFuelMacConfiguration(1500, 1500, 1500, 1500, 0, 0);
       expect(upperMatch.mac_contribution).toBe(5.8);
-      
+
       const mixedMatch = await findClosestFuelMacConfiguration(1500, 2500, 1500, 2500, 0, 0);
       expect(mixedMatch.mac_contribution).toBe(6.2);
-      
+
       // Test with values higher than any configuration
       // For this case we need to use the findClosestUpperValue logic
       const exceededMatch = await findClosestFuelMacConfiguration(4000, 4000, 4000, 4000, 0, 0);
@@ -249,24 +249,24 @@ describe('Fuel Operations', () => {
         external_2_fuel: 0,
         mac_contribution: 6.5,
       };
-      
+
       await createFuelMacQuant(singleConfig);
-      
+
       // Test with empty tanks (zero values)
       const zeroMatch = await findClosestFuelMacConfiguration(0, 0, 0, 0, 0, 0);
       // Should match the only available configuration
       expect(zeroMatch.mac_contribution).toBe(6.5);
-      
+
       // Test with one tank having a very small value
       const smallValueMatch = await findClosestFuelMacConfiguration(1, 2000, 2000, 2000, 0, 0);
       expect(smallValueMatch.mac_contribution).toBe(6.5);
     });
-    
+
     it('should throw an error when no matching fuel configuration exists', async () => {
       // Clear all existing fuel MAC configurations
       const db = await DatabaseFactory.getDatabase();
       await db.executeQuery('DELETE FROM fuel_mac_quants');
-      
+
       // Test with values that won't match any configuration (since we deleted all entries)
       await expect(
         findClosestFuelMacConfiguration(1000, 1000, 1000, 1000, 0, 0)

@@ -9,5 +9,5 @@ export {
   calculateAdditionalWeightsMACIndex as calculateAdditionalWeightsMAC,
   calculateTotalAircraftWeight,
   calculateFuelMAC,
-  getEmptyAircraftMACIndex
-} from './MacCalculationService'; 
+  getEmptyAircraftMACIndex,
+} from './MacCalculationService';

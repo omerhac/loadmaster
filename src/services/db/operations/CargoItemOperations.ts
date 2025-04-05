@@ -11,19 +11,19 @@ import { CargoItem } from './types';
  */
 export async function createCargoItem(cargoItem: CargoItem): Promise<DatabaseResponse> {
   const db = await DatabaseFactory.getDatabase();
-  
+
   // First, get the cargo type to retrieve default values
   const getCargoTypeQuery = `
     SELECT * FROM cargo_type WHERE id = ?;
   `;
   const cargoTypeResult = await db.executeQuery(getCargoTypeQuery, [cargoItem.cargo_type_id]);
-  
+
   if (cargoTypeResult.count === 0) {
     throw new Error(`Cargo type with id ${cargoItem.cargo_type_id} not found`);
   }
-  
+
   const cargoType = cargoTypeResult.results[0].data;
-  
+
   const sql = `
     INSERT INTO cargo_item (
       mission_id, cargo_type_id, name, weight, length, width, height, 
@@ -31,7 +31,7 @@ export async function createCargoItem(cargoItem: CargoItem): Promise<DatabaseRes
     )
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
-  
+
   return db.executeQuery(sql, [
     cargoItem.mission_id,
     cargoItem.cargo_type_id,
