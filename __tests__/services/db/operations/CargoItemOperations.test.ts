@@ -78,7 +78,7 @@ describe('CargoItem Operations', () => {
   });
 
   it('should create and retrieve a cargo item', async () => {
-    // Create test cargo item
+    // Create test cargo item with minimal fields
     const cargoItem: CargoItem = {
       mission_id: missionId,
       cargo_type_id: cargoTypeId,
@@ -96,6 +96,15 @@ describe('CargoItem Operations', () => {
     const getResult = await getCargoItemById(cargoItemId as number);
     expect(getResult.count).toBe(1);
     expect(getResult.results[0].data?.name).toBe('Test Item');
+    
+    // Check that default values from cargo type were applied
+    expect(getResult.results[0].data?.weight).toBe(1000); // default_weight from cargo type
+    expect(getResult.results[0].data?.length).toBe(2);    // default_length from cargo type
+    expect(getResult.results[0].data?.width).toBe(1.5);   // default_width from cargo type
+    expect(getResult.results[0].data?.height).toBe(1);    // default_height from cargo type
+    expect(getResult.results[0].data?.forward_overhang).toBe(0.1); // default_forward_overhang from cargo type
+    expect(getResult.results[0].data?.back_overhang).toBe(0.1);    // default_back_overhang from cargo type
+    
     expect(getResult.results[0].data?.x_start_position).toBe(10);
     expect(getResult.results[0].data?.y_start_position).toBe(5);
   });
@@ -127,7 +136,7 @@ describe('CargoItem Operations', () => {
   });
 
   it('should update cargo item', async () => {
-    // Create test cargo item
+    // Create test cargo item with minimal fields
     const cargoItem: CargoItem = {
       mission_id: missionId,
       cargo_type_id: cargoTypeId,
@@ -139,12 +148,18 @@ describe('CargoItem Operations', () => {
     const createResult = await createCargoItem(cargoItem);
     const cargoItemId = createResult.results[0].lastInsertId as number;
 
-    // Update cargo item
+    // Update cargo item with custom values
     const updatedCargoItem: CargoItem = {
       id: cargoItemId,
       mission_id: missionId,
       cargo_type_id: cargoTypeId,
       name: 'Updated Item',
+      weight: 1200,
+      length: 2.5,
+      width: 1.8,
+      height: 1.2,
+      forward_overhang: 0.2,
+      back_overhang: 0.2,
       x_start_position: 15,
       y_start_position: 10,
     };
@@ -154,12 +169,18 @@ describe('CargoItem Operations', () => {
     // Verify update
     const getResult = await getCargoItemById(cargoItemId);
     expect(getResult.results[0].data?.name).toBe('Updated Item');
+    expect(getResult.results[0].data?.weight).toBe(1200);
+    expect(getResult.results[0].data?.length).toBe(2.5);
+    expect(getResult.results[0].data?.width).toBe(1.8);
+    expect(getResult.results[0].data?.height).toBe(1.2);
+    expect(getResult.results[0].data?.forward_overhang).toBe(0.2);
+    expect(getResult.results[0].data?.back_overhang).toBe(0.2);
     expect(getResult.results[0].data?.x_start_position).toBe(15);
     expect(getResult.results[0].data?.y_start_position).toBe(10);
   });
 
   it('should delete cargo item', async () => {
-    // Create test cargo item
+    // Create test cargo item with minimal fields
     const cargoItem: CargoItem = {
       mission_id: missionId,
       cargo_type_id: cargoTypeId,
@@ -177,5 +198,41 @@ describe('CargoItem Operations', () => {
     // Verify deletion
     const getResult = await getCargoItemById(cargoItemId);
     expect(getResult.count).toBe(0);
+  });
+  
+  it('should create cargo item with custom values that override defaults', async () => {
+    // Create test cargo item with custom values
+    const cargoItem: CargoItem = {
+      mission_id: missionId,
+      cargo_type_id: cargoTypeId,
+      name: 'Custom Item',
+      weight: 1500,
+      length: 3,
+      width: 2,
+      height: 1.5,
+      forward_overhang: 0.3,
+      back_overhang: 0.3,
+      x_start_position: 20,
+      y_start_position: 10,
+    };
+
+    const createResult = await createCargoItem(cargoItem);
+    expect(createResult.results[0].lastInsertId).toBeTruthy();
+
+    const cargoItemId = createResult.results[0].lastInsertId;
+
+    // Get cargo item by ID
+    const getResult = await getCargoItemById(cargoItemId as number);
+    expect(getResult.count).toBe(1);
+    
+    // Check that custom values were used instead of defaults
+    expect(getResult.results[0].data?.weight).toBe(1500);
+    expect(getResult.results[0].data?.length).toBe(3);
+    expect(getResult.results[0].data?.width).toBe(2);
+    expect(getResult.results[0].data?.height).toBe(1.5);
+    expect(getResult.results[0].data?.forward_overhang).toBe(0.3);
+    expect(getResult.results[0].data?.back_overhang).toBe(0.3);
+    expect(getResult.results[0].data?.x_start_position).toBe(20);
+    expect(getResult.results[0].data?.y_start_position).toBe(10);
   });
 });

@@ -112,15 +112,12 @@ async function calculateMACIndex(cargoItemId: number): Promise<number> {
     throw new Error(`Cargo item with ID ${cargoItemId} not found`);
   }
   
-  // 2. Get associated cargo type
-  const cargoType = await getCargoTypeById(cargoItem.cargo_type_id);
+  // 2. Calculate center point using cargo item's dimensions
+  const centerX = cargoItem.x_start_position + (cargoItem.length / 2);
+  const centerY = cargoItem.y_start_position + (cargoItem.width / 2);
   
-  // 3. Calculate center point
-  const centerX = cargoItem.x_start_position + (cargoType.default_length / 2);
-  const centerY = cargoItem.y_start_position + (cargoType.default_width / 2);
-  
-  // 4. Calculate MAC index
-  const index = (centerX - 533.46) * cargoType.default_weight / 50000;
+  // 3. Calculate MAC index using cargo item's weight
+  const index = (centerX - 533.46) * cargoItem.weight / 50000;
   
   return index;
 }
@@ -215,11 +212,10 @@ async function calculateTotalAircraftWeight(missionId: number): Promise<number> 
   // 3. Get all cargo items for this mission
   const cargoItems = await getCargoItemsByMissionId(missionId);
   
-  // 4. Calculate total cargo weight
+  // 4. Calculate total cargo weight using each cargo item's own weight
   let totalCargoWeight = 0;
   for (const cargoItem of cargoItems) {
-    const cargoType = await getCargoTypeById(cargoItem.cargo_type_id);
-    totalCargoWeight += cargoType.default_weight;
+    totalCargoWeight += cargoItem.weight;
   }
   
   // 5. Get fuel data
