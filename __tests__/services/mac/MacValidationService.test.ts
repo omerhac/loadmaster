@@ -2,8 +2,8 @@
  * Tests for MAC Validation Service
  */
 
-import { MacValidationService } from '../../../src/services/MacValidationService';
-import { setupTestDatabase, cleanupTestDatabase } from '../db/testHelpers';
+import { MacValidationService } from '../../../src/services/mac/MacValidationService';
+ import { setupTestDatabase, cleanupTestDatabase } from '../db/testHelpers';
 import {
   createAllowedMacConstraint,
   deleteAllowedMacConstraint,

@@ -5,9 +5,9 @@
  * for a specific aircraft weight using the allowed_mac_constraints table.
  */
 
-import { getAllowedMacConstraintByWeight } from './db/operations/AllowedMacConstraintOperations';
-import { AllowedMacConstraint } from './db/operations/types';
-import { calculateMACPercent, calculateTotalAircraftWeight } from './mac/MacCalculationService';
+import { getAllowedMacConstraintByWeight } from '../db/operations/AllowedMacConstraintOperations';
+import { AllowedMacConstraint } from '../db/operations/types';
+import { calculateMACPercent, calculateTotalAircraftWeight } from './MacCalculationService';
 
 /**
  * Result of a MAC validation operation
