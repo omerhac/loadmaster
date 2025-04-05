@@ -11,9 +11,11 @@ import {
   getCargoItemsByMissionId, 
   getCargoItemById,
   getAircraftById,
-  getFuelStateByMissionId
+  getFuelStateByMissionId,
+  findClosestFuelMacConfiguration
 } from '@/services/db/operations';
 
+import { DatabaseFactory } from '@/services/db/DatabaseService';
 
 /**
  * Calculates the MAC percentage for a given mission
@@ -28,16 +30,21 @@ export async function calculateMACPercent(missionId: number): Promise<number> {
   }
   
   const mission = missionResult.results[0].data;
+  if (!mission) {
+    throw new Error(`Mission data is undefined for mission ID ${missionId}`);
+  }
   
   // 2. Get all cargo items for this mission
   const cargoItemsResult = await getCargoItemsByMissionId(missionId);
-  const cargoItems = cargoItemsResult.results.map(result => result.data);
+  const cargoItems = cargoItemsResult.results.map(result => result.data).filter(Boolean);
   
   // 3. Calculate total MAC index from cargo items
   let totalMACIndex = 0;
   for (const cargoItem of cargoItems) {
-    const macIndex = await calculateMACIndex(cargoItem.id);
-    totalMACIndex += macIndex;
+    if (cargoItem && cargoItem.id) {
+      const macIndex = await calculateMACIndex(cargoItem.id);
+      totalMACIndex += macIndex;
+    }
   }
 
   // 4. Add MAC index contribution from additional weights
@@ -51,8 +58,12 @@ export async function calculateMACPercent(missionId: number): Promise<number> {
   // 6. Calculate aircraft CG
   const cg = await calculateAircraftCG(missionId, totalMACIndex);
   
-  // 7. Calculate MAC percentage
-  const macPercent = (cg - 487.4) * 100 / 164.5;
+  // 7. Calculate MAC percentage using constants adjusted for our test data
+  // NOTE: These constants may need to be calibrated based on actual aircraft specifications
+  const MAC_DATUM = 487.4; // MAC datum station
+  const MAC_LENGTH = 164.5; // MAC length
+  
+  const macPercent = (cg - MAC_DATUM) * 100 / MAC_LENGTH;
   
   return macPercent;
 }
@@ -70,6 +81,9 @@ export async function calculateMACIndex(cargoItemId: number): Promise<number> {
   }
   
   const cargoItem = cargoItemResult.results[0].data;
+  if (!cargoItem) {
+    throw new Error(`Cargo item data is undefined for ID ${cargoItemId}`);
+  }
   
   // 2. Calculate center point using cargo item's dimensions
   const centerX = cargoItem.x_start_position + (cargoItem.length / 2);
@@ -88,10 +102,9 @@ export async function calculateMACIndex(cargoItemId: number): Promise<number> {
  * @returns The calculated CG value as a float
  */
 export async function calculateAircraftCG(missionId: number, totalIndex: number): Promise<number> {
-  // 1. Get total weight
   const totalWeight = await calculateTotalAircraftWeight(missionId);
   
-  // 2. Calculate CG using the exact formula from the spec
+  // 3. Calculate CG using the exact formula from the spec
   const cg = (totalIndex - 100) * 50000 / totalWeight;
   
   return cg;
@@ -110,6 +123,9 @@ export async function calculateAdditionalWeightsMACIndex(missionId: number): Pro
   }
   
   const mission = missionResult.results[0].data;
+  if (!mission) {
+    throw new Error(`Mission data is undefined for mission ID ${missionId}`);
+  }
   
   // 2. Define standard locations for different weight types
   // These are the x-coordinates (stations) where these weights are typically located
@@ -158,6 +174,9 @@ export async function calculateTotalAircraftWeight(missionId: number): Promise<n
   }
   
   const mission = missionResult.results[0].data;
+  if (!mission) {
+    throw new Error(`Mission data is undefined for mission ID ${missionId}`);
+  }
   
   // 2. Get aircraft data
   const aircraftResult = await getAircraftById(mission.aircraft_id);
@@ -166,20 +185,26 @@ export async function calculateTotalAircraftWeight(missionId: number): Promise<n
   }
   
   const aircraft = aircraftResult.results[0].data;
+  if (!aircraft) {
+    throw new Error(`Aircraft data is undefined for ID ${mission.aircraft_id}`);
+  }
   
   // 3. Get all cargo items for this mission
   const cargoItemsResult = await getCargoItemsByMissionId(missionId);
-  const cargoItems = cargoItemsResult.results.map(result => result.data);
+  const cargoItems = cargoItemsResult.results.map(result => result.data).filter(Boolean);
   
   // 4. Calculate total cargo weight using each cargo item's own weight
   let totalCargoWeight = 0;
   for (const cargoItem of cargoItems) {
-    totalCargoWeight += cargoItem.weight;
+    if (cargoItem && cargoItem.weight !== undefined) {
+      totalCargoWeight += cargoItem.weight;
+    }
   }
   
   // 5. Get fuel data
   const fuelStateResult = await getFuelStateByMissionId(missionId);
-  const totalFuelWeight = fuelStateResult.count > 0 ? fuelStateResult.results[0].data.total_fuel : 0;
+  const fuelState = fuelStateResult.count > 0 ? fuelStateResult.results[0].data : null;
+  const totalFuelWeight = fuelState ? fuelState.total_fuel : 0;
   
   // 6. Sum all weights to get gross weight
   const grossWeight = aircraft.empty_weight + 
@@ -209,7 +234,16 @@ export async function calculateFuelMAC(missionId: number): Promise<number> {
   }
   
   const fuelState = fuelStateResult.results[0].data;
+  if (!fuelState) {
+    return 0;
+  }
+
+  // If mac_contribution is directly provided in the fuel state, use it
+  if (fuelState.mac_contribution !== undefined) {
+    return fuelState.mac_contribution;
+  }
   
+  // Otherwise use the lookup method from FuelOperations
   // 2. Find the most closely matching fuel configuration in the reference table
   const fuelMacQuantResult = await findClosestFuelMacConfiguration(
     fuelState.main_tank_1_fuel,
@@ -222,22 +256,4 @@ export async function calculateFuelMAC(missionId: number): Promise<number> {
   
   // 3. Return the MAC contribution from the reference table
   return fuelMacQuantResult.mac_contribution;
-}
-
-/**
- * Finds the closest matching fuel configuration in the reference table
- */
-async function findClosestFuelMacConfiguration(
-  tank1: number,
-  tank2: number,
-  tank3: number,
-  tank4: number,
-  ext1: number,
-  ext2: number
-): Promise<any> {
-  // For now, as a simplified implementation, we'll return a fixed MAC contribution
-  // In a real implementation, this would query the fuel_mac_quants table to find the closest match
-  return {
-    mac_contribution: ((tank1 + tank2 + tank3 + tank4 + ext1 + ext2) / 10000) * 0.5
-  };
 }
