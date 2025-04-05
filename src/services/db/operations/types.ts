@@ -50,6 +50,12 @@ export interface CargoItem {
   mission_id: number;
   cargo_type_id: number;
   name: string;
+  weight?: number;
+  length?: number;
+  width?: number;
+  height?: number;
+  forward_overhang?: number;
+  back_overhang?: number;
   x_start_position: number;
   y_start_position: number;
 }

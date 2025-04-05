@@ -52,13 +52,13 @@ export async function getAllowedMacConstraintByWeight(
   weight: number
 ): Promise<DatabaseResponse> {
   const db = await DatabaseFactory.getDatabase();
-  
+
   // First try to get constraints with weight >= requested weight (get the lowest one)
   const upperConstraint = await db.executeQuery(
     'SELECT * FROM allowed_mac_constraints WHERE gross_aircraft_weight >= ? ORDER BY gross_aircraft_weight ASC LIMIT 1;',
     [weight]
   );
-  
+
   // If no upper constraint found, get the highest one that's less than the requested weight
   if (upperConstraint.count === 0) {
     return db.executeQuery(
@@ -66,7 +66,7 @@ export async function getAllowedMacConstraintByWeight(
       [weight]
     );
   }
-  
+
   return upperConstraint;
 }
 
@@ -100,4 +100,4 @@ export async function updateAllowedMacConstraint(
 export async function deleteAllowedMacConstraint(id: number): Promise<DatabaseResponse> {
   const db = await DatabaseFactory.getDatabase();
   return db.executeQuery('DELETE FROM allowed_mac_constraints WHERE id = ?;', [id]);
-} 
+}

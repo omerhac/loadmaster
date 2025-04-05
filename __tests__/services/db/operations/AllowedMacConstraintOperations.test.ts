@@ -34,7 +34,7 @@ describe('AllowedMacConstraint Operations', () => {
     // Get constraint by ID
     const getResult = await getAllowedMacConstraintById(constraintId as number);
     expect(getResult.count).toBe(1);
-    
+
     const retrievedConstraint = getResult.results[0].data as AllowedMacConstraint;
     expect(retrievedConstraint.gross_aircraft_weight).toBe(150000);
     expect(retrievedConstraint.min_mac).toBe(15.5);
@@ -68,11 +68,11 @@ describe('AllowedMacConstraint Operations', () => {
     // Get all constraints
     const result = await getAllAllowedMacConstraints();
     expect(result.count).toBe(3);
-    
+
     // Data should be ordered by gross_aircraft_weight
     const resultRows = result.results.map(r => r.data as AllowedMacConstraint);
     for (let i = 1; i < resultRows.length; i++) {
-      expect(resultRows[i].gross_aircraft_weight).toBeGreaterThanOrEqual(resultRows[i-1].gross_aircraft_weight);
+      expect(resultRows[i].gross_aircraft_weight).toBeGreaterThanOrEqual(resultRows[i - 1].gross_aircraft_weight);
     }
   });
 
@@ -114,7 +114,7 @@ describe('AllowedMacConstraint Operations', () => {
     result = await getAllowedMacConstraintByWeight(130000);
     expect(result.count).toBe(1);
     expect((result.results[0].data as AllowedMacConstraint).gross_aircraft_weight).toBe(140000);
-    
+
     // Test weight above all constraints (should get the highest constraint)
     result = await getAllowedMacConstraintByWeight(200000);
     expect(result.count).toBe(1);
@@ -182,4 +182,4 @@ describe('AllowedMacConstraint Operations', () => {
       'Constraint ID is required for update operation'
     );
   });
-}); 
+});

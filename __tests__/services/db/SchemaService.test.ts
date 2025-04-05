@@ -128,8 +128,9 @@ describe('SchemaService Integration Tests', () => {
 
       // Insert test cargo item
       await testDb.executeQuery(`
-        INSERT INTO cargo_item (id, mission_id, cargo_type_id, name, x_start_position, y_start_position)
-        VALUES (1, 1, 1, 'Cargo Item 1', 10, 5)
+        INSERT INTO cargo_item (id, mission_id, cargo_type_id, name, weight, length, width, height, 
+                              forward_overhang, back_overhang, x_start_position, y_start_position)
+        VALUES (1, 1, 1, 'Cargo Item 1', 1000, 5, 2, 2, 0.5, 0.5, 10, 5)
       `);
 
       // Insert test fuel state
@@ -180,7 +181,10 @@ describe('SchemaService Integration Tests', () => {
     it('should verify cargo item to cargo type relationship', async () => {
       const result = await testDb.executeQuery(`
         SELECT ci.id as item_id, ci.name as item_name, 
-               ct.id as type_id, ct.name as type_name, ct.type
+               ci.weight, ci.length, ci.width, ci.height, ci.forward_overhang, ci.back_overhang,
+               ct.id as type_id, ct.name as type_name, ct.type,
+               ct.default_weight, ct.default_length, ct.default_width, ct.default_height,
+               ct.default_forward_overhang, ct.default_back_overhang
         FROM cargo_item ci
         JOIN cargo_type ct ON ci.cargo_type_id = ct.id
         WHERE ci.id = 1
@@ -191,6 +195,14 @@ describe('SchemaService Integration Tests', () => {
       expect(row?.item_name).toBe('Cargo Item 1');
       expect(row?.type_name).toBe('Test Cargo');
       expect(row?.type).toBe('bulk');
+
+      // Verify the new cargo item fields match the initial values from cargo_type defaults
+      expect(row?.weight).toBe(row?.default_weight);
+      expect(row?.length).toBe(row?.default_length);
+      expect(row?.width).toBe(row?.default_width);
+      expect(row?.height).toBe(row?.default_height);
+      expect(row?.forward_overhang).toBe(row?.default_forward_overhang);
+      expect(row?.back_overhang).toBe(row?.default_back_overhang);
     });
 
     it('should verify cargo type to user relationship', async () => {
@@ -264,7 +276,9 @@ describe('SchemaService Integration Tests', () => {
       const result = await testDb.executeQuery(`
         SELECT u.username, 
                ct.name as cargo_type_name, ct.type as cargo_type,
-               ci.name as cargo_item_name, ci.x_start_position, ci.y_start_position,
+               ci.name as cargo_item_name, 
+               ci.weight, ci.length, ci.width, ci.height, ci.forward_overhang, ci.back_overhang,
+               ci.x_start_position, ci.y_start_position,
                m.name as mission_name
         FROM user u
         JOIN cargo_type ct ON u.id = ct.user_id
@@ -281,6 +295,13 @@ describe('SchemaService Integration Tests', () => {
       expect(row?.mission_name).toBe('Test Mission');
       expect(row?.x_start_position).toBe(10);
       expect(row?.y_start_position).toBe(5);
+
+      expect(row?.weight).toBe(1000);
+      expect(row?.length).toBe(5);
+      expect(row?.width).toBe(2);
+      expect(row?.height).toBe(2);
+      expect(row?.forward_overhang).toBe(0.5);
+      expect(row?.back_overhang).toBe(0.5);
     });
 
     it('should verify allowed MAC constraints data', async () => {
@@ -292,11 +313,11 @@ describe('SchemaService Integration Tests', () => {
       expect(result.count).toBe(2);
       const firstRow = result.results[0].data;
       const secondRow = result.results[1].data;
-      
+
       expect(firstRow?.gross_aircraft_weight).toBe(160000);
       expect(firstRow?.min_mac).toBe(15.0);
       expect(firstRow?.max_mac).toBe(25.0);
-      
+
       expect(secondRow?.gross_aircraft_weight).toBe(180000);
       expect(secondRow?.min_mac).toBe(18.0);
       expect(secondRow?.max_mac).toBe(28.0);
