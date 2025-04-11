@@ -5,8 +5,8 @@ export {
   Point,
   Compartment,
   WheelSpan,
-  WheelType
+  WheelType,
 } from './FloorLayoutService';
 
 // Export a singleton instance for convenience
-export const floorLayoutService = new FloorLayoutService(); 
+export const floorLayoutService = new FloorLayoutService();
