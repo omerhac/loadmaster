@@ -1,4 +1,4 @@
-import { FloorLayoutService, Point, WheelSpan, TouchpointCompartmentMap, CompartmentOverlapMap, CompartmentOverlap } from '../../../src/services/floor/FloorLayoutService';
+import { FloorLayoutService, WheelSpan, TouchpointPosition, CornerPosition, CargoCorners, WheelTouchpoints } from '../../../src/services/floor/FloorLayoutService';
 import { setupTestDatabase, cleanupTestDatabase } from '../db/testHelpers';
 import {
   Aircraft,
@@ -60,9 +60,9 @@ describe('FloorLayoutService', () => {
     const missionResult = await createMission(mission);
     const missionId = missionResult.results[0].lastInsertId as number;
 
-    // Create test cargo type
-    const cargoType: CargoType = {
-      name: 'Test Cargo Type',
+    // Create 4-wheeled cargo type
+    const fourWheeledCargoType: CargoType = {
+      name: '4-Wheeled Cargo Type',
       default_weight: 1000,
       default_length: 100,
       default_width: 50,
@@ -71,13 +71,41 @@ describe('FloorLayoutService', () => {
       default_back_overhang: 20,
       type: '4_wheeled',
     };
-    const cargoTypeResult = await createCargoType(cargoType);
-    const cargoTypeId = cargoTypeResult.results[0].lastInsertId as number;
+    const fourWheeledCargoTypeResult = await createCargoType(fourWheeledCargoType);
+    const fourWheeledCargoTypeId = fourWheeledCargoTypeResult.results[0].lastInsertId as number;
 
-    // Create three test cargo items (four-wheel, two-wheel, bulk)
+    // Create 2-wheeled cargo type
+    const twoWheeledCargoType: CargoType = {
+      name: '2-Wheeled Cargo Type',
+      default_weight: 1000,
+      default_length: 200,
+      default_width: 80,
+      default_height: 40,
+      default_forward_overhang: 30,
+      default_back_overhang: 40,
+      type: '2_wheeled',
+    };
+    const twoWheeledCargoTypeResult = await createCargoType(twoWheeledCargoType);
+    const twoWheeledCargoTypeId = twoWheeledCargoTypeResult.results[0].lastInsertId as number;
+
+    // Create bulk cargo type
+    const bulkCargoType: CargoType = {
+      name: 'Bulk Cargo Type',
+      default_weight: 3000,
+      default_length: 300,
+      default_width: 100,
+      default_height: 50,
+      default_forward_overhang: 0,
+      default_back_overhang: 0,
+      type: 'bulk',
+    };
+    const bulkCargoTypeResult = await createCargoType(bulkCargoType);
+    const bulkCargoTypeId = bulkCargoTypeResult.results[0].lastInsertId as number;
+
+    // Create three test cargo items with appropriate cargo types
     const fourWheelCargoResult = await createCargoItem({
       mission_id: missionId,
-      cargo_type_id: cargoTypeId,
+      cargo_type_id: fourWheeledCargoTypeId,
       name: 'Four-wheel Cargo',
       weight: 1000,
       length: 100,
@@ -92,7 +120,7 @@ describe('FloorLayoutService', () => {
 
     const twoWheelCargoResult = await createCargoItem({
       mission_id: missionId,
-      cargo_type_id: cargoTypeId,
+      cargo_type_id: twoWheeledCargoTypeId,
       name: 'Two-wheel Cargo',
       weight: 2000,
       length: 200,
@@ -107,7 +135,7 @@ describe('FloorLayoutService', () => {
 
     const bulkCargoResult = await createCargoItem({
       mission_id: missionId,
-      cargo_type_id: cargoTypeId,
+      cargo_type_id: bulkCargoTypeId,
       name: 'Bulk Cargo',
       weight: 3000,
       length: 300,
@@ -176,12 +204,12 @@ describe('FloorLayoutService', () => {
   describe('getCargoCorners', () => {
     it('should calculate the correct corner coordinates for a cargo item', async () => {
       const cargoItem = testCargoItems[0];
-      const expectedCorners: Point[] = [
-        { x: cargoItem.x_start_position!, y: cargoItem.y_start_position! },
-        { x: cargoItem.x_start_position!, y: cargoItem.y_start_position! + cargoItem.width! },
-        { x: cargoItem.x_start_position! + cargoItem.length!, y: cargoItem.y_start_position! },
-        { x: cargoItem.x_start_position! + cargoItem.length!, y: cargoItem.y_start_position! + cargoItem.width! },
-      ];
+      const expectedCorners: CargoCorners = {
+        [CornerPosition.FrontLeft]: { x: cargoItem.x_start_position!, y: cargoItem.y_start_position! },
+        [CornerPosition.FrontRight]: { x: cargoItem.x_start_position!, y: cargoItem.y_start_position! + cargoItem.width! },
+        [CornerPosition.BackLeft]: { x: cargoItem.x_start_position! + cargoItem.length!, y: cargoItem.y_start_position! },
+        [CornerPosition.BackRight]: { x: cargoItem.x_start_position! + cargoItem.length!, y: cargoItem.y_start_position! + cargoItem.width! },
+      };
 
       const corners = await service.getCargoCorners(cargoItem.id!);
       expect(corners).toEqual(expectedCorners);
@@ -198,16 +226,14 @@ describe('FloorLayoutService', () => {
     it('should calculate the correct touchpoints for four-wheel cargo', async () => {
       const cargoItem = testCargoItems[0];
 
-      const expectedTouchpoints: Point[] = [
-        // Front wheels - positioned at forward_overhang from the front
-        { x: cargoItem.x_start_position! + cargoItem.forward_overhang!, y: cargoItem.y_start_position! },
-        { x: cargoItem.x_start_position! + cargoItem.forward_overhang!, y: cargoItem.y_start_position! + cargoItem.width! },
-        // Rear wheels - positioned at back_overhang from the back
-        { x: cargoItem.x_start_position! + cargoItem.length! - cargoItem.back_overhang!, y: cargoItem.y_start_position! },
-        { x: cargoItem.x_start_position! + cargoItem.length! - cargoItem.back_overhang!, y: cargoItem.y_start_position! + cargoItem.width! },
-      ];
+      const expectedTouchpoints: WheelTouchpoints = {
+        [TouchpointPosition.FrontLeft]: { x: cargoItem.x_start_position! + cargoItem.forward_overhang!, y: cargoItem.y_start_position! },
+        [TouchpointPosition.FrontRight]: { x: cargoItem.x_start_position! + cargoItem.forward_overhang!, y: cargoItem.y_start_position! + cargoItem.width! },
+        [TouchpointPosition.BackLeft]: { x: cargoItem.x_start_position! + cargoItem.length! - cargoItem.back_overhang!, y: cargoItem.y_start_position! },
+        [TouchpointPosition.BackRight]: { x: cargoItem.x_start_position! + cargoItem.length! - cargoItem.back_overhang!, y: cargoItem.y_start_position! + cargoItem.width! },
+      };
 
-      const touchpoints = await service.getWheelTouchpoints(cargoItem.id!, 'four-wheel');
+      const touchpoints = await service.getWheelTouchpoints(cargoItem.id!, '4_wheeled');
       expect(touchpoints).toEqual(expectedTouchpoints);
     });
 
@@ -219,26 +245,24 @@ describe('FloorLayoutService', () => {
       const backWheelX = cargoItem.x_start_position! + cargoItem.length! - cargoItem.back_overhang!;
       const centerY = cargoItem.y_start_position! + (cargoItem.width! / 2);
 
-      const expectedTouchpoints: Point[] = [
-        // Front wheel - centered on y-axis, positioned at forward_overhang from front
-        { x: frontWheelX, y: centerY },
-        // Back wheel - centered on y-axis, positioned at back_overhang from back
-        { x: backWheelX, y: centerY },
-      ];
+      const expectedTouchpoints: WheelTouchpoints = {
+        [TouchpointPosition.Front]: { x: frontWheelX, y: centerY },
+        [TouchpointPosition.Back]: { x: backWheelX, y: centerY },
+      };
 
-      const touchpoints = await service.getWheelTouchpoints(cargoItem.id!, 'two-wheel');
+      const touchpoints = await service.getWheelTouchpoints(cargoItem.id!, '2_wheeled');
       expect(touchpoints).toEqual(expectedTouchpoints);
     });
 
     it('should calculate the correct touchpoints for bulk cargo', async () => {
       const cargoItem = testCargoItems[2];
 
-      const expectedTouchpoints: Point[] = [
-        { x: cargoItem.x_start_position!, y: cargoItem.y_start_position! },
-        { x: cargoItem.x_start_position!, y: cargoItem.y_start_position! + cargoItem.width! },
-        { x: cargoItem.x_start_position! + cargoItem.length!, y: cargoItem.y_start_position! },
-        { x: cargoItem.x_start_position! + cargoItem.length!, y: cargoItem.y_start_position! + cargoItem.width! },
-      ];
+      const expectedTouchpoints: WheelTouchpoints = {
+        [CornerPosition.FrontLeft]: { x: cargoItem.x_start_position!, y: cargoItem.y_start_position! },
+        [CornerPosition.FrontRight]: { x: cargoItem.x_start_position!, y: cargoItem.y_start_position! + cargoItem.width! },
+        [CornerPosition.BackLeft]: { x: cargoItem.x_start_position! + cargoItem.length!, y: cargoItem.y_start_position! },
+        [CornerPosition.BackRight]: { x: cargoItem.x_start_position! + cargoItem.length!, y: cargoItem.y_start_position! + cargoItem.width! },
+      };
 
       const touchpoints = await service.getWheelTouchpoints(cargoItem.id!, 'bulk');
       expect(touchpoints).toEqual(expectedTouchpoints);
@@ -349,65 +373,111 @@ describe('FloorLayoutService', () => {
   describe('getTouchpointCompartments', () => {
     it('should identify compartments for four-wheel cargo touchpoints', async () => {
       const cargoItem = testCargoItems[0];
-      const touchpoints = await service.getWheelTouchpoints(cargoItem.id!, 'four-wheel');
+      const touchpointsMap = await service.getWheelTouchpoints(cargoItem.id!, '4_wheeled');
 
-      const compartmentResults = await service.getTouchpointCompartments(cargoItem.id!, 'four-wheel');
+      const result = await service.getTouchpointCompartments(cargoItem.id!, '4_wheeled');
 
-      // Should have an entry for each touchpoint
-      expect(Object.keys(compartmentResults).length).toBe(touchpoints.length);
+      // Should have entries for all four positions
+      expect(result.touchpointToCompartment[TouchpointPosition.FrontLeft]).toBeDefined();
+      expect(result.touchpointToCompartment[TouchpointPosition.FrontRight]).toBeDefined();
+      expect(result.touchpointToCompartment[TouchpointPosition.BackLeft]).toBeDefined();
+      expect(result.touchpointToCompartment[TouchpointPosition.BackRight]).toBeDefined();
 
-      // Each touchpoint should map to at least one compartment
-      touchpoints.forEach(point => {
-        const keyPoint = `${point.x},${point.y}`;
-        expect(compartmentResults[keyPoint]).toBeDefined();
+      // Verify the touchpoints are correctly mapped to compartments
+      const positions = [
+        TouchpointPosition.FrontLeft,
+        TouchpointPosition.FrontRight,
+        TouchpointPosition.BackLeft,
+        TouchpointPosition.BackRight
+      ];
+      
+      positions.forEach((position) => {
+        const point = touchpointsMap[position];
+        const compartmentId = result.touchpointToCompartment[position];
+        const compartment = testCompartments.find(c => c.id === compartmentId);
+        
+        expect(compartment).toBeDefined();
+        expect(point.x >= compartment!.x_start && point.x <= compartment!.x_end).toBeTruthy();
+      });
+      
+      // Verify overlapping compartments includes all compartments that touchpoints are in
+      const touchpointCompartmentIds = Object.values(result.touchpointToCompartment);
+      touchpointCompartmentIds.forEach(compartmentId => {
+        expect(result.overlappingCompartments).toContain(compartmentId);
+      });
+    });
 
-        // For each compartment found, check overlap values
-        Object.keys(compartmentResults[keyPoint]).forEach(compId => {
-          const compIdNum = parseInt(compId, 10);
-          const overlap = compartmentResults[keyPoint][compIdNum];
-          const compartment = testCompartments.find(c => c.id === compIdNum);
+    it('should identify compartments for two-wheel cargo touchpoints', async () => {
+      const cargoItem = testCargoItems[1];
+      const touchpointsMap = await service.getWheelTouchpoints(cargoItem.id!, '2_wheeled');
 
-          // For wheel touchpoints, start_x is the max of point.x and compartment.x_start
-          expect(overlap.start_x).toBe(Math.max(point.x, compartment!.x_start));
+      const result = await service.getTouchpointCompartments(cargoItem.id!, '2_wheeled');
 
-          // For wheel touchpoints, end_x is the min of point.x and compartment.x_end
-          expect(overlap.end_x).toBe(Math.min(point.x, compartment!.x_end));
-        });
+      // Should have entries for front and back positions
+      expect(result.touchpointToCompartment[TouchpointPosition.Front]).toBeDefined();
+      expect(result.touchpointToCompartment[TouchpointPosition.Back]).toBeDefined();
+
+      // Verify the touchpoints are correctly mapped to compartments
+      const positions = [TouchpointPosition.Front, TouchpointPosition.Back];
+      
+      positions.forEach((position) => {
+        const point = touchpointsMap[position];
+        const compartmentId = result.touchpointToCompartment[position];
+        const compartment = testCompartments.find(c => c.id === compartmentId);
+        
+        expect(compartment).toBeDefined();
+        expect(point.x >= compartment!.x_start && point.x <= compartment!.x_end).toBeTruthy();
       });
     });
 
     it('should identify compartments for bulk cargo spanning multiple compartments', async () => {
       const cargoItem = testCargoItems[2];
-      const touchpoints = await service.getWheelTouchpoints(cargoItem.id!, 'bulk');
 
-      const compartmentResults = await service.getTouchpointCompartments(cargoItem.id!, 'bulk');
+      const result = await service.getTouchpointCompartments(cargoItem.id!, 'bulk');
 
-      // Should have one key for bulk cargo (using first corner as key)
-      const keyPoint = `${touchpoints[0].x},${touchpoints[0].y}`;
-      expect(compartmentResults[keyPoint]).toBeDefined();
+      // Should not have any touchpoint mapping for bulk cargo
+      expect(Object.keys(result.touchpointToCompartment).length).toBe(0);
 
-      // For each compartment in the result, check that overlaps are correctly calculated
-      Object.keys(compartmentResults[keyPoint]).forEach(compId => {
-        const compIdNum = parseInt(compId, 10);
-        const overlap = compartmentResults[keyPoint][compIdNum];
+      // Should list all compartments that overlap with the cargo's x-span
+      const cargoStart = cargoItem.x_start_position!;
+      const cargoEnd = cargoStart + cargoItem.length!;
+      
+      // Count how many compartments should overlap with this cargo
+      const expectedOverlappingCompartments = testCompartments.filter(compartment => 
+        cargoStart < compartment.x_end && cargoEnd > compartment.x_start
+      ).map(compartment => compartment.id!);
+      
+      // Verify all expected compartments are in the result
+      expect(result.overlappingCompartments.length).toBe(expectedOverlappingCompartments.length);
+      expectedOverlappingCompartments.forEach(compartmentId => {
+        expect(result.overlappingCompartments).toContain(compartmentId);
+      });
+    });
 
-        const compartment = testCompartments.find(c => c.id === compIdNum);
-        expect(compartment).toBeDefined();
-
-        if (compartment) {
-          // Overlap start should be the max of cargo start and compartment start
-          expect(overlap.start_x).toBe(Math.max(cargoItem.x_start_position!, compartment.x_start));
-
-          // Overlap end should be the min of cargo end and compartment end
-          expect(overlap.end_x).toBe(Math.min(cargoItem.x_start_position! + cargoItem.length!, compartment.x_end));
-        }
+    it('should exclude overhangs when calculating compartment overlap for wheeled cargo', async () => {
+      const cargoItem = testCargoItems[0];
+      
+      // Calculate the effective cargo span excluding overhangs
+      const effectiveStart = cargoItem.x_start_position! + cargoItem.forward_overhang!;
+      const effectiveEnd = cargoItem.x_start_position! + cargoItem.length! - cargoItem.back_overhang!;
+      
+      const result = await service.getTouchpointCompartments(cargoItem.id!, '4_wheeled');
+      
+      // Verify that overlapping compartments only includes those that the cargo's effective footprint overlaps with
+      const expectedOverlappingCompartments = testCompartments.filter(compartment => 
+        effectiveStart < compartment.x_end && effectiveEnd > compartment.x_start
+      ).map(compartment => compartment.id!);
+      
+      expect(result.overlappingCompartments.length).toBe(expectedOverlappingCompartments.length);
+      expectedOverlappingCompartments.forEach(compartmentId => {
+        expect(result.overlappingCompartments).toContain(compartmentId);
       });
     });
 
     it('should throw an error if cargo item is not found', async () => {
       const nonExistentItemId = 999;
 
-      await expect(service.getTouchpointCompartments(nonExistentItemId, 'four-wheel'))
+      await expect(service.getTouchpointCompartments(nonExistentItemId, '4_wheeled'))
         .rejects.toThrow(`Cargo item with ID ${nonExistentItemId} not found`);
     });
 
