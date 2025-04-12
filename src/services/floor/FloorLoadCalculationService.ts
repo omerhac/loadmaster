@@ -12,21 +12,21 @@ import {
 } from './FloorLayoutService';
 
 /**
- * Cargo wheel type enumeration matching existing project convention
+ * Wheel type enumeration matching existing project convention
  */
-export type CargoWheelType = 'bulk' | '2_wheeled' | '4_wheeled';
+export type WheelType = 'bulk' | '2_wheeled' | '4_wheeled';
 
 /**
  * Constants for wheel dimensions
  */
 export const WHEEL_DIMENSIONS = {
   '2_wheeled': {
-    WHEEL_WIDTH: 2.5, // inches
+    WHEEL_WIDTH: 10, // inches
     CONTACT_LENGTH: 3.0, // inches
     COUNT: 2
   },
   '4_wheeled': {
-    WHEEL_WIDTH: 2.0, // inches
+    WHEEL_WIDTH: 10, // inches
     CONTACT_LENGTH: 2.5, // inches
     COUNT: 4
   }
@@ -63,8 +63,8 @@ export interface CompartmentLoadResult {
 /**
  * Interface representing cargo item with type information
  */
-interface CargoItemWithWheelType extends DBCargoItem {
-  type: CargoWheelType;
+interface CargoItemWithType extends DBCargoItem {
+  type: WheelType;
 }
 
 /**
@@ -74,7 +74,7 @@ interface CargoItemWithWheelType extends DBCargoItem {
  */
 export async function calculateConcentratedLoad(cargoItemId: number): Promise<LoadResult> {
   // 1. Retrieve cargo item data
-  const cargoItem = await getCargoItemWithWheelType(cargoItemId);
+  const cargoItem = await getCargoItemWithType(cargoItemId);
   if (!cargoItem) {
     throw new Error(`Cargo item with ID ${cargoItemId} not found`);
   }
@@ -128,7 +128,7 @@ export async function calculateConcentratedLoad(cargoItemId: number): Promise<Lo
  */
 export async function calculateLoadPerCompartment(cargoItemId: number): Promise<CompartmentLoadResult[]> {
   // 1. Retrieve cargo item data
-  const cargoItem = await getCargoItemWithWheelType(cargoItemId);
+  const cargoItem = await getCargoItemWithType(cargoItemId);
   if (!cargoItem) {
     throw new Error(`Cargo item with ID ${cargoItemId} not found`);
   }
@@ -139,23 +139,35 @@ export async function calculateLoadPerCompartment(cargoItemId: number): Promise<
   // 3. Initialize result array
   const result: CompartmentLoadResult[] = [];
 
+  // Get touchpoint compartments information for all cargo types
+  const touchpointResult = await getTouchpointCompartments(cargoItemId, cargoType);
+
   // 4. Calculate load per compartment based on cargo type
   switch (cargoType) {
     case 'bulk': {
-      const compartments = await getOverlappingCompartments(cargoItem);
+      // For bulk cargo, use the overlapping compartments from touchpoint data
+      const overlappingCompartmentIds = touchpointResult.overlappingCompartments;
 
-      if (compartments.length === 0) {
+      if (overlappingCompartmentIds.length === 0) {
         return result;
       }
 
-      // Calculate load distribution based on area overlap
-      for (const compartment of compartments) {
+      // Get all compartment details and calculate load distribution
+      for (const compartmentId of overlappingCompartmentIds) {
+        // Get compartment details
+        const compartmentResponse = await getCompartmentById(compartmentId);
+        if (compartmentResponse.count === 0 || !compartmentResponse.results[0].data) {
+          continue;
+        }
+        const compartment = compartmentResponse.results[0].data as DBCompartment;
+
+        // Calculate overlap percentage
         const overlapPercentage = calculateOverlapPercentage(cargoItem, compartment);
 
         if (overlapPercentage > 0) {
           const loadValue = cargoItem.weight! * overlapPercentage;
           result.push({
-            compartmentId: compartment.id!,
+            compartmentId,
             load: {
               value: loadValue,
               unit: 'lbs'
@@ -168,8 +180,6 @@ export async function calculateLoadPerCompartment(cargoItemId: number): Promise<
 
     case '2_wheeled':
     case '4_wheeled': {
-      const touchpointResult = await getTouchpointCompartments(cargoItemId, cargoType);
-
       const wheelCount = cargoType === '2_wheeled' ? 2 : 4;
       const loadPerWheel = cargoItem.weight! / wheelCount;
 
@@ -210,7 +220,7 @@ export async function calculateLoadPerCompartment(cargoItemId: number): Promise<
  */
 export async function calculateRunningLoad(cargoItemId: number): Promise<LoadResult> {
   // 1. Retrieve cargo item data
-  const cargoItem = await getCargoItemWithWheelType(cargoItemId);
+  const cargoItem = await getCargoItemWithType(cargoItemId);
   if (!cargoItem) {
     throw new Error(`Cargo item with ID ${cargoItemId} not found`);
   }
@@ -245,7 +255,7 @@ export async function calculateRunningLoad(cargoItemId: number): Promise<LoadRes
  * @param cargoItemId - The ID of the cargo item
  * @returns CargoItem data with type or null if not found
  */
-async function getCargoItemWithWheelType(cargoItemId: number): Promise<CargoItemWithWheelType | null> {
+async function getCargoItemWithType(cargoItemId: number): Promise<CargoItemWithType | null> {
   // Get cargo item
   const cargoItemResult = await getCargoItemById(cargoItemId);
 
@@ -270,87 +280,12 @@ async function getCargoItemWithWheelType(cargoItemId: number): Promise<CargoItem
 }
 
 /**
- * Retrieves compartments that overlap with a cargo item
- * @param cargoItem - The cargo item
- * @returns Array of compartments
- */
-async function getOverlappingCompartments(cargoItem: CargoItemWithWheelType): Promise<DBCompartment[]> {
-  const compartments: DBCompartment[] = [];
-  const cargoXStart = cargoItem.x_start_position;
-  const cargoXEnd = cargoItem.x_start_position + cargoItem.length!;
-
-  // We need to find all compartments that overlap with the cargo's x position
-  // This requires multiple lookups, but we keep it simple with the operations API
-
-  // Get all potential compartments by doing individual lookups
-  // This is not the most efficient but works within the constraint of using existing operations
-
-  // First, try to find a compartment at the start position
-  const startCompartmentResult = await findCompartmentAtPosition(cargoXStart);
-  if (startCompartmentResult) {
-    compartments.push(startCompartmentResult);
-  }
-
-  // Then, try to find a compartment at the end position (if different from start)
-  const endCompartmentResult = await findCompartmentAtPosition(cargoXEnd);
-  if (endCompartmentResult &&
-    (!startCompartmentResult || startCompartmentResult.id !== endCompartmentResult.id)) {
-    compartments.push(endCompartmentResult);
-  }
-
-  // Try the middle position too in case there's a compartment in between
-  if (cargoXEnd - cargoXStart > 10) { // Only if cargo is reasonably large
-    const middleCompartmentResult = await findCompartmentAtPosition((cargoXStart + cargoXEnd) / 2);
-    if (middleCompartmentResult &&
-      (!compartments.some(c => c.id === middleCompartmentResult.id))) {
-      compartments.push(middleCompartmentResult);
-    }
-  }
-
-  return compartments;
-}
-
-/**
- * Helper to find a compartment at a specific position
- */
-async function findCompartmentAtPosition(xPosition: number): Promise<DBCompartment | null> {
-  // We'll have to do a search with each compartment to find ones that contain this position
-  // This is not the most efficient approach, but it works with the constraint of using existing operations
-
-  // Get the first compartment to determine the aircraft ID
-  // This is a simplification - in a real system, we'd have more context about the current aircraft
-  const compartmentResult = await getCompartmentById(1);
-  if (compartmentResult.count === 0 || !compartmentResult.results[0].data) {
-    return null;
-  }
-
-  const firstCompartment = compartmentResult.results[0].data as DBCompartment;
-  const aircraftId = firstCompartment.aircraft_id;
-
-  // Check the first compartment
-  if (xPosition >= firstCompartment.x_start && xPosition <= firstCompartment.x_end) {
-    return firstCompartment;
-  }
-
-  // Check the second compartment
-  const compartment2Result = await getCompartmentById(2);
-  if (compartment2Result.count > 0 && compartment2Result.results[0].data) {
-    const compartment = compartment2Result.results[0].data as DBCompartment;
-    if (xPosition >= compartment.x_start && xPosition <= compartment.x_end) {
-      return compartment;
-    }
-  }
-
-  return null;
-}
-
-/**
  * Calculates the percentage of cargo item area that overlaps with a compartment
  * @param cargoItem - The cargo item
  * @param compartment - The compartment
  * @returns Overlap percentage (0 to 1)
  */
-function calculateOverlapPercentage(cargoItem: CargoItemWithWheelType, compartment: DBCompartment): number {
+function calculateOverlapPercentage(cargoItem: CargoItemWithType, compartment: DBCompartment): number {
   const cargoXStart = cargoItem.x_start_position;
   const cargoXEnd = cargoItem.x_start_position + cargoItem.length!;
 
