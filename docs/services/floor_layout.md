@@ -68,7 +68,7 @@ async isTouchpointOnTreadway(ySpan: WheelSpan, aircraftId: number): Promise<bool
  * @param touchpointType - The type of touchpoints to check ('four-wheel', 'two-wheel', or 'bulk')
  * @returns A dictionary mapping each touchpoint to compartments with overlap information
  */
-async getTouchpointCompartments(cargoItemId: number, touchpointType: 'four-wheel' | 'two-wheel' | 'bulk'): Promise<Record<string, Record<number, { start_x: number, end_x: number }>>>
+async getTouchpointCompartments(cargoItemId: number, touchpointType: 'four-wheel' | 'two-wheel' | 'bulk'): Promise<TouchpointCompartmentMap>
 ```
 
 ## Database Dependencies
@@ -259,7 +259,7 @@ async isTouchpointOnTreadway(
 async getTouchpointCompartments(
   cargoItemId: number, 
   touchpointType: 'four-wheel' | 'two-wheel' | 'bulk'
-): Promise<Record<string, Record<number, { start_x: number, end_x: number }>>> {
+): Promise<TouchpointCompartmentMap> {
   // 1. Get cargo item data
   const cargoItem = await getCargoItemById(cargoItemId);
   if (!cargoItem) {
@@ -279,7 +279,7 @@ async getTouchpointCompartments(
   const touchpoints = await this.getWheelTouchpoints(cargoItemId, touchpointType);
   
   // 5. Create the result dictionary
-  const result: Record<string, Record<number, { start_x: number, end_x: number }>> = {};
+  const result: TouchpointCompartmentMap = {};
   
   if (touchpointType === 'bulk') {
     // For bulk items, find all compartments that overlap with the cargo's x-span

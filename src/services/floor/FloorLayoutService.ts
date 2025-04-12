@@ -39,6 +39,28 @@ export interface WheelSpan {
 export type WheelType = 'four-wheel' | 'two-wheel' | 'bulk';
 
 /**
+ * Represents the overlap of an item with a compartment
+ */
+export interface CompartmentOverlap {
+  start_x: number;  // Starting X-coordinate of the overlap
+  end_x: number;    // Ending X-coordinate of the overlap
+}
+
+/**
+ * Maps compartment IDs to their overlap information
+ */
+export interface CompartmentOverlapMap {
+  [compartmentId: number]: CompartmentOverlap;
+}
+
+/**
+ * Maps touchpoint coordinates to compartment overlap information
+ */
+export interface TouchpointCompartmentMap {
+  [touchpointCoordinates: string]: CompartmentOverlapMap;
+}
+
+/**
  * Service for calculating and managing floor layout positioning for cargo items
  */
 export class FloorLayoutService {
@@ -241,7 +263,7 @@ export class FloorLayoutService {
   async getTouchpointCompartments(
     cargoItemId: number,
     touchpointType: WheelType
-  ): Promise<Record<string, Record<number, { start_x: number, end_x: number }>>> {
+  ): Promise<TouchpointCompartmentMap> {
     // 1. Get cargo item data
     const cargoItemResponse = await getCargoItemById(cargoItemId);
     if (cargoItemResponse.count === 0 || !cargoItemResponse.results[0].data) {
@@ -266,7 +288,7 @@ export class FloorLayoutService {
     const touchpoints = await this.getWheelTouchpoints(cargoItemId, touchpointType);
 
     // 5. Create the result dictionary
-    const result: Record<string, Record<number, { start_x: number, end_x: number }>> = {};
+    const result: TouchpointCompartmentMap = {};
 
     if (touchpointType === 'bulk') {
       // For bulk items, find all compartments that overlap with the cargo's x-span

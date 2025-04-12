@@ -1,4 +1,4 @@
-import { FloorLayoutService, Point, WheelSpan } from '../../../src/services/floor/FloorLayoutService';
+import { FloorLayoutService, Point, WheelSpan, TouchpointCompartmentMap, CompartmentOverlapMap, CompartmentOverlap } from '../../../src/services/floor/FloorLayoutService';
 import { setupTestDatabase, cleanupTestDatabase } from '../db/testHelpers';
 import {
   Aircraft,
