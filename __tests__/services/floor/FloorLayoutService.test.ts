@@ -138,12 +138,12 @@ describe('FloorLayoutService', () => {
       cargo_type_id: bulkCargoTypeId,
       name: 'Bulk Cargo',
       weight: 3000,
-      length: 300,
+      length: 350,
       width: 100,
       height: 50,
       forward_overhang: 0,
       back_overhang: 0,
-      x_start_position: 250,
+      x_start_position: 150,
       y_start_position: 15,
     });
     const bulkCargoId = bulkCargoResult.results[0].lastInsertId as number;
@@ -446,6 +446,8 @@ describe('FloorLayoutService', () => {
       const expectedOverlappingCompartments = testCompartments.filter(compartment =>
         cargoStart < compartment.x_end && cargoEnd > compartment.x_start
       ).map(compartment => compartment.id!);
+      // Bulk cargo should overlap with all compartments
+      expect(expectedOverlappingCompartments.length).toEqual(3);
 
       // Verify all expected compartments are in the result
       expect(result.overlappingCompartments.length).toBe(expectedOverlappingCompartments.length);
