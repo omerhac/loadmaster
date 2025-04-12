@@ -1,0 +1,429 @@
+# Floor Layout Service Technical Specification
+
+## Overview
+The Floor Layout Service provides functionality to determine cargo positioning, wheel touchpoints, and compartment allocations for aircraft loading operations. This is critical for proper weight distribution, ensuring cargo is positioned correctly on the aircraft floor, and validating that wheel touchpoints align with treadways.
+
+## Requirements
+
+1. **Cargo Spatial Positioning**
+   - Calculate the exact coordinates of all four corners of any cargo item
+   - Provide accurate position data for loading visualization and validation
+
+2. **Wheel Touchpoint Calculation**
+   - Determine floor contact points for different cargo configurations:
+     - Four-wheeled cargo items (e.g., vehicles, pallets with casters)
+     - Two-wheeled cargo items (e.g., trailers, carts)
+     - Bulk cargo items using outer corner contacts
+
+3. **Floor Contact Analysis**
+   - Calculate the exact span where a wheel contacts the floor
+   - Determine width of contact area based on wheel dimensions
+
+4. **Treadway Position Validation**
+   - Verify if wheel touchpoints align with aircraft treadways
+   - Implement 50% coverage rule (wheel must have at least 50% width on treadway)
+
+5. **Compartment Assignment**
+   - Identify which aircraft compartments contain each cargo touchpoint
+   - For bulk items, determine all compartments spanned by the cargo
+
+## API
+
+```typescript
+/**
+ * Calculates the four corner coordinates of a cargo item
+ * @param cargoItemId - The ID of the cargo item
+ * @returns A map of corner positions to points
+ */
+async getCargoCorners(cargoItemId: number): Promise<CargoCorners>
+
+/**
+ * Calculates the wheel touchpoint coordinates for a specific cargo item
+ * @param cargoItemId - The ID of the cargo item
+ * @param wheelType - The wheel configuration type ('4_wheeled', '2_wheeled', or 'bulk')
+ * @returns A map of touchpoint positions to points
+ */
+async getWheelTouchpoints(cargoItemId: number, wheelType: '4_wheeled' | '2_wheeled' | 'bulk'): Promise<WheelTouchpoints>
+
+/**
+ * Calculates the span of a wheel's contact with the floor along the y-axis
+ * @param x - The x-coordinate of the wheel's center
+ * @param y - The y-coordinate of the wheel's center
+ * @param wheelWidth - The width of the wheel in inches
+ * @returns The start and end y-coordinates of the wheel's contact with the floor
+ */
+async getWheelContactSpan(x: number, y: number, wheelWidth: number): Promise<WheelSpan>
+
+/**
+ * Determines if a wheel touchpoint is positioned on a treadway
+ * @param ySpan - The y-axis span of the wheel's contact with the floor
+ * @param aircraftId - The ID of the aircraft to check treadway positions
+ * @returns True if at least 50% of the wheel width is on a treadway, false otherwise
+ */
+async isTouchpointOnTreadway(ySpan: WheelSpan, aircraftId: number): Promise<boolean>
+
+/**
+ * Identifies which compartments a cargo item's touchpoints are located in
+ * @param cargoItemId - The ID of the cargo item
+ * @param touchpointType - The type of touchpoints to check ('4_wheeled', '2_wheeled', or 'bulk')
+ * @returns Mapping of touchpoints to compartments and list of all overlapping compartments
+ */
+async getTouchpointCompartments(cargoItemId: number, touchpointType: '4_wheeled' | '2_wheeled' | 'bulk'): Promise<TouchpointCompartmentResult>
+```
+
+## Database Dependencies
+
+The service relies on the following database tables:
+- `compartment`: Stores aircraft compartment data with x_start and x_end coordinates
+- `cargo_item`: Stores cargo dimensions, position, and properties
+- `aircraft`: Stores aircraft specifications including treadway properties
+
+## Implementation Details
+
+### Main Functions
+
+#### getCargoCorners
+
+```typescript
+async getCargoCorners(cargoItemId: number): Promise<CargoCorners> {
+  // 1. Validate and retrieve cargo item
+  const cargoItem = await getCargoItemById(cargoItemId);
+  if (!cargoItem) {
+    throw new Error(`Cargo item with ID ${cargoItemId} not found`);
+  }
+  
+  // 2. Extract cargo dimensions and position
+  const { x_start_position, y_start_position, length, width } = cargoItem;
+  
+  // 3. Calculate the coordinates for all four corners
+  const frontLeft: Point = { 
+    x: x_start_position, 
+    y: y_start_position 
+  };
+  
+  const frontRight: Point = { 
+    x: x_start_position, 
+    y: y_start_position + width 
+  };
+  
+  const backLeft: Point = { 
+    x: x_start_position + length, 
+    y: y_start_position 
+  };
+  
+  const backRight: Point = { 
+    x: x_start_position + length, 
+    y: y_start_position + width 
+  };
+  
+  // 4. Return the corners as a map with enum keys
+  return {
+    [CornerPosition.FrontLeft]: frontLeft,
+    [CornerPosition.FrontRight]: frontRight,
+    [CornerPosition.BackLeft]: backLeft,
+    [CornerPosition.BackRight]: backRight
+  };
+}
+```
+
+#### getWheelTouchpoints
+
+```typescript
+async getWheelTouchpoints(
+  cargoItemId: number, 
+  wheelType: '4_wheeled' | '2_wheeled' | 'bulk'
+): Promise<WheelTouchpoints> {
+  // 1. Validate and retrieve cargo item
+  const cargoItem = await getCargoItemById(cargoItemId);
+  if (!cargoItem) {
+    throw new Error(`Cargo item with ID ${cargoItemId} not found`);
+  }
+  
+  // Get cargo corners first
+  const corners = await this.getCargoCorners(cargoItemId);
+  
+  // Extract corner points
+  const frontLeft = corners[CornerPosition.FrontLeft];
+  const frontRight = corners[CornerPosition.FrontRight];
+  const backLeft = corners[CornerPosition.BackLeft];
+  const backRight = corners[CornerPosition.BackRight];
+  
+  // Extract additional cargo properties
+  const { forward_overhang, back_overhang } = cargoItem;
+  
+  // Calculate touchpoints based on wheel type
+  switch (wheelType) {
+    case '4_wheeled': {
+      // Calculate wheel positions using corner coordinates and overhang values
+      const frontWheelX = frontLeft.x + forward_overhang;
+      const backWheelX = backLeft.x - back_overhang;
+      
+      return {
+        [TouchpointPosition.FrontLeft]: { x: frontWheelX, y: frontLeft.y },
+        [TouchpointPosition.FrontRight]: { x: frontWheelX, y: frontRight.y },
+        [TouchpointPosition.BackLeft]: { x: backWheelX, y: backLeft.y },
+        [TouchpointPosition.BackRight]: { x: backWheelX, y: backRight.y }
+      };
+    }
+    
+    case '2_wheeled': {
+      // For two-wheeled items, wheels are centered along the y-axis
+      const centerY = frontLeft.y + (frontRight.y - frontLeft.y) / 2;
+      
+      // Calculate wheel positions
+      const frontWheelX = frontLeft.x + forward_overhang;
+      const backWheelX = backLeft.x - back_overhang;
+      
+      return {
+        [TouchpointPosition.Front]: { x: frontWheelX, y: centerY },
+        [TouchpointPosition.Back]: { x: backWheelX, y: centerY }
+      };
+    }
+    
+    case 'bulk': {
+      // For bulk items, use the corner coordinates directly
+      return {
+        [CornerPosition.FrontLeft]: frontLeft,
+        [CornerPosition.FrontRight]: frontRight,
+        [CornerPosition.BackLeft]: backLeft,
+        [CornerPosition.BackRight]: backRight
+      };
+    }
+    
+    default:
+      throw new Error(`Invalid wheel type: ${wheelType}`);
+  }
+}
+```
+
+#### getWheelContactSpan
+
+```typescript
+async getWheelContactSpan(
+  x: number, 
+  y: number, 
+  wheelWidth: number
+): Promise<WheelSpan> {
+  // 1. Calculate the span of the wheel's contact with the floor
+  const halfWidth = wheelWidth / 2;
+  
+  // 2. Return the start and end y-coordinates
+  return {
+    yStart: y - halfWidth,
+    yEnd: y + halfWidth
+  };
+}
+```
+
+#### isTouchpointOnTreadway
+
+```typescript
+async isTouchpointOnTreadway(
+  ySpan: WheelSpan, 
+  aircraftId: number
+): Promise<boolean> {
+  // 1. Retrieve aircraft data
+  const aircraft = await getAircraftById(aircraftId);
+  if (!aircraft) {
+    throw new Error(`Aircraft with ID ${aircraftId} not found`);
+  }
+  
+  // 2. Extract treadway information
+  const { treadways_width, treadways_dist_from_center } = aircraft;
+  
+  // 3. Calculate treadway boundaries
+  const leftTreadwayStart = -treadways_dist_from_center - treadways_width / 2;
+  const leftTreadwayEnd = -treadways_dist_from_center + treadways_width / 2;
+  
+  const rightTreadwayStart = treadways_dist_from_center - treadways_width / 2;
+  const rightTreadwayEnd = treadways_dist_from_center + treadways_width / 2;
+  
+  // 4. Calculate wheel width and overlap with treadways
+  const wheelWidth = ySpan.yEnd - ySpan.yStart;
+  
+  // Check left treadway overlap
+  const leftOverlap = Math.min(ySpan.yEnd, leftTreadwayEnd) - Math.max(ySpan.yStart, leftTreadwayStart);
+  const leftOverlapPercentage = leftOverlap > 0 ? leftOverlap / wheelWidth : 0;
+  
+  // Check right treadway overlap
+  const rightOverlap = Math.min(ySpan.yEnd, rightTreadwayEnd) - Math.max(ySpan.yStart, rightTreadwayStart);
+  const rightOverlapPercentage = rightOverlap > 0 ? rightOverlap / wheelWidth : 0;
+  
+  // 5. Return true if at least 50% of the wheel is on either treadway
+  return leftOverlapPercentage >= 0.5 || rightOverlapPercentage >= 0.5;
+}
+```
+
+### Type Definitions
+
+```typescript
+/**
+ * Touchpoint position identifiers
+ */
+export enum TouchpointPosition {
+  FrontLeft = 'frontLeft',
+  FrontRight = 'frontRight',
+  BackLeft = 'backLeft',
+  BackRight = 'backRight',
+  Front = 'front',
+  Back = 'back'
+}
+
+/**
+ * Corner position identifiers
+ */
+export enum CornerPosition {
+  FrontLeft = 'frontLeft',
+  FrontRight = 'frontRight',
+  BackLeft = 'backLeft',
+  BackRight = 'backRight'
+}
+
+/**
+ * Represents the corners of a cargo item
+ */
+export interface CargoCorners {
+  [CornerPosition.FrontLeft]: Point;
+  [CornerPosition.FrontRight]: Point;
+  [CornerPosition.BackLeft]: Point;
+  [CornerPosition.BackRight]: Point;
+}
+
+/**
+ * Represents the wheel touchpoints for different cargo types
+ */
+export interface WheelTouchpoints {
+  [position: string]: Point;
+}
+
+/**
+ * The result of touchpoint compartment mapping
+ */
+export interface TouchpointCompartmentResult {
+  /**
+   * Map from touchpoint position (like frontLeft) to compartment ID
+   */
+  touchpointToCompartment: Record<TouchpointPosition, number>;
+  
+  /**
+   * List of all compartment IDs that the cargo overlaps with
+   */
+  overlappingCompartments: number[];
+}
+```
+
+#### getTouchpointCompartments
+
+```typescript
+async getTouchpointCompartments(
+  cargoItemId: number, 
+  touchpointType: '4_wheeled' | '2_wheeled' | 'bulk'
+): Promise<TouchpointCompartmentResult> {
+  // Get all necessary data
+  const { cargoItem, compartments, touchpointsMap } = await this.getCargoAndCompartmentData(
+    cargoItemId, 
+    touchpointType
+  );
+
+  // Initialize result
+  const result: TouchpointCompartmentResult = {
+    touchpointToCompartment: {} as Record<TouchpointPosition, number>,
+    overlappingCompartments: []
+  };
+
+  // Calculate effective cargo footprint excluding overhangs
+  const x_start_position = cargoItem.x_start_position || 0;
+  const length = cargoItem.length || 0;
+  const forward_overhang = cargoItem.forward_overhang || 0;
+  const back_overhang = cargoItem.back_overhang || 0;
+  
+  // For wheeled cargo, exclude the overhang from the compartment overlap
+  const effective_start = touchpointType !== 'bulk' ? x_start_position + forward_overhang : x_start_position;
+  const effective_end = touchpointType !== 'bulk' ? x_start_position + length - back_overhang : x_start_position + length;
+
+  // Get all compartments that overlap with the cargo's effective footprint
+  for (const compartment of compartments) {
+    if (!compartment) continue;
+    
+    if (effective_start < compartment.x_end && effective_end > compartment.x_start) {
+      // Add to overlapping compartments list if not already there
+      if (!result.overlappingCompartments.includes(compartment.id)) {
+        result.overlappingCompartments.push(compartment.id);
+      }
+    }
+  }
+
+  // For bulk cargo, we only need the list of overlapping compartments
+  if (touchpointType === 'bulk') {
+    return result;
+  }
+
+  // For wheeled cargo, map each touchpoint to the compartment it's in using descriptive names
+  if (touchpointType === '4_wheeled') {
+    // Process touchpoints for four-wheeled cargo
+    const positions = [
+      TouchpointPosition.FrontLeft,
+      TouchpointPosition.FrontRight,
+      TouchpointPosition.BackLeft,
+      TouchpointPosition.BackRight
+    ];
+    
+    positions.forEach(position => {
+      const point = touchpointsMap[position];
+      if (point) {
+        for (const compartment of compartments) {
+          if (!compartment) continue;
+          
+          // Check if the touchpoint is within the compartment
+          if (point.x >= compartment.x_start && point.x <= compartment.x_end) {
+            result.touchpointToCompartment[position] = compartment.id;
+            break; // A touchpoint can only be in one compartment
+          }
+        }
+      }
+    });
+    
+  } else if (touchpointType === '2_wheeled') {
+    // Process touchpoints for two-wheeled cargo
+    const positions = [
+      TouchpointPosition.Front,
+      TouchpointPosition.Back
+    ];
+    
+    positions.forEach(position => {
+      const point = touchpointsMap[position];
+      if (point) {
+        for (const compartment of compartments) {
+          if (!compartment) continue;
+          
+          // Check if the touchpoint is within the compartment
+          if (point.x >= compartment.x_start && point.x <= compartment.x_end) {
+            result.touchpointToCompartment[position] = compartment.id;
+            break; // A touchpoint can only be in one compartment
+          }
+        }
+      }
+    });
+  }
+
+  return result;
+}
+```
+
+This function identifies which compartments a cargo item's touchpoints are located in, with the following key features:
+
+1. For all cargo types, provides a list of all compartments that the cargo item's effective footprint overlaps with
+   - For wheeled cargo, overhangs are excluded from the footprint calculation
+   - For bulk cargo, the entire cargo length is considered
+
+2. For wheeled cargo:
+   - Uses descriptive names for touchpoints (frontLeft, frontRight, etc.) instead of coordinates
+   - Maps each named position to the compartment it's in
+   - Each touchpoint is assigned to exactly one compartment
+
+3. For bulk cargo:
+   - Only returns the list of overlapping compartments without touchpoint mapping
+
+The result contains two parts:
+- `overlappingCompartments`: List of IDs for all compartments that overlap with the cargo's effective footprint
+- `touchpointToCompartment`: Map from named touchpoint positions to compartment IDs
