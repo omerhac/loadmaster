@@ -2,7 +2,7 @@ import {
   calculateConcentratedLoad,
   calculateLoadPerCompartment,
   calculateRunningLoad,
-  WHEEL_DIMENSIONS
+  WHEEL_DIMENSIONS,
 } from '../../../src/services/floor/FloorLoadCalculationService';
 import { TestDatabaseService } from '../../../src/services/db/TestDatabaseService';
 import { initializeLoadmasterDatabase } from '../../../src/services/db/SchemaService';
@@ -13,7 +13,7 @@ import {
   createCompartment,
   createCargoType,
   createCargoItem,
-  deleteCargoItem
+  deleteCargoItem,
 } from '../../../src/services/db/operations';
 
 describe('Floor Load Calculation Integration Tests', () => {
@@ -130,15 +130,15 @@ describe('Floor Load Calculation Integration Tests', () => {
         forward_overhang: 0,
         back_overhang: 0,
         x_start_position: 50,
-        y_start_position: 0
+        y_start_position: 0,
       };
       const largeBulkResult = await createCargoItem(largeBulkCargoItem);
       const largeBulkId = largeBulkResult.results?.[0]?.lastInsertId || 4;
       createdCargoItemIds.push(largeBulkId);
-      
+
       // Calculate load per compartment for the cargo item spanning multiple compartments
       const loadPerCompartment = await calculateLoadPerCompartment(largeBulkId);
-      
+
       // LOAD PER COMPARTMENT CALCULATION:
       // Cargo spans from x=50 to x=250 (length=200)
       // Compartment 1: x=0 to x=100
@@ -154,36 +154,36 @@ describe('Floor Load Calculation Integration Tests', () => {
       // - Compartment 1: 2000 lbs * 25% = 500 lbs
       // - Compartment 2: 2000 lbs * 50% = 1000 lbs
       // - Compartment 3: 2000 lbs * 25% = 500 lbs
-      
+
       expect(loadPerCompartment).toBeDefined();
       expect(loadPerCompartment.length).toBe(3); // Should span all 3 compartments
-      
+
       // Sort by compartment ID to ensure consistent ordering
-      const sortedResults = [...loadPerCompartment].sort((a, b) => 
+      const sortedResults = [...loadPerCompartment].sort((a, b) =>
         a.compartmentId - b.compartmentId
       );
-      
+
       // Verify load per compartment
       expect(sortedResults[0].load.unit).toBe('lbs');
       expect(sortedResults[0].load.value).toBeCloseTo(500, 2); // 25% of weight
-      
+
       expect(sortedResults[1].load.unit).toBe('lbs');
       expect(sortedResults[1].load.value).toBeCloseTo(1000, 2); // 50% of weight
-      
+
       expect(sortedResults[2].load.unit).toBe('lbs');
       expect(sortedResults[2].load.value).toBeCloseTo(500, 2); // 25% of weight
-      
+
       // Also test concentrated load and running load
       const concentratedLoad = await calculateConcentratedLoad(largeBulkId);
       const runningLoad = await calculateRunningLoad(largeBulkId);
-      
+
       // CONCENTRATED LOAD CALCULATION:
       // For bulk cargo: weight / (length * width)
       // Expected: 2000 lbs / (200 in * 100 in) = 2000 / 20000 = 0.1 lbs/sq.in
       expect(concentratedLoad).toBeDefined();
       expect(concentratedLoad.unit).toBe('lbs/sq.in');
       expect(concentratedLoad.value).toBeCloseTo(0.1, 2);
-      
+
       // RUNNING LOAD CALCULATION:
       // For bulk cargo: weight / length
       // Expected: 2000 lbs / 200 in = 10 lbs/in
@@ -291,7 +291,7 @@ describe('Floor Load Calculation Integration Tests', () => {
       // x_start with overhang: 120 + 15 = 135
       // x_end without overhang: 120 + 120 - 15 = 225
       // This spans compartment 2 (100-200) and extends beyond it
-      // 
+      //
       // Wheel positions:
       // - Front wheels at x=135 are in compartment with x=100-200
       // - Back wheels at x=225 are outside this compartment
@@ -334,10 +334,10 @@ describe('Floor Load Calculation Integration Tests', () => {
       treadways_dist_from_center: 50,
       ramp_length: 300,
       ramp_max_incline: 15,
-      ramp_min_incline: 5
+      ramp_min_incline: 5,
     };
     const aircraftResult = await createAircraft(aircraft);
-    const aircraftId = aircraftResult.results?.[0]?.lastInsertId || 1;
+    const createdAircraftId = aircraftResult.results?.[0]?.lastInsertId || 1;
 
     // Create test mission
     const mission = {
@@ -352,37 +352,37 @@ describe('Floor Load Calculation Integration Tests', () => {
       food_weight: 0,
       safety_gear_weight: 0,
       etc_weight: 0,
-      aircraft_id: aircraftId
+      aircraft_id: createdAircraftId,
     };
     const missionResult = await createMission(mission);
-    const missionId = missionResult.results?.[0]?.lastInsertId || 1;
+    const createdMissionId = missionResult.results?.[0]?.lastInsertId || 1;
 
     // Create test compartments
     await createCompartment({
-      aircraft_id: aircraftId,
+      aircraft_id: createdAircraftId,
       name: 'Compartment 1',
       x_start: 0,
       x_end: 100,
       floor_area: 10000,
-      usable_volume: 50000
+      usable_volume: 50000,
     });
 
     await createCompartment({
-      aircraft_id: aircraftId,
+      aircraft_id: createdAircraftId,
       name: 'Compartment 2',
       x_start: 100,
       x_end: 200,
       floor_area: 10000,
-      usable_volume: 50000
+      usable_volume: 50000,
     });
 
     await createCompartment({
-      aircraft_id: aircraftId,
+      aircraft_id: createdAircraftId,
       name: 'Compartment 3',
       x_start: 200,
       x_end: 300,
       floor_area: 10000,
-      usable_volume: 50000
+      usable_volume: 50000,
     });
 
     // Create test cargo types
@@ -394,9 +394,9 @@ describe('Floor Load Calculation Integration Tests', () => {
       default_height: 50,
       default_forward_overhang: 0,
       default_back_overhang: 0,
-      type: 'bulk'
+      type: 'bulk',
     });
-    const bulkTypeId = bulkTypeResult.results?.[0]?.lastInsertId || 1;
+    const createdBulkTypeId = bulkTypeResult.results?.[0]?.lastInsertId || 1;
 
     const twoWheeledTypeResult = await createCargoType({
       name: 'Two Wheeled Vehicle',
@@ -406,9 +406,9 @@ describe('Floor Load Calculation Integration Tests', () => {
       default_height: 70,
       default_forward_overhang: 10,
       default_back_overhang: 10,
-      type: '2_wheeled'
+      type: '2_wheeled',
     });
-    const twoWheeledTypeId = twoWheeledTypeResult.results?.[0]?.lastInsertId || 2;
+    const createdTwoWheeledTypeId = twoWheeledTypeResult.results?.[0]?.lastInsertId || 2;
 
     const fourWheeledTypeResult = await createCargoType({
       name: 'Four Wheeled Vehicle',
@@ -418,16 +418,16 @@ describe('Floor Load Calculation Integration Tests', () => {
       default_height: 60,
       default_forward_overhang: 15,
       default_back_overhang: 15,
-      type: '4_wheeled'
+      type: '4_wheeled',
     });
-    const fourWheeledTypeId = fourWheeledTypeResult.results?.[0]?.lastInsertId || 3;
+    const createdFourWheeledTypeId = fourWheeledTypeResult.results?.[0]?.lastInsertId || 3;
 
     return {
-      aircraftId,
-      missionId,
-      bulkTypeId,
-      twoWheeledTypeId,
-      fourWheeledTypeId
+      aircraftId: createdAircraftId,
+      missionId: createdMissionId,
+      bulkTypeId: createdBulkTypeId,
+      twoWheeledTypeId: createdTwoWheeledTypeId,
+      fourWheeledTypeId: createdFourWheeledTypeId,
     };
   }
 
@@ -440,10 +440,10 @@ describe('Floor Load Calculation Integration Tests', () => {
    * @returns Object containing created cargo item IDs
    */
   async function createTestCargoItems(
-    missionId: number,
-    bulkTypeId: number,
-    twoWheeledTypeId: number,
-    fourWheeledTypeId: number
+    missionIdParam: number,
+    bulkTypeIdParam: number,
+    twoWheeledTypeIdParam: number,
+    fourWheeledTypeIdParam: number
   ): Promise<{
     bulkCargoId: number;
     twoWheeledCargoId: number;
@@ -451,8 +451,8 @@ describe('Floor Load Calculation Integration Tests', () => {
   }> {
     // Create a bulk cargo item
     const bulkCargoItem = {
-      mission_id: missionId,
-      cargo_type_id: bulkTypeId,
+      mission_id: missionIdParam,
+      cargo_type_id: bulkTypeIdParam,
       name: 'Test Bulk Cargo',
       weight: 1000,
       length: 20,
@@ -461,15 +461,15 @@ describe('Floor Load Calculation Integration Tests', () => {
       forward_overhang: 0,
       back_overhang: 0,
       x_start_position: 50,
-      y_start_position: 0
+      y_start_position: 0,
     };
     const bulkCargoResult = await createCargoItem(bulkCargoItem);
-    const bulkCargoId = bulkCargoResult.results?.[0]?.lastInsertId || 1;
+    const createdBulkCargoId = bulkCargoResult.results?.[0]?.lastInsertId || 1;
 
     // Create a 2-wheeled cargo item
     const twoWheeledItem = {
-      mission_id: missionId,
-      cargo_type_id: twoWheeledTypeId,
+      mission_id: missionIdParam,
+      cargo_type_id: twoWheeledTypeIdParam,
       name: 'Test 2-Wheeled Vehicle',
       weight: 1500,
       length: 80,
@@ -478,15 +478,15 @@ describe('Floor Load Calculation Integration Tests', () => {
       forward_overhang: 10,
       back_overhang: 10,
       x_start_position: 30,
-      y_start_position: 0
+      y_start_position: 0,
     };
     const twoWheeledResult = await createCargoItem(twoWheeledItem);
-    const twoWheeledCargoId = twoWheeledResult.results?.[0]?.lastInsertId || 2;
+    const createdTwoWheeledCargoId = twoWheeledResult.results?.[0]?.lastInsertId || 2;
 
     // Create a 4-wheeled cargo item
     const fourWheeledItem = {
-      mission_id: missionId,
-      cargo_type_id: fourWheeledTypeId,
+      mission_id: missionIdParam,
+      cargo_type_id: fourWheeledTypeIdParam,
       name: 'Test 4-Wheeled Vehicle',
       weight: 2000,
       length: 120,
@@ -495,15 +495,15 @@ describe('Floor Load Calculation Integration Tests', () => {
       forward_overhang: 15,
       back_overhang: 15,
       x_start_position: 120,
-      y_start_position: 0
+      y_start_position: 0,
     };
     const fourWheeledResult = await createCargoItem(fourWheeledItem);
-    const fourWheeledCargoId = fourWheeledResult.results?.[0]?.lastInsertId || 3;
+    const createdFourWheeledCargoId = fourWheeledResult.results?.[0]?.lastInsertId || 3;
 
     return {
-      bulkCargoId,
-      twoWheeledCargoId,
-      fourWheeledCargoId
+      bulkCargoId: createdBulkCargoId,
+      twoWheeledCargoId: createdTwoWheeledCargoId,
+      fourWheeledCargoId: createdFourWheeledCargoId,
     };
   }
-}); 
+});

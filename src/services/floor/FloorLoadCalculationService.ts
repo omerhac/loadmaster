@@ -4,7 +4,7 @@ import {
   getCompartmentById,
   CargoItem as DBCargoItem,
   Compartment as DBCompartment,
-  CargoType as DBCargoType
+  CargoType as DBCargoType,
 } from '@/services/db/operations';
 
 import {
@@ -23,13 +23,13 @@ export const WHEEL_DIMENSIONS = {
   '2_wheeled': {
     WHEEL_WIDTH: 10, // inches
     CONTACT_LENGTH: 3.0, // inches
-    COUNT: 2
+    COUNT: 2,
   },
   '4_wheeled': {
     WHEEL_WIDTH: 10, // inches
     CONTACT_LENGTH: 2.5, // inches
-    COUNT: 4
-  }
+    COUNT: 4,
+  },
 };
 
 /**
@@ -117,7 +117,7 @@ export async function calculateConcentratedLoad(cargoItemId: number): Promise<Lo
 
   return {
     value: loadValue,
-    unit: 'lbs/sq.in'
+    unit: 'lbs/sq.in',
   };
 }
 
@@ -170,8 +170,8 @@ export async function calculateLoadPerCompartment(cargoItemId: number): Promise<
             compartmentId,
             load: {
               value: loadValue,
-              unit: 'lbs'
-            }
+              unit: 'lbs',
+            },
           });
         }
       }
@@ -199,8 +199,8 @@ export async function calculateLoadPerCompartment(cargoItemId: number): Promise<
           compartmentId,
           load: {
             value: loadValue,
-            unit: 'lbs'
-          }
+            unit: 'lbs',
+          },
         });
       }
       break;
@@ -246,7 +246,7 @@ export async function calculateRunningLoad(cargoItemId: number): Promise<LoadRes
 
   return {
     value: loadValue,
-    unit: 'lbs/in'
+    unit: 'lbs/in',
   };
 }
 
@@ -275,7 +275,7 @@ async function getCargoItemWithType(cargoItemId: number): Promise<CargoItemWithT
 
   return {
     ...cargoItem,
-    type: cargoType.type
+    type: cargoType.type,
   };
 }
 
