@@ -388,18 +388,18 @@ describe('FloorLayoutService', () => {
         TouchpointPosition.FrontLeft,
         TouchpointPosition.FrontRight,
         TouchpointPosition.BackLeft,
-        TouchpointPosition.BackRight
+        TouchpointPosition.BackRight,
       ];
-      
+
       positions.forEach((position) => {
         const point = touchpointsMap[position];
         const compartmentId = result.touchpointToCompartment[position];
         const compartment = testCompartments.find(c => c.id === compartmentId);
-        
+
         expect(compartment).toBeDefined();
         expect(point.x >= compartment!.x_start && point.x <= compartment!.x_end).toBeTruthy();
       });
-      
+
       // Verify overlapping compartments includes all compartments that touchpoints are in
       const touchpointCompartmentIds = Object.values(result.touchpointToCompartment);
       touchpointCompartmentIds.forEach(compartmentId => {
@@ -419,12 +419,12 @@ describe('FloorLayoutService', () => {
 
       // Verify the touchpoints are correctly mapped to compartments
       const positions = [TouchpointPosition.Front, TouchpointPosition.Back];
-      
+
       positions.forEach((position) => {
         const point = touchpointsMap[position];
         const compartmentId = result.touchpointToCompartment[position];
         const compartment = testCompartments.find(c => c.id === compartmentId);
-        
+
         expect(compartment).toBeDefined();
         expect(point.x >= compartment!.x_start && point.x <= compartment!.x_end).toBeTruthy();
       });
@@ -441,12 +441,12 @@ describe('FloorLayoutService', () => {
       // Should list all compartments that overlap with the cargo's x-span
       const cargoStart = cargoItem.x_start_position!;
       const cargoEnd = cargoStart + cargoItem.length!;
-      
+
       // Count how many compartments should overlap with this cargo
-      const expectedOverlappingCompartments = testCompartments.filter(compartment => 
+      const expectedOverlappingCompartments = testCompartments.filter(compartment =>
         cargoStart < compartment.x_end && cargoEnd > compartment.x_start
       ).map(compartment => compartment.id!);
-      
+
       // Verify all expected compartments are in the result
       expect(result.overlappingCompartments.length).toBe(expectedOverlappingCompartments.length);
       expectedOverlappingCompartments.forEach(compartmentId => {
@@ -456,18 +456,18 @@ describe('FloorLayoutService', () => {
 
     it('should exclude overhangs when calculating compartment overlap for wheeled cargo', async () => {
       const cargoItem = testCargoItems[0];
-      
+
       // Calculate the effective cargo span excluding overhangs
       const effectiveStart = cargoItem.x_start_position! + cargoItem.forward_overhang!;
       const effectiveEnd = cargoItem.x_start_position! + cargoItem.length! - cargoItem.back_overhang!;
-      
+
       const result = await service.getTouchpointCompartments(cargoItem.id!, '4_wheeled');
-      
+
       // Verify that overlapping compartments only includes those that the cargo's effective footprint overlaps with
-      const expectedOverlappingCompartments = testCompartments.filter(compartment => 
+      const expectedOverlappingCompartments = testCompartments.filter(compartment =>
         effectiveStart < compartment.x_end && effectiveEnd > compartment.x_start
       ).map(compartment => compartment.id!);
-      
+
       expect(result.overlappingCompartments.length).toBe(expectedOverlappingCompartments.length);
       expectedOverlappingCompartments.forEach(compartmentId => {
         expect(result.overlappingCompartments).toContain(compartmentId);

@@ -3,7 +3,6 @@ import {
   getAircraftById,
   getCompartmentsByAircraftId,
   getMissionById,
-  CargoItem
 } from '../db/operations';
 
 /**
@@ -84,7 +83,7 @@ export interface TouchpointCompartmentResult {
    * Map from touchpoint position (like frontLeft) to compartment ID
    */
   touchpointToCompartment: Record<TouchpointPosition, number>;
-  
+
   /**
    * List of all compartment IDs that the cargo overlaps with
    */
@@ -155,7 +154,7 @@ export class FloorLayoutService {
       [CornerPosition.FrontLeft]: frontLeft,
       [CornerPosition.FrontRight]: frontRight,
       [CornerPosition.BackLeft]: backLeft,
-      [CornerPosition.BackRight]: backRight
+      [CornerPosition.BackRight]: backRight,
     };
   }
 
@@ -201,7 +200,7 @@ export class FloorLayoutService {
           [TouchpointPosition.FrontLeft]: { x: frontWheelX, y: frontLeft.y },
           [TouchpointPosition.FrontRight]: { x: frontWheelX, y: frontRight.y },
           [TouchpointPosition.BackLeft]: { x: backWheelX, y: backLeft.y },
-          [TouchpointPosition.BackRight]: { x: backWheelX, y: backRight.y }
+          [TouchpointPosition.BackRight]: { x: backWheelX, y: backRight.y },
         };
       }
 
@@ -219,7 +218,7 @@ export class FloorLayoutService {
 
         return {
           [TouchpointPosition.Front]: { x: frontWheelX, y: centerY },
-          [TouchpointPosition.Back]: { x: backWheelX, y: centerY }
+          [TouchpointPosition.Back]: { x: backWheelX, y: centerY },
         };
       }
 
@@ -229,7 +228,7 @@ export class FloorLayoutService {
           [CornerPosition.FrontLeft]: frontLeft,
           [CornerPosition.FrontRight]: frontRight,
           [CornerPosition.BackLeft]: backLeft,
-          [CornerPosition.BackRight]: backRight
+          [CornerPosition.BackRight]: backRight,
         };
       }
 
@@ -356,14 +355,14 @@ export class FloorLayoutService {
   ): Promise<TouchpointCompartmentResult> {
     // Get all necessary data
     const { cargoItem, compartments, touchpointsMap } = await this.getCargoAndCompartmentData(
-      cargoItemId, 
+      cargoItemId,
       touchpointType
     );
 
     // Initialize result
     const result: TouchpointCompartmentResult = {
       touchpointToCompartment: {} as Record<TouchpointPosition, number>,
-      overlappingCompartments: []
+      overlappingCompartments: [],
     };
 
     // Calculate effective cargo footprint excluding overhangs
@@ -371,15 +370,15 @@ export class FloorLayoutService {
     const length = cargoItem.length || 0;
     const forward_overhang = cargoItem.forward_overhang || 0;
     const back_overhang = cargoItem.back_overhang || 0;
-    
+
     // For wheeled cargo, exclude the overhang from the compartment overlap
     const effective_start = touchpointType !== 'bulk' ? x_start_position + forward_overhang : x_start_position;
     const effective_end = touchpointType !== 'bulk' ? x_start_position + length - back_overhang : x_start_position + length;
 
     // Get all compartments that overlap with the cargo's effective footprint
     for (const compartment of compartments) {
-      if (!compartment) continue;
-      
+      if (!compartment) {continue;}
+
       if (effective_start < compartment.x_end && effective_end > compartment.x_start) {
         // Add to overlapping compartments list if not already there
         if (!result.overlappingCompartments.includes(compartment.id)) {
@@ -400,15 +399,15 @@ export class FloorLayoutService {
         TouchpointPosition.FrontLeft,
         TouchpointPosition.FrontRight,
         TouchpointPosition.BackLeft,
-        TouchpointPosition.BackRight
+        TouchpointPosition.BackRight,
       ];
-      
+
       positions.forEach(position => {
         const point = touchpointsMap[position];
         if (point) {
           for (const compartment of compartments) {
-            if (!compartment) continue;
-            
+            if (!compartment) {continue;}
+
             // Check if the touchpoint is within the compartment
             if (point.x >= compartment.x_start && point.x <= compartment.x_end) {
               result.touchpointToCompartment[position] = compartment.id;
@@ -417,20 +416,20 @@ export class FloorLayoutService {
           }
         }
       });
-      
+
     } else if (touchpointType === '2_wheeled') {
       // Process touchpoints for two-wheeled cargo
       const positions = [
         TouchpointPosition.Front,
-        TouchpointPosition.Back
+        TouchpointPosition.Back,
       ];
-      
+
       positions.forEach(position => {
         const point = touchpointsMap[position];
         if (point) {
           for (const compartment of compartments) {
-            if (!compartment) continue;
-            
+            if (!compartment) {continue;}
+
             // Check if the touchpoint is within the compartment
             if (point.x >= compartment.x_start && point.x <= compartment.x_end) {
               result.touchpointToCompartment[position] = compartment.id;
