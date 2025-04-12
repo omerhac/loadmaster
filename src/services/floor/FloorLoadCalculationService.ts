@@ -12,9 +12,9 @@ import {
 } from './FloorLayoutService';
 
 /**
- * Wheel type enumeration matching existing project convention
+ * Cargo wheel type enumeration matching existing project convention
  */
-export type WheelType = 'bulk' | '2_wheeled' | '4_wheeled';
+export type CargoWheelType = 'bulk' | '2_wheeled' | '4_wheeled';
 
 /**
  * Constants for wheel dimensions
@@ -63,8 +63,8 @@ export interface CompartmentLoadResult {
 /**
  * Interface representing cargo item with type information
  */
-interface CargoItemWithType extends DBCargoItem {
-  type: WheelType;
+interface CargoItemWithWheelType extends DBCargoItem {
+  type: CargoWheelType;
 }
 
 /**
@@ -74,7 +74,7 @@ interface CargoItemWithType extends DBCargoItem {
  */
 export async function calculateConcentratedLoad(cargoItemId: number): Promise<LoadResult> {
   // 1. Retrieve cargo item data
-  const cargoItem = await getCargoItemWithType(cargoItemId);
+  const cargoItem = await getCargoItemWithWheelType(cargoItemId);
   if (!cargoItem) {
     throw new Error(`Cargo item with ID ${cargoItemId} not found`);
   }
@@ -128,7 +128,7 @@ export async function calculateConcentratedLoad(cargoItemId: number): Promise<Lo
  */
 export async function calculateLoadPerCompartment(cargoItemId: number): Promise<CompartmentLoadResult[]> {
   // 1. Retrieve cargo item data
-  const cargoItem = await getCargoItemWithType(cargoItemId);
+  const cargoItem = await getCargoItemWithWheelType(cargoItemId);
   if (!cargoItem) {
     throw new Error(`Cargo item with ID ${cargoItemId} not found`);
   }
@@ -210,7 +210,7 @@ export async function calculateLoadPerCompartment(cargoItemId: number): Promise<
  */
 export async function calculateRunningLoad(cargoItemId: number): Promise<LoadResult> {
   // 1. Retrieve cargo item data
-  const cargoItem = await getCargoItemWithType(cargoItemId);
+  const cargoItem = await getCargoItemWithWheelType(cargoItemId);
   if (!cargoItem) {
     throw new Error(`Cargo item with ID ${cargoItemId} not found`);
   }
@@ -245,7 +245,7 @@ export async function calculateRunningLoad(cargoItemId: number): Promise<LoadRes
  * @param cargoItemId - The ID of the cargo item
  * @returns CargoItem data with type or null if not found
  */
-async function getCargoItemWithType(cargoItemId: number): Promise<CargoItemWithType | null> {
+async function getCargoItemWithWheelType(cargoItemId: number): Promise<CargoItemWithWheelType | null> {
   // Get cargo item
   const cargoItemResult = await getCargoItemById(cargoItemId);
 
@@ -274,7 +274,7 @@ async function getCargoItemWithType(cargoItemId: number): Promise<CargoItemWithT
  * @param cargoItem - The cargo item
  * @returns Array of compartments
  */
-async function getOverlappingCompartments(cargoItem: CargoItemWithType): Promise<DBCompartment[]> {
+async function getOverlappingCompartments(cargoItem: CargoItemWithWheelType): Promise<DBCompartment[]> {
   const compartments: DBCompartment[] = [];
   const cargoXStart = cargoItem.x_start_position;
   const cargoXEnd = cargoItem.x_start_position + cargoItem.length!;
@@ -350,7 +350,7 @@ async function findCompartmentAtPosition(xPosition: number): Promise<DBCompartme
  * @param compartment - The compartment
  * @returns Overlap percentage (0 to 1)
  */
-function calculateOverlapPercentage(cargoItem: CargoItemWithType, compartment: DBCompartment): number {
+function calculateOverlapPercentage(cargoItem: CargoItemWithWheelType, compartment: DBCompartment): number {
   const cargoXStart = cargoItem.x_start_position;
   const cargoXEnd = cargoItem.x_start_position + cargoItem.length!;
 
