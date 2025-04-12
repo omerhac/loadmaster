@@ -35,3 +35,5 @@ export type {
   WheelTouchpoints,
   TouchpointCompartmentResult,
 };
+
+export * from './FloorLoadCalculationService';

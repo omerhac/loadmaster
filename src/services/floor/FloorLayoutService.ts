@@ -3,7 +3,7 @@ import {
   getAircraftById,
   getCompartmentsByAircraftId,
   getMissionById,
-} from '../db/operations';
+} from '@/services/db/operations';
 
 /**
  * Represents a point in 2D space
