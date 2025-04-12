@@ -1,87 +1,180 @@
 # MAC Validation Service Technical Specification
 
 ## Overview
-The MAC (Mean Aerodynamic Chord) Validation Service provides functionality to validate if a given MAC value is within allowed limits for a specific aircraft weight. This service uses the `allowed_mac_constraints` table to determine the valid MAC range based on aircraft gross weight.
 
-## Purpose
-Ensure that aircraft loading configurations maintain a MAC percentage within safe operational limits based on the current gross weight of the aircraft.
+The MAC Validation Service provides functionality to validate whether a given MAC (Mean Aerodynamic Chord) value for an aircraft falls within allowable limits based on the aircraft's weight. The service validates both standalone MAC values and MAC values for specific mission configurations.
 
 ## Dependencies
-- Database service
-- AllowedMacConstraint operations
 
-## Interface
+- `AllowedMacConstraintOperations` for retrieving MAC constraints from the database
+- `MacCalculationService` for mission MAC validation
+
+## API
+
+### Types
 
 ```typescript
-interface MacValidationResult {
-  isValid: boolean;
-  currentMac: number;
-  minAllowedMac: number;
-  maxAllowedMac: number;
-  weightUsedForConstraint: number;
-  actualWeight: number;
-  message?: string;
+/**
+ * Represents the result of a MAC validation
+ */
+export interface MacValidationResult {
+  isValid: boolean;       // Whether the MAC value is valid
+  errorMessage?: string;  // Error message if invalid
+  percentage?: number;    // Percentage of MAC (used in error messages)
+  lowerLimit?: number;    // Lower limit of allowed MAC range
+  upperLimit?: number;    // Upper limit of allowed MAC range
 }
+```
 
-interface MacValidationService {
-  validateMac(grossWeight: number, macPercent: number): Promise<MacValidationResult>;
-  validateMissionMac(missionId: number): Promise<MacValidationResult>;
-}
+### Functions
+
+```typescript
+/**
+ * Validates if a given MAC percentage is within allowed limits for a specific aircraft weight
+ * 
+ * @param aircraft - The aircraft to validate (id or object with id)
+ * @param macPercentage - The MAC percentage to validate
+ * @param weightInPounds - The aircraft weight in pounds
+ * @returns A validation result object
+ */
+export function validateMac(
+  aircraft: number | { id: number },
+  macPercentage: number,
+  weightInPounds: number
+): Promise<MacValidationResult>
+
+/**
+ * Validates if the MAC for a mission is within allowed limits
+ * 
+ * @param missionId - The ID of the mission to validate
+ * @param fuelStateId - The ID of the fuel state to use for validation
+ * @returns A validation result object
+ */
+export function validateMissionMac(
+  missionId: number,
+  fuelStateId: number
+): Promise<MacValidationResult>
 ```
 
 ## Implementation Details
 
 ### validateMac
-The main validation function will:
-1. Take gross aircraft weight and MAC percentage as inputs
-2. Query the database for applicable constraints using `getAllowedMacConstraintByWeight`
-3. Determine if the MAC percentage is within the min/max range
-4. Return a comprehensive validation result
 
 ```typescript
-async function validateMac(
-  grossWeight: number, 
-  macPercent: number
+export async function validateMac(
+  aircraft: number | { id: number },
+  macPercentage: number,
+  weightInPounds: number
 ): Promise<MacValidationResult> {
-  // Get applicable constraints for the weight
-  const constraintResponse = await getAllowedMacConstraintByWeight(grossWeight);
-  
-  if (constraintResponse.count === 0) {
+  try {
+    // Extract aircraft ID
+    const aircraftId = typeof aircraft === 'number' ? aircraft : aircraft.id;
+    
+    // Retrieve MAC constraints for the aircraft
+    const constraints = await AllowedMacConstraintOperations.getAllowedMacConstraints(aircraftId);
+    
+    // Handle case with no constraints
+    if (!constraints || constraints.length === 0) {
+      return {
+        isValid: false,
+        errorMessage: `No MAC constraints found for aircraft ${aircraftId}`,
+      };
+    }
+    
+    // Find the applicable constraint based on weight
+    const applicableConstraint = constraints.find(constraint => {
+      // Check if weight is within this constraint's range
+      return (constraint.lower_weight_bound <= weightInPounds && 
+              (constraint.upper_weight_bound === null || constraint.upper_weight_bound >= weightInPounds));
+    });
+    
+    // Handle case with no applicable constraint for the weight
+    if (!applicableConstraint) {
+      return {
+        isValid: false,
+        errorMessage: `No MAC constraint found for aircraft ${aircraftId} at weight ${weightInPounds} lbs`,
+      };
+    }
+    
+    // Check if MAC percentage is within allowed limits
+    const isValid = (
+      macPercentage >= applicableConstraint.lower_mac_bound && 
+      macPercentage <= applicableConstraint.upper_mac_bound
+    );
+    
+    // Return validation result with detailed info
+    return {
+      isValid,
+      percentage: macPercentage,
+      lowerLimit: applicableConstraint.lower_mac_bound,
+      upperLimit: applicableConstraint.upper_mac_bound,
+      errorMessage: isValid ? undefined : 
+        `MAC ${macPercentage}% is outside allowed range (${applicableConstraint.lower_mac_bound}% - ${applicableConstraint.upper_mac_bound}%) for weight ${weightInPounds} lbs`
+    };
+  } catch (error) {
+    // Handle errors from database operations
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error during MAC validation';
     return {
       isValid: false,
-      currentMac: macPercent,
-      minAllowedMac: 0,
-      maxAllowedMac: 0,
-      weightUsedForConstraint: 0,
-      actualWeight: grossWeight,
-      message: "No MAC constraints found for the specified weight"
+      errorMessage
     };
   }
-  
-  const constraint = constraintResponse.rows[0] as AllowedMacConstraint;
-  
-  const isValid = macPercent >= constraint.min_mac && macPercent <= constraint.max_mac;
-  
-  return {
-    isValid,
-    currentMac: macPercent,
-    minAllowedMac: constraint.min_mac,
-    maxAllowedMac: constraint.max_mac,
-    weightUsedForConstraint: constraint.gross_aircraft_weight,
-    actualWeight: grossWeight,
-    message: isValid ? 
-      "MAC is within allowed limits" : 
-      `MAC is outside allowed limits (${constraint.min_mac}% - ${constraint.max_mac}%)`
-  };
 }
 ```
 
 ### validateMissionMac
-A convenience function to validate the MAC of an existing mission:
-1. Retrieve the mission's weight and MAC from the mission table
-2. Call `validateMac` with these values
-3. Return the validation result
+
+```typescript
+export async function validateMissionMac(
+  missionId: number, 
+  fuelStateId: number
+): Promise<MacValidationResult> {
+  try {
+    // 1. Get mission by ID to ensure it exists
+    const missionResponse = await getMissionById(missionId);
+    if (missionResponse.count === 0 || !missionResponse.results[0].data) {
+      return {
+        isValid: false,
+        errorMessage: `Mission with ID ${missionId} not found`
+      };
+    }
+    
+    // 2. Get fuel state to ensure it exists
+    const fuelStateResponse = await getFuelStateById(fuelStateId);
+    if (fuelStateResponse.count === 0 || !fuelStateResponse.results[0].data) {
+      return {
+        isValid: false,
+        errorMessage: `Fuel state with ID ${fuelStateId} not found`
+      };
+    }
+    
+    const mission = missionResponse.results[0].data;
+    const fuelState = fuelStateResponse.results[0].data;
+    
+    // 3. Calculate the MAC and weight using MacCalculationService
+    const macResult = await calculateMissionMac(missionId, fuelStateId);
+    
+    // 4. Validate the MAC using the standard validate function
+    return validateMac(
+      mission.aircraft_id,
+      macResult.macPercentage,
+      macResult.totalWeight
+    );
+  } catch (error) {
+    // Handle errors from database operations or MAC calculation
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error during mission MAC validation';
+    return {
+      isValid: false,
+      errorMessage
+    };
+  }
+}
+```
 
 ## Error Handling
-- If no constraints exist, return a validation result with `isValid: false` and an appropriate message
-- If database operations fail, throw appropriate errors with context
+
+- If no constraints are found for an aircraft, returns an invalid result with appropriate error message
+- If no constraint applies to the given weight, returns an invalid result with weight-specific error message
+- Database errors are caught and converted to invalid results with the error message included
+- For missing missions or fuel states, returns specific error messages
+- When MAC is outside allowed range, provides detailed information about limits and actual values

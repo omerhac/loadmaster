@@ -2,8 +2,11 @@
  * Tests for MAC Validation Service
  */
 
-import { MacValidationService } from '../../../src/services/mac/MacValidationService';
- import { setupTestDatabase, cleanupTestDatabase } from '../db/testHelpers';
+import {
+  validateMac,
+  validateMissionMac,
+} from '../../../src/services/mac/MacValidationService';
+import { setupTestDatabase, cleanupTestDatabase } from '../db/testHelpers';
 import {
   createAllowedMacConstraint,
   deleteAllowedMacConstraint,
@@ -13,13 +16,10 @@ import { createAircraft } from '../../../src/services/db/operations/AircraftOper
 import { createMission } from '../../../src/services/db/operations/MissionOperations';
 import { createFuelState, createFuelMacQuant } from '../../../src/services/db/operations/FuelOperations';
 
-describe('MacValidationService', () => {
-  let service: MacValidationService;
-
+describe('MAC Validation Service', () => {
   beforeEach(async () => {
     // Set up test database
     await setupTestDatabase();
-    service = new MacValidationService();
 
     try {
       // Create test constraints with operations
@@ -63,7 +63,7 @@ describe('MacValidationService', () => {
 
   describe('validateMac', () => {
     it('should return valid result when MAC is within range', async () => {
-      const result = await service.validateMac(120000, 30);
+      const result = await validateMac(120000, 30);
 
       expect(result.isValid).toBe(true);
       expect(result.currentMac).toBe(30);
@@ -73,7 +73,7 @@ describe('MacValidationService', () => {
     });
 
     it('should return invalid result when MAC is below minimum', async () => {
-      const result = await service.validateMac(120000, 20);
+      const result = await validateMac(120000, 20);
 
       expect(result.isValid).toBe(false);
       expect(result.currentMac).toBe(20);
@@ -82,7 +82,7 @@ describe('MacValidationService', () => {
     });
 
     it('should return invalid result when MAC is above maximum', async () => {
-      const result = await service.validateMac(120000, 40);
+      const result = await validateMac(120000, 40);
 
       expect(result.isValid).toBe(false);
       expect(result.currentMac).toBe(40);
@@ -99,14 +99,14 @@ describe('MacValidationService', () => {
       const constraints = await getAllAllowedMacConstraints();
       expect(constraints.count).toBe(0);
 
-      const result = await service.validateMac(50000, 30);
+      const result = await validateMac(50000, 30);
 
       expect(result.isValid).toBe(false);
       expect(result.message).toContain('No MAC constraints found');
     });
 
     it('should use different constraints for higher weight', async () => {
-      const result = await service.validateMac(160000, 30);
+      const result = await validateMac(160000, 30);
 
       expect(result.isValid).toBe(true);
       expect(result.minAllowedMac).toBe(28);
@@ -205,7 +205,7 @@ describe('MacValidationService', () => {
     it('should validate a mission', async () => {
       // Test a valid mission
       try {
-        const result = await service.validateMissionMac(1);
+        const result = await validateMissionMac(1);
 
         // Expect some valid response, but we can't assert exact values
         expect(result).toBeDefined();
@@ -217,7 +217,7 @@ describe('MacValidationService', () => {
     });
 
     it('should throw error for non-existent mission', async () => {
-      await expect(service.validateMissionMac(999)).rejects.toThrow(/Mission with ID 999 not found/);
+      await expect(validateMissionMac(999)).rejects.toThrow(/Mission with ID 999 not found/);
     });
   });
 });
