@@ -1,4 +1,15 @@
-import { FloorLayoutService, WheelSpan, TouchpointPosition, CornerPosition, CargoCorners, WheelTouchpoints } from '../../../src/services/floor/FloorLayoutService';
+import {
+  getCargoCorners,
+  getWheelTouchpoints,
+  getWheelContactSpan,
+  isTouchpointOnTreadway,
+  getTouchpointCompartments,
+  WheelSpan,
+  TouchpointPosition,
+  CornerPosition,
+  CargoCorners,
+  WheelTouchpoints,
+} from '../../../src/services/floor/FloorLayoutService';
 import { setupTestDatabase, cleanupTestDatabase } from '../db/testHelpers';
 import {
   Aircraft,
@@ -15,8 +26,7 @@ import {
   getCompartmentsByAircraftId,
 } from '../../../src/services/db/operations';
 
-describe('FloorLayoutService', () => {
-  let service: FloorLayoutService;
+describe('Floor Layout Service', () => {
   let testCargoItems: CargoItem[] = [];
   let testAircraft: Aircraft;
   let testCompartments: Compartment[] = [];
@@ -197,10 +207,6 @@ describe('FloorLayoutService', () => {
     await cleanupTestDatabase();
   });
 
-  beforeEach(() => {
-    service = new FloorLayoutService();
-  });
-
   describe('getCargoCorners', () => {
     it('should calculate the correct corner coordinates for a cargo item', async () => {
       const cargoItem = testCargoItems[0];
@@ -211,13 +217,13 @@ describe('FloorLayoutService', () => {
         [CornerPosition.BackRight]: { x: cargoItem.x_start_position! + cargoItem.length!, y: cargoItem.y_start_position! + cargoItem.width! },
       };
 
-      const corners = await service.getCargoCorners(cargoItem.id!);
+      const corners = await getCargoCorners(cargoItem.id!);
       expect(corners).toEqual(expectedCorners);
     });
 
     it('should throw an error if cargo item is not found', async () => {
       const nonExistentItemId = 999;
-      await expect(service.getCargoCorners(nonExistentItemId))
+      await expect(getCargoCorners(nonExistentItemId))
         .rejects.toThrow(`Cargo item with ID ${nonExistentItemId} not found`);
     });
   });
@@ -233,7 +239,7 @@ describe('FloorLayoutService', () => {
         [TouchpointPosition.BackRight]: { x: cargoItem.x_start_position! + cargoItem.length! - cargoItem.back_overhang!, y: cargoItem.y_start_position! + cargoItem.width! },
       };
 
-      const touchpoints = await service.getWheelTouchpoints(cargoItem.id!, '4_wheeled');
+      const touchpoints = await getWheelTouchpoints(cargoItem.id!, '4_wheeled');
       expect(touchpoints).toEqual(expectedTouchpoints);
     });
 
@@ -250,7 +256,7 @@ describe('FloorLayoutService', () => {
         [TouchpointPosition.Back]: { x: backWheelX, y: centerY },
       };
 
-      const touchpoints = await service.getWheelTouchpoints(cargoItem.id!, '2_wheeled');
+      const touchpoints = await getWheelTouchpoints(cargoItem.id!, '2_wheeled');
       expect(touchpoints).toEqual(expectedTouchpoints);
     });
 
@@ -264,7 +270,7 @@ describe('FloorLayoutService', () => {
         [CornerPosition.BackRight]: { x: cargoItem.x_start_position! + cargoItem.length!, y: cargoItem.y_start_position! + cargoItem.width! },
       };
 
-      const touchpoints = await service.getWheelTouchpoints(cargoItem.id!, 'bulk');
+      const touchpoints = await getWheelTouchpoints(cargoItem.id!, 'bulk');
       expect(touchpoints).toEqual(expectedTouchpoints);
     });
 
@@ -272,23 +278,23 @@ describe('FloorLayoutService', () => {
       const cargoItem = testCargoItems[0];
 
       // @ts-ignore - Testing invalid wheel type
-      await expect(service.getWheelTouchpoints(cargoItem.id!, 'invalid-type'))
+      await expect(getWheelTouchpoints(cargoItem.id!, 'invalid-type'))
         .rejects.toThrow('Invalid wheel type: invalid-type');
     });
   });
 
   describe('getWheelContactSpan', () => {
     it('should calculate the correct wheel contact span', async () => {
-      const x = 150;
+      const x = 100;
       const y = 50;
       const wheelWidth = 20;
 
       const expectedSpan: WheelSpan = {
-        yStart: y - (wheelWidth / 2),
-        yEnd: y + (wheelWidth / 2),
+        yStart: 40,
+        yEnd: 60,
       };
 
-      const span = await service.getWheelContactSpan(x, y, wheelWidth);
+      const span = await getWheelContactSpan(x, y, wheelWidth);
       expect(span).toEqual(expectedSpan);
     });
 
@@ -297,12 +303,22 @@ describe('FloorLayoutService', () => {
       const y = 50;
       const wheelWidth = 0;
 
-      await expect(service.getWheelContactSpan(x, y, wheelWidth))
+      await expect(getWheelContactSpan(x, y, wheelWidth))
         .rejects.toThrow('Wheel width must be a positive number');
     });
   });
 
   describe('isTouchpointOnTreadway', () => {
+    it('should return true when a wheel is at least 50% on a treadway', async () => {
+      const ySpan: WheelSpan = {
+        yStart: 50,
+        yEnd: 70,
+      };
+
+      const result = await isTouchpointOnTreadway(ySpan, testAircraft.id!);
+      expect(result).toBe(true);
+    });
+
     it('should return true when wheel is fully on the left treadway', async () => {
       const aircraft = testAircraft;
       const leftTreadwayCenter = -aircraft.treadways_dist_from_center;
@@ -313,7 +329,7 @@ describe('FloorLayoutService', () => {
         yEnd: leftTreadwayCenter + aircraft.treadways_width / 4,
       };
 
-      const isOnTreadway = await service.isTouchpointOnTreadway(ySpan, aircraft.id!);
+      const isOnTreadway = await isTouchpointOnTreadway(ySpan, aircraft.id!);
       expect(isOnTreadway).toBe(true);
     });
 
@@ -327,7 +343,7 @@ describe('FloorLayoutService', () => {
         yEnd: rightTreadwayCenter + aircraft.treadways_width / 4,
       };
 
-      const isOnTreadway = await service.isTouchpointOnTreadway(ySpan, aircraft.id!);
+      const isOnTreadway = await isTouchpointOnTreadway(ySpan, aircraft.id!);
       expect(isOnTreadway).toBe(true);
     });
 
@@ -342,7 +358,7 @@ describe('FloorLayoutService', () => {
         yEnd: rightTreadwayStart + wheelWidth / 2,
       };
 
-      const isOnTreadway = await service.isTouchpointOnTreadway(ySpan, aircraft.id!);
+      const isOnTreadway = await isTouchpointOnTreadway(ySpan, aircraft.id!);
       expect(isOnTreadway).toBe(true);
     });
 
@@ -357,7 +373,7 @@ describe('FloorLayoutService', () => {
         yEnd: rightTreadwayStart + wheelWidth * 0.2,
       };
 
-      const isOnTreadway = await service.isTouchpointOnTreadway(ySpan, aircraft.id!);
+      const isOnTreadway = await isTouchpointOnTreadway(ySpan, aircraft.id!);
       expect(isOnTreadway).toBe(false);
     });
 
@@ -365,7 +381,7 @@ describe('FloorLayoutService', () => {
       const nonExistentAircraftId = 999;
       const ySpan: WheelSpan = { yStart: 40, yEnd: 60 };
 
-      await expect(service.isTouchpointOnTreadway(ySpan, nonExistentAircraftId))
+      await expect(isTouchpointOnTreadway(ySpan, nonExistentAircraftId))
         .rejects.toThrow(`Aircraft with ID ${nonExistentAircraftId} not found`);
     });
   });
@@ -373,9 +389,9 @@ describe('FloorLayoutService', () => {
   describe('getTouchpointCompartments', () => {
     it('should identify compartments for four-wheel cargo touchpoints', async () => {
       const cargoItem = testCargoItems[0];
-      const touchpointsMap = await service.getWheelTouchpoints(cargoItem.id!, '4_wheeled');
+      const touchpointsMap = await getWheelTouchpoints(cargoItem.id!, '4_wheeled');
 
-      const result = await service.getTouchpointCompartments(cargoItem.id!, '4_wheeled');
+      const result = await getTouchpointCompartments(cargoItem.id!, '4_wheeled');
 
       // Should have entries for all four positions
       expect(result.touchpointToCompartment[TouchpointPosition.FrontLeft]).toBeDefined();
@@ -409,9 +425,9 @@ describe('FloorLayoutService', () => {
 
     it('should identify compartments for two-wheel cargo touchpoints', async () => {
       const cargoItem = testCargoItems[1];
-      const touchpointsMap = await service.getWheelTouchpoints(cargoItem.id!, '2_wheeled');
+      const touchpointsMap = await getWheelTouchpoints(cargoItem.id!, '2_wheeled');
 
-      const result = await service.getTouchpointCompartments(cargoItem.id!, '2_wheeled');
+      const result = await getTouchpointCompartments(cargoItem.id!, '2_wheeled');
 
       // Should have entries for front and back positions
       expect(result.touchpointToCompartment[TouchpointPosition.Front]).toBeDefined();
@@ -433,7 +449,7 @@ describe('FloorLayoutService', () => {
     it('should identify compartments for bulk cargo spanning multiple compartments', async () => {
       const cargoItem = testCargoItems[2];
 
-      const result = await service.getTouchpointCompartments(cargoItem.id!, 'bulk');
+      const result = await getTouchpointCompartments(cargoItem.id!, 'bulk');
 
       // Should not have any touchpoint mapping for bulk cargo
       expect(Object.keys(result.touchpointToCompartment).length).toBe(0);
@@ -463,7 +479,7 @@ describe('FloorLayoutService', () => {
       const effectiveStart = cargoItem.x_start_position! + cargoItem.forward_overhang!;
       const effectiveEnd = cargoItem.x_start_position! + cargoItem.length! - cargoItem.back_overhang!;
 
-      const result = await service.getTouchpointCompartments(cargoItem.id!, '4_wheeled');
+      const result = await getTouchpointCompartments(cargoItem.id!, '4_wheeled');
 
       // Verify that overlapping compartments only includes those that the cargo's effective footprint overlaps with
       const expectedOverlappingCompartments = testCompartments.filter(compartment =>
@@ -479,7 +495,7 @@ describe('FloorLayoutService', () => {
     it('should throw an error if cargo item is not found', async () => {
       const nonExistentItemId = 999;
 
-      await expect(service.getTouchpointCompartments(nonExistentItemId, '4_wheeled'))
+      await expect(getTouchpointCompartments(nonExistentItemId, '4_wheeled'))
         .rejects.toThrow(`Cargo item with ID ${nonExistentItemId} not found`);
     });
 
