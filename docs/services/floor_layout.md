@@ -150,6 +150,15 @@ export function getWheelContactSpan(x: number, y: number, wheelWidth: number): P
 export function isTouchpointOnTreadway(ySpan: WheelSpan, aircraftId: number): Promise<boolean>
 
 /**
+ * Determines if a cargo item is positioned on left and/or right treadways
+ * @param cargoItemId - The ID of the cargo item
+ * @param wheelType - The wheel configuration type ('4_wheeled', '2_wheeled', or 'bulk')
+ * @param aircraftId - The ID of the aircraft to check treadway positions
+ * @returns Tuple of [isOnRightTreadway, isOnLeftTreadway]
+ */
+export function isCargoOnTreadway(cargoItemId: number, wheelType: '4_wheeled' | '2_wheeled' | 'bulk', aircraftId: number): Promise<[boolean, boolean]>
+
+/**
  * Identifies which compartments a cargo item's touchpoints are located in
  * @param cargoItemId - The ID of the cargo item
  * @param touchpointType - The type of touchpoints to check ('4_wheeled', '2_wheeled', or 'bulk')
@@ -342,6 +351,130 @@ export async function isTouchpointOnTreadway(
   
   // 5. Return true if at least 50% of the wheel is on either treadway
   return leftOverlapPercentage >= 0.5 || rightOverlapPercentage >= 0.5;
+}
+```
+
+#### isCargoOnTreadway
+
+```typescript
+export async function isCargoOnTreadway(
+  cargoItemId: number, 
+  wheelType: '4_wheeled' | '2_wheeled' | 'bulk',
+  aircraftId: number
+): Promise<[boolean, boolean]> {
+  // Get wheel touchpoints for the cargo
+  const touchpoints = await getWheelTouchpoints(cargoItemId, wheelType);
+  
+  // Initialize result
+  let rightTreadwayContact = false;
+  let leftTreadwayContact = false;
+  
+  // Process based on wheel type
+  if (wheelType === '2_wheeled') {
+    // For 2-wheeled cargo, check front and back wheels
+    const frontWheelSpan = await getWheelContactSpan(
+      touchpoints.front.x,
+      touchpoints.front.y,
+      WHEEL_DIMENSIONS['2_wheeled'].WHEEL_WIDTH
+    );
+    
+    const backWheelSpan = await getWheelContactSpan(
+      touchpoints.back.x,
+      touchpoints.back.y,
+      WHEEL_DIMENSIONS['2_wheeled'].WHEEL_WIDTH
+    );
+    
+    // Get aircraft data to determine left vs right treadway
+    const aircraft = await getAircraftById(aircraftId);
+    const centerY = 0; // Assuming the center is at y=0
+    
+    // Check which treadway the wheels are on
+    if (touchpoints.front.y > centerY) {
+      // Right side wheels
+      rightTreadwayContact = 
+        await isTouchpointOnTreadway(frontWheelSpan, aircraftId) && 
+        await isTouchpointOnTreadway(backWheelSpan, aircraftId);
+    } else {
+      // Left side wheels
+      leftTreadwayContact = 
+        await isTouchpointOnTreadway(frontWheelSpan, aircraftId) && 
+        await isTouchpointOnTreadway(backWheelSpan, aircraftId);
+    }
+    
+  } else if (wheelType === '4_wheeled') {
+    // For 4-wheeled cargo, check all four wheels
+    const frontLeftWheelSpan = await getWheelContactSpan(
+      touchpoints.frontLeft.x,
+      touchpoints.frontLeft.y,
+      WHEEL_DIMENSIONS['4_wheeled'].WHEEL_WIDTH
+    );
+    
+    const backLeftWheelSpan = await getWheelContactSpan(
+      touchpoints.backLeft.x,
+      touchpoints.backLeft.y,
+      WHEEL_DIMENSIONS['4_wheeled'].WHEEL_WIDTH
+    );
+    
+    const frontRightWheelSpan = await getWheelContactSpan(
+      touchpoints.frontRight.x,
+      touchpoints.frontRight.y,
+      WHEEL_DIMENSIONS['4_wheeled'].WHEEL_WIDTH
+    );
+    
+    const backRightWheelSpan = await getWheelContactSpan(
+      touchpoints.backRight.x,
+      touchpoints.backRight.y,
+      WHEEL_DIMENSIONS['4_wheeled'].WHEEL_WIDTH
+    );
+    
+    // Check if all wheels on each side are on treadways
+    leftTreadwayContact = 
+      await isTouchpointOnTreadway(frontLeftWheelSpan, aircraftId) && 
+      await isTouchpointOnTreadway(backLeftWheelSpan, aircraftId);
+    
+    rightTreadwayContact = 
+      await isTouchpointOnTreadway(frontRightWheelSpan, aircraftId) && 
+      await isTouchpointOnTreadway(backRightWheelSpan, aircraftId);
+    
+  } else if (wheelType === 'bulk') {
+    // For bulk cargo, check each corner
+    const cornerPositions = [
+      CornerPosition.FrontLeft,
+      CornerPosition.FrontRight,
+      CornerPosition.BackLeft,
+      CornerPosition.BackRight
+    ];
+    
+    // Track which corners are on which treadways
+    let leftCornerOnTreadway = false;
+    let rightCornerOnTreadway = false;
+    
+    for (const position of cornerPositions) {
+      const point = touchpoints[position];
+      if (point) {
+        // Create a small span around the corner point
+        const cornerSpan = await getWheelContactSpan(
+          point.x,
+          point.y,
+          5 // Use a small width to represent the corner contact
+        );
+        
+        const isOnTreadway = await isTouchpointOnTreadway(cornerSpan, aircraftId);
+        
+        // Determine if this is a left or right corner based on position
+        if (position === CornerPosition.FrontLeft || position === CornerPosition.BackLeft) {
+          leftCornerOnTreadway = leftCornerOnTreadway || isOnTreadway;
+        } else {
+          rightCornerOnTreadway = rightCornerOnTreadway || isOnTreadway;
+        }
+      }
+    }
+    
+    leftTreadwayContact = leftCornerOnTreadway;
+    rightTreadwayContact = rightCornerOnTreadway;
+  }
+  
+  return [rightTreadwayContact, leftTreadwayContact];
 }
 ```
 

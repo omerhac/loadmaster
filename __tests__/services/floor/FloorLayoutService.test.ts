@@ -9,6 +9,7 @@ import {
   CornerPosition,
   CargoCorners,
   WheelTouchpoints,
+  isCargoOnTreadway,
 } from '../../../src/services/floor/FloorLayoutService';
 import { setupTestDatabase, cleanupTestDatabase } from '../db/testHelpers';
 import {
@@ -512,6 +513,185 @@ describe('Floor Layout Service', () => {
       };
 
       await expect(testFn()).rejects.toThrow(`Mission with ID ${testMissionId} not found`);
+    });
+  });
+
+  describe('isCargoOnTreadway', () => {
+    it('should return treadway positioning for 4-wheeled cargo', async () => {
+      const cargoItem = testCargoItems[0]; // four-wheeled cargo
+      
+      const [isOnRightTreadway, isOnLeftTreadway] = await isCargoOnTreadway(
+        cargoItem.id!,
+        '4_wheeled',
+        testAircraft.id!
+      );
+      
+      // Get touchpoints to understand wheel positions
+      const touchpoints = await getWheelTouchpoints(cargoItem.id!, '4_wheeled');
+      
+      // Calculate expected values based on touchpoint positions
+      const rightTreadwayStart = testAircraft.treadways_dist_from_center - testAircraft.treadways_width/2;
+      const rightTreadwayEnd = testAircraft.treadways_dist_from_center + testAircraft.treadways_width/2;
+      const leftTreadwayStart = -testAircraft.treadways_dist_from_center - testAircraft.treadways_width/2;
+      const leftTreadwayEnd = -testAircraft.treadways_dist_from_center + testAircraft.treadways_width/2;
+      
+      // Check if right wheels are on right treadway
+      const rightWheelsOnTreadway = 
+        (touchpoints.frontRight.y >= rightTreadwayStart && touchpoints.frontRight.y <= rightTreadwayEnd) && 
+        (touchpoints.backRight.y >= rightTreadwayStart && touchpoints.backRight.y <= rightTreadwayEnd);
+      
+      // Check if left wheels are on left treadway
+      const leftWheelsOnTreadway = 
+        (touchpoints.frontLeft.y >= leftTreadwayStart && touchpoints.frontLeft.y <= leftTreadwayEnd) && 
+        (touchpoints.backLeft.y >= leftTreadwayStart && touchpoints.backLeft.y <= leftTreadwayEnd);
+      
+      // Assert based on actual positions
+      expect(isOnRightTreadway).toBe(rightWheelsOnTreadway);
+      expect(isOnLeftTreadway).toBe(leftWheelsOnTreadway);
+      
+      // Validate that our test data gives expected values based on the setup
+      // For the first test cargo, we know it should be on the right treadway
+      expect(rightWheelsOnTreadway).toBe(true);
+      expect(leftWheelsOnTreadway).toBe(false);
+    });
+    
+    it('should return treadway positioning for 2-wheeled cargo', async () => {
+      const cargoItem = testCargoItems[1]; // two-wheeled cargo
+      
+      const [isOnRightTreadway, isOnLeftTreadway] = await isCargoOnTreadway(
+        cargoItem.id!,
+        '2_wheeled',
+        testAircraft.id!
+      );
+      
+      // Get touchpoints to understand wheel positions
+      const touchpoints = await getWheelTouchpoints(cargoItem.id!, '2_wheeled');
+      
+      // Calculate expected values based on touchpoint positions
+      const rightTreadwayStart = testAircraft.treadways_dist_from_center - testAircraft.treadways_width/2;
+      const rightTreadwayEnd = testAircraft.treadways_dist_from_center + testAircraft.treadways_width/2;
+      const leftTreadwayStart = -testAircraft.treadways_dist_from_center - testAircraft.treadways_width/2;
+      const leftTreadwayEnd = -testAircraft.treadways_dist_from_center + testAircraft.treadways_width/2;
+      
+      // Check if wheels are on right treadway (y > 0)
+      const onRightSide = touchpoints.front.y > 0;
+      const onLeftSide = touchpoints.front.y < 0;
+      
+      // Check if wheels are on treadway
+      const wheelsOnRightTreadway = onRightSide && 
+        (touchpoints.front.y >= rightTreadwayStart && touchpoints.front.y <= rightTreadwayEnd) && 
+        (touchpoints.back.y >= rightTreadwayStart && touchpoints.back.y <= rightTreadwayEnd);
+      
+      const wheelsOnLeftTreadway = onLeftSide &&
+        (touchpoints.front.y >= leftTreadwayStart && touchpoints.front.y <= leftTreadwayEnd) && 
+        (touchpoints.back.y >= leftTreadwayStart && touchpoints.back.y <= leftTreadwayEnd);
+      
+      // Assert based on actual positions
+      expect(isOnRightTreadway).toBe(wheelsOnRightTreadway);
+      expect(isOnLeftTreadway).toBe(wheelsOnLeftTreadway);
+      
+      // Validate that our test data gives expected values based on the setup
+      // For the second test cargo, we expect it to be on the right treadway
+      expect(wheelsOnRightTreadway).toBe(true);
+      expect(wheelsOnLeftTreadway).toBe(false);
+    });
+    
+    it('should return treadway positioning for bulk cargo based on cargo overlap with treadways', async () => {
+      const cargoItem = testCargoItems[2]; // bulk cargo
+      
+      // Get the aircraft treadway information for clearer testing
+      const rightTreadwayStart = testAircraft.treadways_dist_from_center - testAircraft.treadways_width/2;
+      const rightTreadwayEnd = testAircraft.treadways_dist_from_center + testAircraft.treadways_width/2;
+      const leftTreadwayStart = -testAircraft.treadways_dist_from_center - testAircraft.treadways_width/2;
+      const leftTreadwayEnd = -testAircraft.treadways_dist_from_center + testAircraft.treadways_width/2;
+      
+      // Create a bulk cargo item positioned to overlap with the right treadway
+      const bulkOnTreadwayResponse = await createCargoItem({
+        mission_id: testCargoItems[0].mission_id!,
+        cargo_type_id: cargoItem.cargo_type_id!,
+        name: 'Test Bulk on Treadway',
+        weight: 1000,
+        length: 100,
+        width: 50, // Make it wide enough to partially overlap the treadway
+        height: 30,
+        forward_overhang: 0,
+        back_overhang: 0,
+        x_start_position: 200,
+        // Position it so the cargo partially overlaps with the right treadway
+        y_start_position: rightTreadwayStart - 20, // Start before the treadway
+      });
+      
+      const bulkOnTreadwayId = bulkOnTreadwayResponse.results[0].lastInsertId as number;
+      const bulkOnTreadway = await getCargoItemById(bulkOnTreadwayId);
+      const bulkOnTreadwayItem = bulkOnTreadway.results[0].data as CargoItem;
+      
+      // Test the original bulk cargo first
+      const [isOnRightTreadway, isOnLeftTreadway] = await isCargoOnTreadway(
+        cargoItem.id!,
+        'bulk',
+        testAircraft.id!
+      );
+      
+      // Calculate expected values for original cargo
+      const cargoYStart = cargoItem.y_start_position!;
+      const cargoYEnd = cargoYStart + cargoItem.width!;
+      
+      // Check if original cargo overlaps with treadways
+      const originalRightTreadwayOverlap = 
+        (cargoYStart >= rightTreadwayStart && cargoYStart <= rightTreadwayEnd) || 
+        (cargoYEnd >= rightTreadwayStart && cargoYEnd <= rightTreadwayEnd) ||
+        (cargoYStart <= rightTreadwayStart && cargoYEnd >= rightTreadwayEnd);
+        
+      const originalLeftTreadwayOverlap = 
+        (cargoYStart >= leftTreadwayStart && cargoYStart <= leftTreadwayEnd) || 
+        (cargoYEnd >= leftTreadwayStart && cargoYEnd <= leftTreadwayEnd) ||
+        (cargoYStart <= leftTreadwayStart && cargoYEnd >= leftTreadwayEnd);
+      
+      // Assert results for original bulk cargo
+      expect(isOnRightTreadway).toBe(originalRightTreadwayOverlap);
+      expect(isOnLeftTreadway).toBe(originalLeftTreadwayOverlap);
+      
+      // Test the new bulk cargo that should overlap with the right treadway
+      const [newIsOnRightTreadway, newIsOnLeftTreadway] = await isCargoOnTreadway(
+        bulkOnTreadwayItem.id!,
+        'bulk',
+        testAircraft.id!
+      );
+      
+      // Calculate expected values for new cargo
+      const newCargoYStart = bulkOnTreadwayItem.y_start_position!;
+      const newCargoYEnd = newCargoYStart + bulkOnTreadwayItem.width!;
+      
+      // The new cargo should overlap with the right treadway
+      const shouldOverlapRightTreadway = 
+        (newCargoYStart >= rightTreadwayStart && newCargoYStart <= rightTreadwayEnd) || 
+        (newCargoYEnd >= rightTreadwayStart && newCargoYEnd <= rightTreadwayEnd) ||
+        (newCargoYStart <= rightTreadwayStart && newCargoYEnd >= rightTreadwayEnd);
+        
+      const shouldOverlapLeftTreadway = 
+        (newCargoYStart >= leftTreadwayStart && newCargoYStart <= leftTreadwayEnd) || 
+        (newCargoYEnd >= leftTreadwayStart && newCargoYEnd <= leftTreadwayEnd) ||
+        (newCargoYStart <= leftTreadwayStart && newCargoYEnd >= leftTreadwayEnd);
+      
+      // Verify the new cargo overlaps with the right treadway
+      expect(newIsOnRightTreadway).toBe(shouldOverlapRightTreadway);
+      expect(newIsOnLeftTreadway).toBe(shouldOverlapLeftTreadway);
+      expect(shouldOverlapRightTreadway).toBe(true); // Validation that our test setup is correct
+    });
+    
+    it('should throw an error if cargo item is not found', async () => {
+      const nonExistentItemId = 999;
+      
+      await expect(isCargoOnTreadway(nonExistentItemId, '4_wheeled', testAircraft.id!))
+        .rejects.toThrow(`Cargo item with ID ${nonExistentItemId} not found`);
+    });
+    
+    it('should throw an error if aircraft is not found', async () => {
+      const cargoItem = testCargoItems[0];
+      const nonExistentAircraftId = 999;
+      
+      await expect(isCargoOnTreadway(cargoItem.id!, '4_wheeled', nonExistentAircraftId))
+        .rejects.toThrow(`Aircraft with ID ${nonExistentAircraftId} not found`);
     });
   });
 });
