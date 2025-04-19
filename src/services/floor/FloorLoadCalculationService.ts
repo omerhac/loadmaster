@@ -235,9 +235,14 @@ export async function calculateRunningLoad(cargoItemId: number): Promise<LoadRes
       break;
 
     case '2_wheeled':
-    case '4_wheeled':
       const effectiveLength = cargoItem.length! - (cargoItem.forward_overhang! + cargoItem.back_overhang!);
       loadValue = cargoItem.weight! / effectiveLength;
+      break;
+
+    case '4_wheeled':
+      const effectiveLength4Wheel = cargoItem.length! - (cargoItem.forward_overhang! + cargoItem.back_overhang!);
+      // For 4-wheeled cargo, divide by 2 to get running load per side
+      loadValue = (cargoItem.weight! / effectiveLength4Wheel) / 2;
       break;
 
     default:

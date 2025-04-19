@@ -306,9 +306,10 @@ describe('Floor Load Calculation Integration Tests', () => {
       // For wheeled cargo: weight / (length - (forward_overhang + back_overhang))
       // Effective length: 120 - (15 + 15) = 90 inches
       // Expected: 2000 lbs / 90 in = 22.22 lbs/in
+      // For 4-wheeled items, divide by 2 to get running load per side = 11.11 lbs/in
       expect(runningLoad).toBeDefined();
       expect(runningLoad.unit).toBe('lbs/in');
-      expect(runningLoad.value).toBeCloseTo(22.22, 2); // 2000 / (120 - (15 + 15)) = 22.22
+      expect(runningLoad.value).toBeCloseTo(11.11, 2); // (2000 / (120 - (15 + 15))) / 2 = 11.11
     });
   });
 

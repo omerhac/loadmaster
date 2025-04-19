@@ -79,7 +79,7 @@ calculateLoadPerCompartment(cargoItemId: number): Promise<CompartmentLoadResult[
 /**
  * Calculates the running load induced by a cargo item
  * @param cargoItemId - The ID of the cargo item
- * @returns The running load value and unit
+ * @returns The running load value and unit (for 4 wheeled item it returns the load per side)
  */
 calculateRunningLoad(cargoItemId: number): Promise<LoadResult>
 ```
@@ -275,10 +275,15 @@ async function calculateRunningLoad(cargoItemId: number): Promise<LoadResult> {
       break;
       
     case '2_wheeled':
-    case '4_wheeled':
-      // For wheeled cargo, consider effective length (excluding overhangs)
+      // For 2-wheeled cargo, consider effective length (excluding overhangs)
       const effectiveLength = cargoItem.length - (cargoItem.forward_overhang + cargoItem.back_overhang);
       loadValue = cargoItem.weight / effectiveLength;
+      break;
+      
+    case '4_wheeled':
+      // For 4-wheeled cargo, consider effective length (excluding overhangs)
+      const effectiveLength4Wheel = cargoItem.length - (cargoItem.forward_overhang + cargoItem.back_overhang);
+      loadValue = cargoItem.weight / effectiveLength4Wheel;
       break;
       
     default:
