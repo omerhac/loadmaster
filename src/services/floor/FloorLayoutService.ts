@@ -5,6 +5,10 @@ import {
   getMissionById,
 } from '@/services/db/operations';
 
+import {
+  WHEEL_DIMENSIONS,
+} from './FloorLoadCalculationService';
+
 /**
  * Represents a point in 2D space
  */
@@ -373,7 +377,7 @@ export async function getTouchpointCompartments(
 
   // Get all compartments that overlap with the cargo's effective footprint
   for (const compartment of compartments) {
-    if (!compartment) {continue;}
+    if (!compartment) { continue; }
 
     if (effective_start < compartment.x_end && effective_end > compartment.x_start) {
       // Add to overlapping compartments list if not already there
@@ -402,7 +406,7 @@ export async function getTouchpointCompartments(
       const point = touchpointsMap[position];
       if (point) {
         for (const compartment of compartments) {
-          if (!compartment) {continue;}
+          if (!compartment) { continue; }
 
           // Check if the touchpoint is within the compartment
           if (point.x >= compartment.x_start && point.x <= compartment.x_end) {
@@ -424,7 +428,7 @@ export async function getTouchpointCompartments(
       const point = touchpointsMap[position];
       if (point) {
         for (const compartment of compartments) {
-          if (!compartment) {continue;}
+          if (!compartment) { continue; }
 
           // Check if the touchpoint is within the compartment
           if (point.x >= compartment.x_start && point.x <= compartment.x_end) {
@@ -437,4 +441,226 @@ export async function getTouchpointCompartments(
   }
 
   return result;
+}
+
+/**
+ * Check if a span overlaps with specified boundaries
+ * @param start Start of the span
+ * @param end End of the span
+ * @param boundaryStart Start of the boundary
+ * @param boundaryEnd End of the boundary
+ * @returns True if there is any overlap
+ */
+function hasOverlap(start: number, end: number, boundaryStart: number, boundaryEnd: number): boolean {
+  return (
+    (start >= boundaryStart && start <= boundaryEnd) || // Start point is within boundaries
+    (end >= boundaryStart && end <= boundaryEnd) ||     // End point is within boundaries
+    (start <= boundaryStart && end >= boundaryEnd)      // Span completely contains the boundary
+  );
+}
+
+/**
+ * Get the treadway boundaries for an aircraft
+ * @param aircraftId The ID of the aircraft
+ * @returns Object containing left and right treadway boundaries
+ */
+async function getTreadwayBoundaries(aircraftId: number): Promise<{
+  leftTreadwayStart: number;
+  leftTreadwayEnd: number;
+  rightTreadwayStart: number;
+  rightTreadwayEnd: number;
+}> {
+  const aircraftResponse = await getAircraftById(aircraftId);
+  if (aircraftResponse.count === 0 || !aircraftResponse.results[0].data) {
+    throw new Error(`Aircraft with ID ${aircraftId} not found`);
+  }
+  const aircraft = aircraftResponse.results[0].data;
+
+  // Calculate treadway boundaries
+  const { treadways_width, treadways_dist_from_center } = aircraft;
+  const leftTreadwayStart = -treadways_dist_from_center - treadways_width / 2;
+  const leftTreadwayEnd = -treadways_dist_from_center + treadways_width / 2;
+  const rightTreadwayStart = treadways_dist_from_center - treadways_width / 2;
+  const rightTreadwayEnd = treadways_dist_from_center + treadways_width / 2;
+
+  return {
+    leftTreadwayStart,
+    leftTreadwayEnd,
+    rightTreadwayStart,
+    rightTreadwayEnd,
+  };
+}
+
+/**
+ * Check if 2-wheeled cargo wheels overlap with treadways
+ * @param touchpoints The wheel touchpoints
+ * @param treadwayBoundaries The treadway boundaries
+ * @param aircraftId The ID of the aircraft
+ * @returns Tuple of [isOnRightTreadway, isOnLeftTreadway, isInBetweenTreadways]
+ */
+async function check2WheeledTreadwayContact(
+  touchpoints: WheelTouchpoints,
+  treadwayBoundaries: ReturnType<typeof getTreadwayBoundaries> extends Promise<infer T> ? T : never,
+  aircraftId: number
+): Promise<[boolean, boolean, boolean]> {
+  const frontWheelSpan = await getWheelContactSpan(
+    touchpoints.front.x,
+    touchpoints.front.y,
+    WHEEL_DIMENSIONS['2_wheeled'].WHEEL_WIDTH
+  );
+
+  const backWheelSpan = await getWheelContactSpan(
+    touchpoints.back.x,
+    touchpoints.back.y,
+    WHEEL_DIMENSIONS['2_wheeled'].WHEEL_WIDTH
+  );
+
+  const frontWheelOnTreadway = await isTouchpointOnTreadway(frontWheelSpan, aircraftId);
+  const backWheelOnTreadway = await isTouchpointOnTreadway(backWheelSpan, aircraftId);
+
+  const wheelsOnTreadway = frontWheelOnTreadway && backWheelOnTreadway;
+
+  const { leftTreadwayStart, leftTreadwayEnd, rightTreadwayStart, rightTreadwayEnd } = treadwayBoundaries;
+
+  const onLeftTreadway =
+    hasOverlap(frontWheelSpan.yStart, frontWheelSpan.yEnd, leftTreadwayStart, leftTreadwayEnd) &&
+    hasOverlap(backWheelSpan.yStart, backWheelSpan.yEnd, leftTreadwayStart, leftTreadwayEnd);
+
+  const onRightTreadway =
+    hasOverlap(frontWheelSpan.yStart, frontWheelSpan.yEnd, rightTreadwayStart, rightTreadwayEnd) &&
+    hasOverlap(backWheelSpan.yStart, backWheelSpan.yEnd, rightTreadwayStart, rightTreadwayEnd);
+
+  // Cargo is "between treadways" if it's in the middle, before, or after them
+  const isNotOnTreadway = !onLeftTreadway && !onRightTreadway;
+
+  return [onRightTreadway && wheelsOnTreadway, onLeftTreadway && wheelsOnTreadway, isNotOnTreadway];
+}
+
+/**
+ * Check if 4-wheeled cargo wheels overlap with treadways
+ * @param touchpoints The wheel touchpoints
+ * @param treadwayBoundaries The treadway boundaries
+ * @param aircraftId The ID of the aircraft
+ * @returns Tuple of [isOnRightTreadway, isOnLeftTreadway, isInBetweenTreadways]
+ */
+async function check4WheeledTreadwayContact(
+  touchpoints: WheelTouchpoints,
+  treadwayBoundaries: ReturnType<typeof getTreadwayBoundaries> extends Promise<infer T> ? T : never,
+  aircraftId: number
+): Promise<[boolean, boolean, boolean]> {
+  const frontLeftWheelSpan = await getWheelContactSpan(
+    touchpoints.frontLeft.x,
+    touchpoints.frontLeft.y,
+    WHEEL_DIMENSIONS['4_wheeled'].WHEEL_WIDTH
+  );
+
+  const backLeftWheelSpan = await getWheelContactSpan(
+    touchpoints.backLeft.x,
+    touchpoints.backLeft.y,
+    WHEEL_DIMENSIONS['4_wheeled'].WHEEL_WIDTH
+  );
+
+  const frontRightWheelSpan = await getWheelContactSpan(
+    touchpoints.frontRight.x,
+    touchpoints.frontRight.y,
+    WHEEL_DIMENSIONS['4_wheeled'].WHEEL_WIDTH
+  );
+
+  const backRightWheelSpan = await getWheelContactSpan(
+    touchpoints.backRight.x,
+    touchpoints.backRight.y,
+    WHEEL_DIMENSIONS['4_wheeled'].WHEEL_WIDTH
+  );
+
+  // Check if left wheels are on left treadway
+  const frontLeftOnTreadway = await isTouchpointOnTreadway(frontLeftWheelSpan, aircraftId);
+  const backLeftOnTreadway = await isTouchpointOnTreadway(backLeftWheelSpan, aircraftId);
+  const leftWheelsOnTreadway = frontLeftOnTreadway && backLeftOnTreadway;
+
+  // Check if right wheels are on right treadway
+  const frontRightOnTreadway = await isTouchpointOnTreadway(frontRightWheelSpan, aircraftId);
+  const backRightOnTreadway = await isTouchpointOnTreadway(backRightWheelSpan, aircraftId);
+  const rightWheelsOnTreadway = frontRightOnTreadway && backRightOnTreadway;
+
+
+  // For 4-wheeled cargo, if any wheels are between, before, or after treadways
+  const isBetweenTreadways = rightWheelsOnTreadway && !leftWheelsOnTreadway ||
+    leftWheelsOnTreadway && !rightWheelsOnTreadway;
+  return [rightWheelsOnTreadway, leftWheelsOnTreadway, isBetweenTreadways];
+}
+
+/**
+ * Check if bulk cargo overlaps with treadways
+ * @param cargoItemId The ID of the cargo item
+ * @param treadwayBoundaries The treadway boundaries
+ * @returns Tuple of [isOnRightTreadway, isOnLeftTreadway, isInBetweenTreadways]
+ */
+async function checkBulkTreadwayContact(
+  cargoItemId: number,
+  treadwayBoundaries: ReturnType<typeof getTreadwayBoundaries> extends Promise<infer T> ? T : never
+): Promise<[boolean, boolean, boolean]> {
+  // Get cargo dimensions
+  const cargoItemResponse = await getCargoItemById(cargoItemId);
+  if (cargoItemResponse.count === 0 || !cargoItemResponse.results[0].data) {
+    throw new Error(`Cargo item with ID ${cargoItemId} not found`);
+  }
+  const cargoItem = cargoItemResponse.results[0].data;
+
+  const cargoYStart = cargoItem.y_start_position;
+  const cargoYEnd = cargoItem.y_start_position + cargoItem.width;
+
+  const { leftTreadwayStart, leftTreadwayEnd, rightTreadwayStart, rightTreadwayEnd } = treadwayBoundaries;
+
+  const leftTreadwayOverlap = hasOverlap(cargoYStart, cargoYEnd, leftTreadwayStart, leftTreadwayEnd);
+
+  const rightTreadwayOverlap = hasOverlap(cargoYStart, cargoYEnd, rightTreadwayStart, rightTreadwayEnd);
+
+  // Check if the cargo is completely between treadways (in the middle)
+  const isBetweenTreadways =
+    !leftTreadwayOverlap &&
+    !rightTreadwayOverlap &&
+    cargoYStart > leftTreadwayEnd &&
+    cargoYEnd < rightTreadwayStart;
+
+  // Check if the cargo is before left treadway
+  const isBeforeTreadways = cargoYEnd < leftTreadwayStart;
+
+  // Check if the cargo is after right treadway
+  const isAfterTreadways = cargoYStart > rightTreadwayEnd;
+
+  // Cargo is "between treadways" if it's in the middle, before, or after them
+  const isNotOnTreadway = isBetweenTreadways || isBeforeTreadways || isAfterTreadways;
+
+  return [rightTreadwayOverlap, leftTreadwayOverlap, isNotOnTreadway];
+}
+
+/**
+ * Determines if a cargo item is positioned on left and/or right treadways or between them
+ * @param cargoItemId - The ID of the cargo item
+ * @param wheelType - The wheel configuration type ('4_wheeled', '2_wheeled', or 'bulk')
+ * @param aircraftId - The ID of the aircraft to check treadway positions
+ * @returns Tuple of [isOnRightTreadway, isOnLeftTreadway, isInBetweenTreadways]
+ */
+export async function isCargoOnTreadway(
+  cargoItemId: number,
+  wheelType: WheelType,
+  aircraftId: number
+): Promise<[boolean, boolean, boolean]> {
+  // Get treadway boundaries from aircraft
+  const treadwayBoundaries = await getTreadwayBoundaries(aircraftId);
+
+  if (wheelType === '2_wheeled') {
+    const touchpoints = await getWheelTouchpoints(cargoItemId, wheelType);
+    return check2WheeledTreadwayContact(touchpoints, treadwayBoundaries, aircraftId);
+
+  } else if (wheelType === '4_wheeled') {
+    const touchpoints = await getWheelTouchpoints(cargoItemId, wheelType);
+    return check4WheeledTreadwayContact(touchpoints, treadwayBoundaries, aircraftId);
+
+  } else if (wheelType === 'bulk') {
+    return checkBulkTreadwayContact(cargoItemId, treadwayBoundaries);
+  }
+
+  // Default case: no treadway contact
+  return [false, false, false];
 }

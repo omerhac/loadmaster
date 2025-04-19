@@ -173,7 +173,6 @@ describe('Compartment Operations', () => {
       // Create load constraint
       const loadConstraint: LoadConstraint = {
         compartment_id: compartmentId,
-        constraint_type: 'cumulative',
         max_cumulative_weight: 5000,
       };
 
@@ -183,7 +182,6 @@ describe('Compartment Operations', () => {
       // Get load constraints by compartment ID
       const getResult = await getLoadConstraintsByCompartmentId(compartmentId);
       expect(getResult.count).toBe(1);
-      expect(getResult.results[0].data?.constraint_type).toBe('cumulative');
       expect(getResult.results[0].data?.max_cumulative_weight).toBe(5000);
     });
 
@@ -191,13 +189,11 @@ describe('Compartment Operations', () => {
       // Create load constraints
       const loadConstraint1: LoadConstraint = {
         compartment_id: compartmentId,
-        constraint_type: 'cumulative',
         max_cumulative_weight: 5000,
       };
 
       const loadConstraint2: LoadConstraint = {
         compartment_id: compartmentId,
-        constraint_type: 'concentrated',
         max_concentrated_load: 1000,
       };
 
@@ -208,19 +204,14 @@ describe('Compartment Operations', () => {
       const getResult = await getLoadConstraintsByCompartmentId(compartmentId);
       expect(getResult.count).toBe(2);
 
-      // Verify the constraints were created correctly
-      const cumulativeConstraint = getResult.results.find(r => r.data?.constraint_type === 'cumulative');
-      const concentratedConstraint = getResult.results.find(r => r.data?.constraint_type === 'concentrated');
-
-      expect(cumulativeConstraint?.data?.max_cumulative_weight).toBe(5000);
-      expect(concentratedConstraint?.data?.max_concentrated_load).toBe(1000);
+      expect(getResult.results[0].data?.max_cumulative_weight).toBe(5000);
+      expect(getResult.results[1].data?.max_concentrated_load).toBe(1000);
     });
 
     it('should update load constraint', async () => {
       // Create load constraint
       const loadConstraint: LoadConstraint = {
         compartment_id: compartmentId,
-        constraint_type: 'cumulative',
         max_cumulative_weight: 5000,
       };
 
@@ -231,7 +222,6 @@ describe('Compartment Operations', () => {
       const updatedConstraint: LoadConstraint = {
         id: constraintId,
         compartment_id: compartmentId,
-        constraint_type: 'cumulative',
         max_cumulative_weight: 6000,
       };
 
@@ -246,7 +236,6 @@ describe('Compartment Operations', () => {
       // Create load constraint
       const loadConstraint: LoadConstraint = {
         compartment_id: compartmentId,
-        constraint_type: 'cumulative',
         max_cumulative_weight: 5000,
       };
 

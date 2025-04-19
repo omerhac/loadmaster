@@ -2,6 +2,7 @@ import {
   getCargoItemById,
   getCargoTypeById,
   getCompartmentById,
+  getCargoItemsByMissionId,
   CargoItem as DBCargoItem,
   Compartment as DBCompartment,
   CargoType as DBCargoType,
@@ -235,9 +236,14 @@ export async function calculateRunningLoad(cargoItemId: number): Promise<LoadRes
       break;
 
     case '2_wheeled':
-    case '4_wheeled':
       const effectiveLength = cargoItem.length! - (cargoItem.forward_overhang! + cargoItem.back_overhang!);
       loadValue = cargoItem.weight! / effectiveLength;
+      break;
+
+    case '4_wheeled':
+      const effectiveLength4Wheel = cargoItem.length! - (cargoItem.forward_overhang! + cargoItem.back_overhang!);
+      // For 4-wheeled cargo, divide by 2 to get running load per side
+      loadValue = (cargoItem.weight! / effectiveLength4Wheel) / 2;
       break;
 
     default:
@@ -298,4 +304,37 @@ function calculateOverlapPercentage(cargoItem: CargoItemWithType, compartment: D
   const overlapPercentage = overlapLength / cargoItem.length!;
 
   return overlapPercentage;
+}
+
+/**
+ * Aggregates loads by compartment across all cargo items in a mission
+ * @param missionId - The ID of the mission
+ * @returns Map of compartment IDs to their total loads
+ */
+export async function aggregateCumulativeLoadByCompartment(missionId: number): Promise<Map<number, number>> {
+  // 1. Get all cargo items for this mission
+  const cargoItemsResponse = await getCargoItemsByMissionId(missionId);
+  if (cargoItemsResponse.count === 0) {
+    return new Map<number, number>();
+  }
+
+  const cargoItems = cargoItemsResponse.results.map(result => result.data as DBCargoItem);
+
+  // 2. Calculate load per compartment for each cargo item using the existing service
+  const loadPromises = cargoItems.map(cargoItem =>
+    calculateLoadPerCompartment(cargoItem.id!)
+  );
+  const allCompartmentLoads = await Promise.all(loadPromises);
+
+  // 3. Aggregate loads by compartment
+  const totalLoadByCompartment = new Map<number, number>();
+
+  allCompartmentLoads.forEach(compartmentLoads => {
+    compartmentLoads.forEach(({ compartmentId, load }) => {
+      const currentLoad = totalLoadByCompartment.get(compartmentId) || 0;
+      totalLoadByCompartment.set(compartmentId, currentLoad + load.value);
+    });
+  });
+
+  return totalLoadByCompartment;
 }

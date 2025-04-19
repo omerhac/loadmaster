@@ -79,9 +79,16 @@ calculateLoadPerCompartment(cargoItemId: number): Promise<CompartmentLoadResult[
 /**
  * Calculates the running load induced by a cargo item
  * @param cargoItemId - The ID of the cargo item
- * @returns The running load value and unit
+ * @returns The running load value and unit (for 4 wheeled item it returns the load per side)
  */
 calculateRunningLoad(cargoItemId: number): Promise<LoadResult>
+
+/**
+ * Aggregates compartment loads for all cargo items in a mission
+ * @param missionId - The ID of the mission
+ * @returns Map of compartment IDs to their total cumulative loads
+ */
+aggregateCumulativeLoadByCompartment(missionId: number): Promise<Map<number, number>>
 ```
 
 ## Database Dependencies
@@ -275,10 +282,15 @@ async function calculateRunningLoad(cargoItemId: number): Promise<LoadResult> {
       break;
       
     case '2_wheeled':
-    case '4_wheeled':
-      // For wheeled cargo, consider effective length (excluding overhangs)
+      // For 2-wheeled cargo, consider effective length (excluding overhangs)
       const effectiveLength = cargoItem.length - (cargoItem.forward_overhang + cargoItem.back_overhang);
       loadValue = cargoItem.weight / effectiveLength;
+      break;
+      
+    case '4_wheeled':
+      // For 4-wheeled cargo, consider effective length (excluding overhangs)
+      const effectiveLength4Wheel = cargoItem.length - (cargoItem.forward_overhang + cargoItem.back_overhang);
+      loadValue = cargoItem.weight / effectiveLength4Wheel;
       break;
       
     default:
@@ -289,5 +301,37 @@ async function calculateRunningLoad(cargoItemId: number): Promise<LoadResult> {
     value: loadValue,
     unit: 'lbs/in'
   };
+}
+```
+
+#### aggregateCumulativeLoadByCompartment
+
+```typescript
+async function aggregateCumulativeLoadByCompartment(missionId: number): Promise<Map<number, number>> {
+  // 1. Get all cargo items for this mission
+  const cargoItemsResponse = await getCargoItemsByMissionId(missionId);
+  if (cargoItemsResponse.count === 0) {
+    return new Map<number, number>();
+  }
+  
+  const cargoItems = cargoItemsResponse.results.map(result => result.data as DBCargoItem);
+  
+  // 2. Calculate load per compartment for each cargo item using the existing service
+  const loadPromises = cargoItems.map(cargoItem => 
+    calculateLoadPerCompartment(cargoItem.id!)
+  );
+  const allCompartmentLoads = await Promise.all(loadPromises);
+  
+  // 3. Aggregate loads by compartment
+  const totalLoadByCompartment = new Map<number, number>();
+  
+  allCompartmentLoads.forEach(compartmentLoads => {
+    compartmentLoads.forEach(({ compartmentId, load }) => {
+      const currentLoad = totalLoadByCompartment.get(compartmentId) || 0;
+      totalLoadByCompartment.set(compartmentId, currentLoad + load.value);
+    });
+  });
+  
+  return totalLoadByCompartment;
 }
 ```

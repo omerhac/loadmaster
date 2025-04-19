@@ -86,15 +86,14 @@ export async function createLoadConstraint(loadConstraint: LoadConstraint): Prom
   const db = await DatabaseFactory.getDatabase();
   const sql = `
     INSERT INTO load_constraints (
-      compartment_id, constraint_type, max_cumulative_weight,
+      compartment_id, max_cumulative_weight,
       max_concentrated_load, max_running_load_treadway,
       max_running_load_between_treadways
     )
-    VALUES (?, ?, ?, ?, ?, ?);
+    VALUES (?, ?, ?, ?, ?);
   `;
   return db.executeQuery(sql, [
     loadConstraint.compartment_id,
-    loadConstraint.constraint_type,
     loadConstraint.max_cumulative_weight || null,
     loadConstraint.max_concentrated_load || null,
     loadConstraint.max_running_load_treadway || null,
@@ -121,14 +120,13 @@ export async function updateLoadConstraint(loadConstraint: LoadConstraint): Prom
   const db = await DatabaseFactory.getDatabase();
   const sql = `
     UPDATE load_constraints
-    SET compartment_id = ?, constraint_type = ?, max_cumulative_weight = ?,
+    SET compartment_id = ?, max_cumulative_weight = ?,
         max_concentrated_load = ?, max_running_load_treadway = ?,
         max_running_load_between_treadways = ?
     WHERE id = ?;
   `;
   return db.executeQuery(sql, [
     loadConstraint.compartment_id,
-    loadConstraint.constraint_type,
     loadConstraint.max_cumulative_weight || null,
     loadConstraint.max_concentrated_load || null,
     loadConstraint.max_running_load_treadway || null,

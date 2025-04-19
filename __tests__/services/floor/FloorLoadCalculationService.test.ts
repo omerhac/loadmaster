@@ -2,6 +2,7 @@ import {
   calculateConcentratedLoad,
   calculateLoadPerCompartment,
   calculateRunningLoad,
+  aggregateCumulativeLoadByCompartment,
   WHEEL_DIMENSIONS,
 } from '../../../src/services/floor/FloorLoadCalculationService';
 import { TestDatabaseService } from '../../../src/services/db/TestDatabaseService';
@@ -306,9 +307,38 @@ describe('Floor Load Calculation Integration Tests', () => {
       // For wheeled cargo: weight / (length - (forward_overhang + back_overhang))
       // Effective length: 120 - (15 + 15) = 90 inches
       // Expected: 2000 lbs / 90 in = 22.22 lbs/in
+      // For 4-wheeled items, divide by 2 to get running load per side = 11.11 lbs/in
       expect(runningLoad).toBeDefined();
       expect(runningLoad.unit).toBe('lbs/in');
-      expect(runningLoad.value).toBeCloseTo(22.22, 2); // 2000 / (120 - (15 + 15)) = 22.22
+      expect(runningLoad.value).toBeCloseTo(11.11, 2); // (2000 / (120 - (15 + 15))) / 2 = 11.11
+    });
+
+    it('should aggregate cumulative loads by compartment for a mission', async () => {
+      // Arrange - Use existing test data setup from beforeEach
+      // We have 3 cargo items already created in our mission:
+      // 1. Bulk cargo: 1000 lbs in compartment 1
+      // 2. Two-wheeled cargo: 1500 lbs in compartment 1
+      // 3. Four-wheeled cargo: 2000 lbs split between compartment 2 and 3 (1000 lbs each)
+
+      // Act - Calculate aggregate loads by compartment
+      const compartmentLoads = await aggregateCumulativeLoadByCompartment(missionId);
+
+      // Assert
+      // We expect the loads to be distributed as follows:
+      // - Compartment 1: 1000 lbs (bulk) + 1500 lbs (2-wheeled) = 2500 lbs
+      // - Compartment 2: 1000 lbs (half of 4-wheeled)
+      // - Compartment 3: 1000 lbs (half of 4-wheeled)
+
+      expect(compartmentLoads).toBeDefined();
+      expect(compartmentLoads.size).toBe(3); // Should have 3 compartments with loads
+
+      // Sort compartment IDs to ensure consistent testing
+      const sortedCompartmentIds = Array.from(compartmentLoads.keys()).sort();
+
+      // Check each compartment's load
+      expect(compartmentLoads.get(sortedCompartmentIds[0])).toBeCloseTo(2500, 2); // Compartment 1
+      expect(compartmentLoads.get(sortedCompartmentIds[1])).toBeCloseTo(1000, 2); // Compartment 2
+      expect(compartmentLoads.get(sortedCompartmentIds[2])).toBeCloseTo(1000, 2); // Compartment 3
     });
   });
 
