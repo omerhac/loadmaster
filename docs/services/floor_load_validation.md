@@ -211,6 +211,206 @@ export async function validateMissionLoadConstraints(missionId: number): Promise
 }
 ```
 
+#### validateCumulativeLoad
+
+```typescript
+/**
+ * Validates cumulative load constraints for all compartments in a mission
+ * @param missionId - The ID of the mission to validate
+ * @returns Array of cumulative load validation results
+ */
+export async function validateCumulativeLoad(missionId: number): Promise<CumulativeLoadValidationResult[]> {
+  // 1. Get aggregated load by compartment from FloorLoadCalculationService
+  const compartmentLoads = await aggregateCumulativeLoadByCompartment(missionId);
+  
+  // 2. Get all relevant compartments for the mission's aircraft
+  const mission = await getMissionById(missionId);
+  if (!mission) {
+    throw new Error(`Mission with ID ${missionId} not found`);
+  }
+  
+  const aircraft = await getAircraftById(mission.aircraft_id);
+  const compartments = await getCompartmentsByAircraftId(aircraft.id);
+  
+  // 3. Get load constraints for each compartment
+  const loadConstraints = await Promise.all(
+    compartments.map(compartment => 
+      getLoadConstraintsByCompartmentId(compartment.id)
+    )
+  );
+  
+  // 4. Initialize results array
+  const results: CumulativeLoadValidationResult[] = [];
+  
+  // 5. Validate each compartment against its constraints
+  compartments.forEach((compartment, index) => {
+    const currentLoad = compartmentLoads.get(compartment.id) || 0;
+    const constraints = loadConstraints[index];
+    const maxAllowedLoad = constraints?.maximum_cumulative_load || 0;
+    
+    // Calculate overage if any
+    const overageAmount = Math.max(0, currentLoad - maxAllowedLoad);
+    
+    // Determine validation status
+    const status = currentLoad <= maxAllowedLoad 
+      ? ValidationStatus.Pass 
+      : ValidationStatus.Fail;
+    
+    // Construct validation message
+    const message = status === ValidationStatus.Pass
+      ? `Compartment ${compartment.name} cumulative load (${currentLoad.toFixed(2)} lbs) is within limit (${maxAllowedLoad.toFixed(2)} lbs)`
+      : `Compartment ${compartment.name} cumulative load (${currentLoad.toFixed(2)} lbs) exceeds maximum allowed (${maxAllowedLoad.toFixed(2)} lbs) by ${overageAmount.toFixed(2)} lbs`;
+    
+    // Add result
+    results.push({
+      status,
+      constraintType: LoadConstraintType.Cumulative,
+      compartmentId: compartment.id,
+      compartmentName: compartment.name,
+      currentLoad,
+      maxAllowedLoad,
+      overageAmount,
+      message
+    });
+  });
+  
+  return results;
+}
+```
+
+#### validateConcentratedLoad
+
+```typescript
+/**
+ * Validates concentrated load constraints for all cargo items in a mission
+ * @param missionId - The ID of the mission to validate
+ * @returns Array of concentrated load validation results
+ */
+export async function validateConcentratedLoad(missionId: number): Promise<ConcentratedLoadValidationResult[]> {
+  // 1. Get all cargo items for this mission
+  const cargoItemsResponse = await getCargoItemsByMissionId(missionId);
+  if (cargoItemsResponse.count === 0) {
+    return [];
+  }
+  
+  const cargoItems = cargoItemsResponse.results.map(result => result.data as DBCargoItem);
+  const results: ConcentratedLoadValidationResult[] = [];
+  
+  // Process each cargo item
+  for (const cargoItem of cargoItems) {
+    // Get cargo type information
+    const cargoTypeResult = await getCargoTypeById(cargoItem.cargo_type_id);
+    if (cargoTypeResult.count === 0 || !cargoTypeResult.results[0].data) {
+      continue;
+    }
+    
+    const cargoType = cargoTypeResult.results[0].data as DBCargoType;
+    const wheelType = cargoType.type as WheelType;
+    
+    // Calculate concentrated load for the cargo item
+    const concentratedLoadResult = await calculateConcentratedLoad(cargoItem.id!);
+    const concentratedLoadValue = concentratedLoadResult.value;
+    
+    // Get touchpoint compartment mapping
+    const touchpointResult = await getTouchpointCompartments(cargoItem.id!, wheelType);
+    
+    if (wheelType === 'bulk') {
+      // For bulk cargo, check against all overlapping compartments
+      for (const compartmentId of touchpointResult.overlappingCompartments) {
+        const validationResult = await validateCompartmentConcentratedLoad(
+          compartmentId,
+          cargoItem.id!,
+          concentratedLoadValue
+        );
+        
+        if (validationResult) {
+          results.push(validationResult);
+        }
+        else {
+            // raise error
+        }
+      }
+    } else {
+      // For wheeled cargo, check each touchpoint against its corresponding compartment
+      const touchpointToCompartment = touchpointResult.touchpointToCompartment;
+      
+      // Process each touchpoint
+      for (const [position, compartmentId] of Object.entries(touchpointToCompartment)) {
+        if (compartmentId) {
+          const validationResult = await validateCompartmentConcentratedLoad(
+            compartmentId,
+            cargoItem.id!,
+            concentratedLoadValue
+          );
+          
+          if (validationResult) {
+            results.push(validationResult);
+          } else{
+            // raise error
+          }
+          
+        }
+      }
+    }
+  }
+  
+  return results;
+}
+
+/**
+ * Helper function to validate concentrated load against a compartment's constraint
+ * @param compartmentId - The compartment ID to validate against
+ * @param cargoItemId - The cargo item ID being validated
+ * @param concentratedLoadValue - The calculated concentrated load value
+ * @returns Validation result or null if compartment not found
+ */
+async function validateCompartmentConcentratedLoad(
+  compartmentId: number,
+  cargoItemId: number,
+  concentratedLoadValue: number
+): Promise<ConcentratedLoadValidationResult | null> {
+  // Get compartment details
+  const compartment = await getCompartmentById(compartmentId);
+  if (!compartment) {
+    return null;
+  }
+  
+  // Get load constraints for the compartment
+  const constraints = await getLoadConstraintsByCompartmentId(compartmentId);
+  if (!constraints) {
+    return null;
+  }
+  
+  const maxAllowedLoad = constraints.maximum_concentrated_load;
+  
+  // Calculate overage if any
+  const overageAmount = Math.max(0, concentratedLoadValue - maxAllowedLoad);
+  
+  // Determine validation status
+  const status = concentratedLoadValue <= maxAllowedLoad 
+    ? ValidationStatus.Pass 
+    : ValidationStatus.Fail;
+  
+  // Construct validation message
+  const message = status === ValidationStatus.Pass
+    ? `Cargo item ${cargoItemId} concentrated load (${concentratedLoadValue.toFixed(2)} lbs/sq.in) is within limit (${maxAllowedLoad.toFixed(2)} lbs/sq.in) for compartment ${compartment.name}`
+    : `Cargo item ${cargoItemId} concentrated load (${concentratedLoadValue.toFixed(2)} lbs/sq.in) exceeds maximum allowed (${maxAllowedLoad.toFixed(2)} lbs/sq.in) for compartment ${compartment.name} by ${overageAmount.toFixed(2)} lbs/sq.in`;
+  
+  // Return validation result
+  return {
+    status,
+    constraintType: LoadConstraintType.Concentrated,
+    compartmentId,
+    compartmentName: compartment.name,
+    cargoItemId,
+    currentLoad: concentratedLoadValue,
+    maxAllowedLoad,
+    overageAmount,
+    message
+  };
+}
+```
+
 ## Usage Examples
 
 ```typescript
@@ -239,23 +439,3 @@ for (const [compartmentId, load] of compartmentLoads.entries()) {
   console.log(`Compartment ${compartmentId}: ${load.toFixed(2)} lbs`);
 }
 ```
-
-## Error Handling
-
-The service implements robust error handling:
-
-1. Validation of input parameters to ensure they meet expected formats
-2. Proper error propagation when underlying services fail
-3. Graceful handling of missing database records with informative error messages
-4. Structured validation results that clearly communicate constraint failures
-
-## Performance Considerations
-
-The validation service employs several optimizations:
-
-1. Parallel validation of different constraint types
-2. Caching of constraint data to minimize database queries
-3. Efficient aggregation of loads by compartment
-4. Reuse of wheel touchpoint calculations across different validation steps
-
-These optimizations ensure that validation operations complete quickly even for missions with large numbers of cargo items.
