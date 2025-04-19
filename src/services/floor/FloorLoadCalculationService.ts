@@ -2,6 +2,7 @@ import {
   getCargoItemById,
   getCargoTypeById,
   getCompartmentById,
+  getCargoItemsByMissionId,
   CargoItem as DBCargoItem,
   Compartment as DBCompartment,
   CargoType as DBCargoType,
@@ -303,4 +304,37 @@ function calculateOverlapPercentage(cargoItem: CargoItemWithType, compartment: D
   const overlapPercentage = overlapLength / cargoItem.length!;
 
   return overlapPercentage;
+}
+
+/**
+ * Aggregates loads by compartment across all cargo items in a mission
+ * @param missionId - The ID of the mission
+ * @returns Map of compartment IDs to their total loads
+ */
+export async function aggregateCumulativeLoadByCompartment(missionId: number): Promise<Map<number, number>> {
+  // 1. Get all cargo items for this mission
+  const cargoItemsResponse = await getCargoItemsByMissionId(missionId);
+  if (cargoItemsResponse.count === 0) {
+    return new Map<number, number>();
+  }
+
+  const cargoItems = cargoItemsResponse.results.map(result => result.data as DBCargoItem);
+
+  // 2. Calculate load per compartment for each cargo item using the existing service
+  const loadPromises = cargoItems.map(cargoItem =>
+    calculateLoadPerCompartment(cargoItem.id!)
+  );
+  const allCompartmentLoads = await Promise.all(loadPromises);
+
+  // 3. Aggregate loads by compartment
+  const totalLoadByCompartment = new Map<number, number>();
+
+  allCompartmentLoads.forEach(compartmentLoads => {
+    compartmentLoads.forEach(({ compartmentId, load }) => {
+      const currentLoad = totalLoadByCompartment.get(compartmentId) || 0;
+      totalLoadByCompartment.set(compartmentId, currentLoad + load.value);
+    });
+  });
+
+  return totalLoadByCompartment;
 }

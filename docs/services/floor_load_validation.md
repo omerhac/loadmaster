@@ -157,13 +157,6 @@ export function validateConcentratedLoad(missionId: number): Promise<Concentrate
  * @returns Array of running load validation results
  */
 export function validateRunningLoad(missionId: number): Promise<RunningLoadValidationResult[]>
-
-/**
- * Aggregates compartment loads for all cargo items in a mission
- * @param missionId - The ID of the mission
- * @returns Map of compartment IDs to their total cumulative loads
- */
-export function aggregateCumulativeLoadByCompartment(missionId: number): Promise<Map<number, number>>
 ```
 
 ## Database Dependencies
@@ -177,39 +170,6 @@ The service relies on the following database tables:
 ## Implementation Details
 
 ### Helper Functions
-
-#### aggregateCumulativeLoadByCompartment
-
-```typescript
-/**
- * Aggregates loads by compartment across all cargo items in a mission
- * Reuses calculateLoadPerCompartment from FloorLoadCalculationService
- * @param missionId - The ID of the mission
- * @returns Map of compartment IDs to their total loads
- */
-export async function aggregateCumulativeLoadByCompartment(missionId: number): Promise<Map<number, number>> {
-  // 1. Get all cargo items for this mission
-  const cargoItems = await getCargoItemsByMissionId(missionId);
-  
-  // 2. Calculate load per compartment for each cargo item using the existing service
-  const loadPromises = cargoItems.map(cargoItem => 
-    calculateLoadPerCompartment(cargoItem.id)
-  );
-  const allCompartmentLoads = await Promise.all(loadPromises);
-  
-  // 3. Aggregate loads by compartment
-  const totalLoadByCompartment = new Map<number, number>();
-  
-  allCompartmentLoads.forEach(compartmentLoads => {
-    compartmentLoads.forEach(({ compartmentId, load }) => {
-      const currentLoad = totalLoadByCompartment.get(compartmentId) || 0;
-      totalLoadByCompartment.set(compartmentId, currentLoad + load.value);
-    });
-  });
-  
-  return totalLoadByCompartment;
-}
-```
 
 ### Main Validation Functions
 
@@ -273,7 +233,7 @@ if (validationResults.status === ValidationStatus.Pass) {
 }
 
 // Get cumulative loads by compartment for reporting
-const compartmentLoads = await aggregateCumulativeLoadByCompartment(missionId);
+const compartmentLoads = await FloorLoadCalculationService.aggregateCumulativeLoadByCompartment(missionId);
 console.log('Compartment loads:');
 for (const [compartmentId, load] of compartmentLoads.entries()) {
   console.log(`Compartment ${compartmentId}: ${load.toFixed(2)} lbs`);
