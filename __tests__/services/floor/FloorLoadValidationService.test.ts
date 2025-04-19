@@ -27,7 +27,7 @@ import { initializeLoadmasterDatabase } from '@/services/db/SchemaService';
 
 // Test setup
 describe('FloorLoadValidationService', () => {
-  // Test database and IDs 
+  // Test database and IDs
   let testDb: TestDatabaseService;
   let aircraftId: number;
   let missionId: number;
@@ -72,7 +72,7 @@ describe('FloorLoadValidationService', () => {
       treadways_dist_from_center: 55,
       ramp_length: 256,
       ramp_max_incline: 9,
-      ramp_min_incline: 5
+      ramp_min_incline: 5,
     };
 
     const aircraftResult = await createAircraft(aircraft);
@@ -91,7 +91,7 @@ describe('FloorLoadValidationService', () => {
       food_weight: 300,
       safety_gear_weight: 200,
       etc_weight: 100,
-      aircraft_id: aircraftId
+      aircraft_id: aircraftId,
     };
 
     const missionResult = await createMission(mission);
@@ -104,7 +104,7 @@ describe('FloorLoadValidationService', () => {
       x_start: 0,
       x_end: 500,
       floor_area: 10000,
-      usable_volume: 50000
+      usable_volume: 50000,
     };
 
     const compartment2: Compartment = {
@@ -113,7 +113,7 @@ describe('FloorLoadValidationService', () => {
       x_start: 500,
       x_end: 1000,
       floor_area: 10000,
-      usable_volume: 50000
+      usable_volume: 50000,
     };
 
     const compartment1Result = await createCompartment(compartment1);
@@ -128,7 +128,7 @@ describe('FloorLoadValidationService', () => {
       max_cumulative_weight: 15000,
       max_concentrated_load: 50,
       max_running_load_treadway: 2000,
-      max_running_load_between_treadways: 1500
+      max_running_load_between_treadways: 1500,
     };
 
     const loadConstraint2: LoadConstraint = {
@@ -136,7 +136,7 @@ describe('FloorLoadValidationService', () => {
       max_cumulative_weight: 20000,
       max_concentrated_load: 60,
       max_running_load_treadway: 2500,
-      max_running_load_between_treadways: 2000
+      max_running_load_between_treadways: 2000,
     };
 
     await createLoadConstraint(loadConstraint1);
@@ -151,7 +151,7 @@ describe('FloorLoadValidationService', () => {
       default_height: 50,
       default_forward_overhang: 0,
       default_back_overhang: 0,
-      type: 'bulk'
+      type: 'bulk',
     };
 
     const wheeledCargoType: CargoType = {
@@ -162,7 +162,7 @@ describe('FloorLoadValidationService', () => {
       default_height: 40,
       default_forward_overhang: 20,
       default_back_overhang: 15,
-      type: '2_wheeled'
+      type: '2_wheeled',
     };
 
     const bulkCargoTypeResult = await createCargoType(bulkCargoType);
@@ -197,7 +197,7 @@ describe('FloorLoadValidationService', () => {
         width: 100,
         height: 50,
         x_start_position: 100,
-        y_start_position: 0
+        y_start_position: 0,
       };
 
       await createCargoItem(cargoItem);
@@ -230,7 +230,7 @@ describe('FloorLoadValidationService', () => {
         width: 100,
         height: 50,
         x_start_position: 100,
-        y_start_position: 0
+        y_start_position: 0,
       };
 
       await createCargoItem(cargoItem);
@@ -258,7 +258,7 @@ describe('FloorLoadValidationService', () => {
         width: 100,
         height: 50,
         x_start_position: 100,
-        y_start_position: 0
+        y_start_position: 0,
       };
 
       const cargoItem2: CargoItem = {
@@ -270,7 +270,7 @@ describe('FloorLoadValidationService', () => {
         width: 100,
         height: 50,
         x_start_position: 200,
-        y_start_position: 0
+        y_start_position: 0,
       };
 
       await createCargoItem(cargoItem1);
@@ -297,7 +297,7 @@ describe('FloorLoadValidationService', () => {
         width: 100,
         height: 50,
         x_start_position: 400, // Spans from 400 to 600, crossing the compartment boundary at 500
-        y_start_position: 0
+        y_start_position: 0,
       };
 
       await createCargoItem(cargoItem);
@@ -338,7 +338,7 @@ describe('FloorLoadValidationService', () => {
         width: 100,
         height: 50,
         x_start_position: 100,
-        y_start_position: 0
+        y_start_position: 0,
       };
 
       const result = await createCargoItem(cargoItem);
@@ -367,7 +367,7 @@ describe('FloorLoadValidationService', () => {
         width: 10,
         height: 50,
         x_start_position: 100,
-        y_start_position: 0
+        y_start_position: 0,
       };
 
       const result = await createCargoItem(cargoItem);
@@ -396,7 +396,7 @@ describe('FloorLoadValidationService', () => {
         default_height: 40,
         default_forward_overhang: 20,
         default_back_overhang: 15,
-        type: '2_wheeled'
+        type: '2_wheeled',
       };
 
       const wheeledCargoTypeResult = await createCargoType(wheeledCargoType);
@@ -414,7 +414,7 @@ describe('FloorLoadValidationService', () => {
         forward_overhang: 20,
         back_overhang: 15,
         x_start_position: 100,
-        y_start_position: 0
+        y_start_position: 0,
       };
 
       // Create a 2-wheeled cargo item
@@ -429,7 +429,7 @@ describe('FloorLoadValidationService', () => {
         forward_overhang: 20,
         back_overhang: 15,
         x_start_position: 100,
-        y_start_position: 0
+        y_start_position: 0,
       };
 
       const heavyResult = await createCargoItem(heavyCargoItem);
@@ -485,7 +485,7 @@ describe('FloorLoadValidationService', () => {
         width: 100,
         height: 50,
         x_start_position: 100,
-        y_start_position: 0
+        y_start_position: 0,
       };
 
       await createCargoItem(cargoItem);
@@ -523,7 +523,7 @@ describe('FloorLoadValidationService', () => {
         width: 10,
         height: 50,
         x_start_position: 100,
-        y_start_position: 0
+        y_start_position: 0,
       };
 
       await createCargoItem(cargoItem);
@@ -554,23 +554,23 @@ describe('FloorLoadValidationService', () => {
 
     it('should handle empty mission with no cargo items', async () => {
       const missionResults = await validateMissionLoadConstraints(missionId);
-      
+
       // Should pass overall with no cargo items
       expect(missionResults.missionId).toBe(missionId);
       expect(missionResults.status).toBe(ValidationStatus.Pass);
-      
+
       // Should have only cumulative results for compartments (no concentrated load results)
       const cumulativeResults = missionResults.results.filter(r =>
         r.constraintType === LoadConstraintType.Cumulative
       );
-      
+
       const concentratedResults = missionResults.results.filter(r =>
         r.constraintType === LoadConstraintType.Concentrated
       );
-      
+
       expect(cumulativeResults.length).toBe(2); // One for each compartment
       expect(concentratedResults.length).toBe(0); // No cargo items, so no concentrated results
-      
+
       // All cumulative results should show zero load
       for (const result of cumulativeResults) {
         expect(result.currentLoad).toBe(0);
@@ -590,7 +590,7 @@ describe('FloorLoadValidationService', () => {
           width: 100,
           height: 50,
           x_start_position: 100,
-          y_start_position: 0
+          y_start_position: 0,
         },
         {
           mission_id: missionId,
@@ -601,7 +601,7 @@ describe('FloorLoadValidationService', () => {
           width: 90,
           height: 45,
           x_start_position: 300,
-          y_start_position: 20
+          y_start_position: 20,
         },
         {
           mission_id: missionId,
@@ -612,43 +612,43 @@ describe('FloorLoadValidationService', () => {
           width: 120,
           height: 55,
           x_start_position: 600, // in compartment 2
-          y_start_position: 10
-        }
+          y_start_position: 10,
+        },
       ];
-      
+
       for (const item of cargoItems) {
         await createCargoItem(item);
       }
-      
+
       const missionResults = await validateMissionLoadConstraints(missionId);
-      
+
       // Should pass overall
       expect(missionResults.status).toBe(ValidationStatus.Pass);
-      
+
       // Should have results for all cargo items plus compartments
       const expectedResultCount = cargoItems.length + 2; // 3 concentrated + 2 cumulative
       expect(missionResults.results.length).toBe(expectedResultCount);
-      
+
       // All results should be passing
       for (const result of missionResults.results) {
         expect(result.status).toBe(ValidationStatus.Pass);
       }
-      
+
       // Check cumulative load in compartment 1 (should be sum of cargo 1 and 2)
-      const comp1Result = missionResults.results.find(r => 
-        r.constraintType === LoadConstraintType.Cumulative && 
+      const comp1Result = missionResults.results.find(r =>
+        r.constraintType === LoadConstraintType.Cumulative &&
         r.compartmentId === compartment1Id
       );
-      
+
       expect(comp1Result).toBeDefined();
       expect(comp1Result!.currentLoad).toBe(7000); // 3000 + 4000
-      
+
       // Check cumulative load in compartment 2 (should be cargo 3)
-      const comp2Result = missionResults.results.find(r => 
-        r.constraintType === LoadConstraintType.Cumulative && 
+      const comp2Result = missionResults.results.find(r =>
+        r.constraintType === LoadConstraintType.Cumulative &&
         r.compartmentId === compartment2Id
       );
-      
+
       expect(comp2Result).toBeDefined();
       expect(comp2Result!.currentLoad).toBe(5000);
     });
@@ -657,7 +657,7 @@ describe('FloorLoadValidationService', () => {
       // Create cargo items with mixed validation results:
       // 1. A passing bulk cargo
       // 2. A failing concentrated load cargo
-      
+
       // Passing bulk cargo
       const passingCargo: CargoItem = {
         mission_id: missionId,
@@ -668,9 +668,9 @@ describe('FloorLoadValidationService', () => {
         width: 100,
         height: 50,
         x_start_position: 100,
-        y_start_position: 0
+        y_start_position: 0,
       };
-      
+
       // Failing concentrated load cargo
       const failingCargo: CargoItem = {
         mission_id: missionId,
@@ -681,39 +681,39 @@ describe('FloorLoadValidationService', () => {
         width: 10,
         height: 50,
         x_start_position: 600, // in compartment 2
-        y_start_position: 0
+        y_start_position: 0,
       };
-      
+
       await createCargoItem(passingCargo);
       await createCargoItem(failingCargo);
-      
+
       const missionResults = await validateMissionLoadConstraints(missionId);
-      
+
       // Overall status should be FAIL since one validation fails
       expect(missionResults.status).toBe(ValidationStatus.Fail);
-      
+
       // Count passing and failing results
       const passingResults = missionResults.results.filter(r => r.status === ValidationStatus.Pass);
       const failingResults = missionResults.results.filter(r => r.status === ValidationStatus.Fail);
-      
+
       expect(passingResults.length).toBeGreaterThan(0);
       expect(failingResults.length).toBeGreaterThan(0);
-      
+
       // Verify that both cumulative validations pass but one concentrated fails
-      const cumulativeResults = missionResults.results.filter(r => 
+      const cumulativeResults = missionResults.results.filter(r =>
         r.constraintType === LoadConstraintType.Cumulative
       );
-      
+
       for (const result of cumulativeResults) {
         expect(result.status).toBe(ValidationStatus.Pass);
       }
-      
+
       // Find the failing concentrated load result
-      const failingConcentratedResult = missionResults.results.find(r => 
-        r.constraintType === LoadConstraintType.Concentrated && 
+      const failingConcentratedResult = missionResults.results.find(r =>
+        r.constraintType === LoadConstraintType.Concentrated &&
         r.status === ValidationStatus.Fail
       );
-      
+
       expect(failingConcentratedResult).toBeDefined();
       expect(failingConcentratedResult!.currentLoad).toBeGreaterThan(failingConcentratedResult!.maxAllowedLoad);
     });
@@ -729,38 +729,38 @@ describe('FloorLoadValidationService', () => {
         width: 100,
         height: 50,
         x_start_position: 400, // spans from 400 to 700, crossing boundary at 500
-        y_start_position: 0
+        y_start_position: 0,
       };
-      
+
       await createCargoItem(spanningCargo);
-      
+
       const missionResults = await validateMissionLoadConstraints(missionId);
-      
+
       // Find cumulative results for both compartments
-      const comp1Result = missionResults.results.find(r => 
-        r.constraintType === LoadConstraintType.Cumulative && 
+      const comp1Result = missionResults.results.find(r =>
+        r.constraintType === LoadConstraintType.Cumulative &&
         r.compartmentId === compartment1Id
       );
-      
-      const comp2Result = missionResults.results.find(r => 
-        r.constraintType === LoadConstraintType.Cumulative && 
+
+      const comp2Result = missionResults.results.find(r =>
+        r.constraintType === LoadConstraintType.Cumulative &&
         r.compartmentId === compartment2Id
       );
-      
+
       expect(comp1Result).toBeDefined();
       expect(comp2Result).toBeDefined();
-      
+
       // The weight should be distributed proportionally between compartments
       // 1/3 of the cargo is in compartment 1, 2/3 in compartment 2
-      expect(comp1Result!.currentLoad).toBeCloseTo(10000 * (100/300), 0); // ~3333 lbs
-      expect(comp2Result!.currentLoad).toBeCloseTo(10000 * (200/300), 0); // ~6667 lbs
+      expect(comp1Result!.currentLoad).toBeCloseTo(10000 * (100 / 300), 0); // ~3333 lbs
+      expect(comp2Result!.currentLoad).toBeCloseTo(10000 * (200 / 300), 0); // ~6667 lbs
     });
 
     it('should handle multiple failing validations correctly', async () => {
       // Create multiple cargo items that will fail validation
       // 1. A cargo exceeding cumulative load in compartment 1
       // 2. A cargo with concentrated load issue in compartment 2
-      
+
       // Heavy cargo exceeding cumulative load
       const heavyCargo: CargoItem = {
         mission_id: missionId,
@@ -771,9 +771,9 @@ describe('FloorLoadValidationService', () => {
         width: 100,
         height: 50,
         x_start_position: 100,
-        y_start_position: 0
+        y_start_position: 0,
       };
-      
+
       // Cargo with concentrated load issue
       const concentratedCargo: CargoItem = {
         mission_id: missionId,
@@ -784,30 +784,30 @@ describe('FloorLoadValidationService', () => {
         width: 10,
         height: 30,
         x_start_position: 600, // in compartment 2
-        y_start_position: 0
+        y_start_position: 0,
       };
-      
+
       await createCargoItem(heavyCargo);
       await createCargoItem(concentratedCargo);
-      
+
       const missionResults = await validateMissionLoadConstraints(missionId);
-      
+
       // Overall status should be FAIL
       expect(missionResults.status).toBe(ValidationStatus.Fail);
-      
+
       // Should have multiple failing results
       const failingResults = missionResults.results.filter(r => r.status === ValidationStatus.Fail);
       expect(failingResults.length).toBeGreaterThan(1);
-      
+
       // Check that we have failures of different constraint types
-      const cumulativeFailures = failingResults.filter(r => 
+      const cumulativeFailures = failingResults.filter(r =>
         r.constraintType === LoadConstraintType.Cumulative
       );
-      
-      const concentratedFailures = failingResults.filter(r => 
+
+      const concentratedFailures = failingResults.filter(r =>
         r.constraintType === LoadConstraintType.Concentrated
       );
-      
+
       expect(cumulativeFailures.length).toBeGreaterThan(0);
       expect(concentratedFailures.length).toBeGreaterThan(0);
     });
@@ -822,12 +822,12 @@ describe('FloorLoadValidationService', () => {
         default_height: 40,
         default_forward_overhang: 20,
         default_back_overhang: 15,
-        type: '2_wheeled'
+        type: '2_wheeled',
       };
-      
+
       const wheeledCargoTypeResult = await createCargoType(wheeledCargoType);
       const wheeledCargoTypeId = wheeledCargoTypeResult.results[0].lastInsertId as number;
-      
+
       // Create different types of cargo in the same mission
       const bulkCargo: CargoItem = {
         mission_id: missionId,
@@ -838,9 +838,9 @@ describe('FloorLoadValidationService', () => {
         width: 100,
         height: 50,
         x_start_position: 100,
-        y_start_position: 0
+        y_start_position: 0,
       };
-      
+
       const wheeledCargo: CargoItem = {
         mission_id: missionId,
         cargo_type_id: wheeledCargoTypeId,
@@ -852,35 +852,35 @@ describe('FloorLoadValidationService', () => {
         forward_overhang: 20,
         back_overhang: 15,
         x_start_position: 600, // in compartment 2
-        y_start_position: 0
+        y_start_position: 0,
       };
-      
+
       await createCargoItem(bulkCargo);
       await createCargoItem(wheeledCargo);
-      
+
       const missionResults = await validateMissionLoadConstraints(missionId);
-      
+
       // Should validate both types correctly
-      const concentratedResults = missionResults.results.filter(r => 
+      const concentratedResults = missionResults.results.filter(r =>
         r.constraintType === LoadConstraintType.Concentrated
       );
-      
+
       // Should have 1 result for bulk cargo and 2 for the wheeled cargo (one per wheel)
       expect(concentratedResults.length).toBe(3);
-      
+
       // Check cumulative results are correct
-      const comp1Result = missionResults.results.find(r => 
-        r.constraintType === LoadConstraintType.Cumulative && 
+      const comp1Result = missionResults.results.find(r =>
+        r.constraintType === LoadConstraintType.Cumulative &&
         r.compartmentId === compartment1Id
       );
-      
-      const comp2Result = missionResults.results.find(r => 
-        r.constraintType === LoadConstraintType.Cumulative && 
+
+      const comp2Result = missionResults.results.find(r =>
+        r.constraintType === LoadConstraintType.Cumulative &&
         r.compartmentId === compartment2Id
       );
-      
+
       expect(comp1Result!.currentLoad).toBe(5000); // Bulk cargo
       expect(comp2Result!.currentLoad).toBe(3000); // Wheeled cargo
     });
   });
-}); 
+});

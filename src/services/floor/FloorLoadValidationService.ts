@@ -133,7 +133,7 @@ export async function validateMissionLoadConstraints(missionId: number): Promise
   return {
     missionId,
     status: overallStatus,
-    results: allResults
+    results: allResults,
   };
 }
 
@@ -200,7 +200,7 @@ export async function validateCumulativeLoad(missionId: number): Promise<Cumulat
       currentLoad,
       maxAllowedLoad,
       overageAmount,
-      message
+      message,
     });
   }
 
@@ -319,6 +319,6 @@ async function validateCompartmentConcentratedLoad(
     currentLoad: concentratedLoadValue,
     maxAllowedLoad,
     overageAmount,
-    message
+    message,
   };
-} 
+}

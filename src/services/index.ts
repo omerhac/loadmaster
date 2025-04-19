@@ -7,4 +7,4 @@ export * from './floor';
 export * from './db';
 
 // MAC services (if applicable)
-export * from './mac'; 
+export * from './mac';
