@@ -4,6 +4,8 @@ import {
   getWheelContactSpan,
   isTouchpointOnTreadway,
   getTouchpointCompartments,
+  isOnTreadway,
+  getCompartmentOverlap,
 } from './FloorLayoutService';
 
 import type {
@@ -23,6 +25,8 @@ export {
   getWheelContactSpan,
   isTouchpointOnTreadway,
   getTouchpointCompartments,
+  isOnTreadway,
+  getCompartmentOverlap,
 };
 
 // Export types
@@ -36,4 +40,30 @@ export type {
   TouchpointCompartmentResult,
 };
 
-export * from './FloorLoadCalculationService';
+// Export Floor Load Calculation Service
+export {
+  calculateConcentratedLoad,
+  calculateLoadPerCompartment,
+  calculateRunningLoad,
+  aggregateCumulativeLoadByCompartment,
+  WheelType,
+  TouchpointPosition,
+  LoadResult,
+  CompartmentLoadResult,
+} from './FloorLoadCalculationService';
+
+// Export Floor Load Validation Service
+export {
+  validateMissionLoadConstraints,
+  validateCumulativeLoad,
+  validateConcentratedLoad,
+  ValidationStatus,
+  LoadConstraintType,
+  RunningLoadCategory,
+  ValidationResult,
+  CumulativeLoadValidationResult,
+  ConcentratedLoadValidationResult,
+  RunningLoadValidationResult,
+  LoadValidationResult,
+  MissionValidationResults,
+} from './FloorLoadValidationService';
