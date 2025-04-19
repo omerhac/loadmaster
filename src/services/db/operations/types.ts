@@ -97,7 +97,6 @@ export interface Compartment {
 export interface LoadConstraint {
   id?: number;
   compartment_id: number;
-  constraint_type: string;
   max_cumulative_weight?: number;
   max_concentrated_load?: number;
   max_running_load_treadway?: number;

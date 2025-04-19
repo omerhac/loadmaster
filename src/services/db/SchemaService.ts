@@ -237,7 +237,6 @@ export function getLoadConstraintsTableSchema(): SchemaDefinition {
       CREATE TABLE IF NOT EXISTS load_constraints (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         compartment_id INTEGER NOT NULL,
-        constraint_type TEXT NOT NULL,
         max_cumulative_weight REAL,
         max_concentrated_load REAL,
         max_running_load_treadway REAL,

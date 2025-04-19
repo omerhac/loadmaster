@@ -149,8 +149,8 @@ describe('SchemaService Integration Tests', () => {
 
       // Insert test load constraint
       await testDb.executeQuery(`
-        INSERT INTO load_constraints (id, compartment_id, constraint_type, max_cumulative_weight)
-        VALUES (1, 1, 'WEIGHT', 10000)
+        INSERT INTO load_constraints (id, compartment_id, max_cumulative_weight)
+        VALUES (1, 1, 10000)
       `);
 
       // Insert test allowed MAC constraints
@@ -239,7 +239,7 @@ describe('SchemaService Integration Tests', () => {
       const result = await testDb.executeQuery(`
         SELECT a.id as aircraft_id, a.name as aircraft_name,
                c.id as compartment_id, c.name as compartment_name,
-               lc.id as constraint_id, lc.constraint_type, lc.max_cumulative_weight
+               lc.id as constraint_id, lc.max_cumulative_weight
         FROM aircraft a
         JOIN compartment c ON a.id = c.aircraft_id
         JOIN load_constraints lc ON c.id = lc.compartment_id
@@ -250,7 +250,6 @@ describe('SchemaService Integration Tests', () => {
       const row = result.results[0].data;
       expect(row?.aircraft_name).toBe('Hercules');
       expect(row?.compartment_name).toBe('Main Compartment');
-      expect(row?.constraint_type).toBe('WEIGHT');
       expect(row?.max_cumulative_weight).toBe(10000);
     });
 

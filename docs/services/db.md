@@ -178,7 +178,6 @@ interface Compartment {
 interface LoadConstraint {
   id?: number;             // Unique identifier (auto-generated)
   compartment_id: number;  // Compartment this constraint applies to
-  constraint_type: string; // Type of constraint
   max_cumulative_weight?: number; // Maximum cumulative weight in pounds
   max_concentrated_load?: number; // Maximum concentrated load in pounds
   max_running_load_treadway?: number; // Maximum running load on treadway in pounds
