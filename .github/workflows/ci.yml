@@ -39,7 +39,7 @@ jobs:
         xcodebuild -workspace ios/loadmaster.xcworkspace -scheme loadmaster -configuration Release -sdk iphonesimulator -derivedDataPath ios/build
     
     - name: Upload iOS build artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v2
       with:
         name: ios-app-build
         path: ios/build/Build/Products/Release-iphonesimulator/*.app
