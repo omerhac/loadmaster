@@ -34,9 +34,10 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ios/build
-        key: ${{ runner.os }}-xcode-build-${{ hashFiles('ios/**/*.pbxproj') }}-${{ hashFiles('ios/**/*.swift') }}-${{ hashFiles('ios/**/*.m') }}-${{ hashFiles('ios/**/*.h') }}
+        key: ${{ runner.os }}-xcode-build-${{ hashFiles('ios/**/*.pbxproj') }}-${{ hashFiles('ios/**/*.swift') }}-${{ hashFiles('ios/**/*.m') }}
         restore-keys: |
           ${{ runner.os }}-xcode-build-
+          ${{ runner.os }}-xcode-build-${{ hashFiles('ios/**/*.pbxproj') }}-${{ hashFiles('ios/**/*.swift') }}
       
     - name: Run linter
       run: npm run lint
