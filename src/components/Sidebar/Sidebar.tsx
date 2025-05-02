@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal } from 'rea
 import { CargoItem, Status, Position } from '../../types';
 import SidebarItem from '../SidebarItem/SidebarItem';
 import AddCargoItemModal from '../AddCargoItemModal/AddCargoItemModal';
-import Icon from '../Icon/Icon';
 
 type SidebarProps = {
   items: CargoItem[];
@@ -66,7 +65,6 @@ const Sidebar = ({
           style={styles.addButton}
           onPress={handleAddItem}
         >
-          <Icon name="new" size={16} color="#fff" style={styles.buttonIcon} />
           <Text style={styles.addButtonText}>Add Item</Text>
         </TouchableOpacity>
       </View>
