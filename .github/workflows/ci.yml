@@ -34,9 +34,15 @@ jobs:
         pod install
   
   # TODO: Add build for iOS once we need the app for iPad as well
-  #  - name: Build iOS
-  #    run: |
-  #      xcodebuild -workspace ios/loadmaster.xcworkspace -scheme loadmaster -configuration Release -sdk iphonesimulator -derivedDataPath ios/build
+    - name: Build iOS
+      run: |
+        xcodebuild -workspace ios/loadmaster.xcworkspace -scheme loadmaster -configuration Release -sdk iphonesimulator -derivedDataPath ios/build
+    
+    - name: Upload iOS build artifact
+      uses: actions/upload-artifact@main
+      with:
+        name: ios-app-build
+        path: ios/build/Build/Products/Release-iphonesimulator/*.app
         
   build-and-test-windows:
     runs-on: windows-latest
