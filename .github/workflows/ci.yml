@@ -49,15 +49,15 @@ jobs:
         cd ios
         pod install
   
-  # TODO: Add build for iOS once we need the app for iPad as well
-    - name: Build iOS
+    # Build for iPad with landscape orientation
+    - name: Build iOS for iPad
       run: |
-        xcodebuild -workspace ios/loadmaster.xcworkspace -scheme loadmaster -configuration Release -sdk iphonesimulator -derivedDataPath ios/build
+        xcodebuild -workspace ios/loadmaster.xcworkspace -scheme loadmaster -configuration Release -destination 'platform=iOS Simulator,name=iPad (10th generation)' -derivedDataPath ios/build
     
     - name: Upload iOS build artifact
       uses: actions/upload-artifact@main
       with:
-        name: ios-app-build
+        name: ios-ipad-build
         path: ios/build/Build/Products/Release-iphonesimulator/*.app
         
   build-and-test-windows:
@@ -89,7 +89,13 @@ jobs:
     - name: Run tests
       run: npm test
       
-# TODO: Add build for Windows once we need the app for Windows as well
-#    - name: Build Windows
-#     run: |
-#      npx react-native run-windows --no-launch --no-deploy --release
+    # Build for Windows tablets
+    - name: Build Windows
+      run: |
+        npx react-native run-windows --no-launch --no-deploy --release
+        
+    - name: Upload Windows build artifact
+      uses: actions/upload-artifact@main
+      with:
+        name: windows-tablet-build
+        path: windows/loadmaster/AppPackages/**/*

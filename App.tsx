@@ -5,8 +5,8 @@
  * @format
  */
 
-import React, { useState, useCallback } from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { SafeAreaView, StyleSheet, View, Platform, Dimensions } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { CargoItem, MissionSettings, Position, View as AppView } from './src/types';
 import Header from './src/components/Header/Header';
@@ -60,6 +60,24 @@ function App(): React.JSX.Element {
   const [currentView, setCurrentView] = useState<AppView>('planning');
   const [missionSettings, setMissionSettings] = useState<MissionSettings | null>(null);
   const [cargoItems, setCargoItems] = useState<CargoItem[]>(DEFAULT_CARGO_ITEMS);
+  const [isLandscape, setIsLandscape] = useState(true);
+
+  const isTablet = Platform.OS === 'ios' && Platform.isPad || 
+                   Platform.OS === 'windows' || 
+                   (Platform.OS === 'android' && Dimensions.get('window').width > 900);
+
+  useEffect(() => {
+    const updateOrientation = () => {
+      const { width, height } = Dimensions.get('window');
+      setIsLandscape(width > height);
+    };
+
+    updateOrientation();
+
+    const subscription = Dimensions.addEventListener('change', updateOrientation);
+
+    return () => subscription.remove();
+  }, []);
 
   const handleAddItem = useCallback((item: CargoItem) => {
     setCargoItems(prev => [...prev, item]);
@@ -126,23 +144,29 @@ function App(): React.JSX.Element {
       />
     ),
     planning: (
-      <View style={styles.planningContainer}>
+      <View style={[
+        styles.planningContainer, 
+        isLandscape ? styles.landscapeContainer : null,
+        isTablet && styles.tabletContainer
+      ]}>
         <Header
           onSettingsClick={() => setCurrentView('settings')}
           onPreviewClick={() => setCurrentView('preview')}
         />
-        <Sidebar
-          items={cargoItems}
-          onAddItem={handleAddItem}
-          onEditItem={handleEditItem}
-          onDeleteItem={handleDeleteItem}
-          onDuplicateItem={handleDuplicateItem}
-          onUpdateItemStatus={handleUpdateItemStatus}
-        />
-        <LoadingArea
-          items={cargoItems}
-          onUpdateItemStatus={handleUpdateItemStatus}
-        />
+        <View style={[styles.contentContainer, isTablet && styles.tabletContentContainer]}>
+          <Sidebar
+            items={cargoItems}
+            onAddItem={handleAddItem}
+            onEditItem={handleEditItem}
+            onDeleteItem={handleDeleteItem}
+            onDuplicateItem={handleDuplicateItem}
+            onUpdateItemStatus={handleUpdateItemStatus}
+          />
+          <LoadingArea
+            items={cargoItems}
+            onUpdateItemStatus={handleUpdateItemStatus}
+          />
+        </View>
       </View>
     ),
     preview: (
@@ -156,7 +180,11 @@ function App(): React.JSX.Element {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[
+        styles.container, 
+        isLandscape ? styles.landscapeContainer : null,
+        isTablet && styles.tabletContainer
+      ]}>
         {views[currentView]}
       </SafeAreaView>
     </GestureHandlerRootView>
@@ -173,6 +201,19 @@ const styles = StyleSheet.create({
   },
   planningContainer: {
     flex: 1,
+  },
+  landscapeContainer: {
+    flexDirection: 'column',
+  },
+  tabletContainer: {
+    padding: Platform.OS === 'windows' ? 8 : 0,
+  },
+  contentContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  tabletContentContainer: {
+    margin: Platform.OS === 'windows' ? 4 : 0,
   },
 });
 

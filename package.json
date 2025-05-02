@@ -5,6 +5,8 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
+    "ipad": "react-native run-ios --simulator=\"iPad Pro (11-inch) (4th generation)\"",
+    "tablet-windows": "npx react-native run-windows --release",
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
