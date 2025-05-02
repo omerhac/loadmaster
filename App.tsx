@@ -63,8 +63,8 @@ function App(): React.JSX.Element {
   const [cargoItems, setCargoItems] = useState<CargoItem[]>(DEFAULT_CARGO_ITEMS);
   const [isLandscape, setIsLandscape] = useState(true);
 
-  const isTablet = Platform.OS === 'ios' && Platform.isPad || 
-                   Platform.OS === 'windows' || 
+  const isTablet = Platform.OS === 'ios' && Platform.isPad ||
+                   Platform.OS === 'windows' ||
                    (Platform.OS === 'android' && Dimensions.get('window').width > 900);
 
   useEffect(() => {
@@ -183,9 +183,9 @@ function App(): React.JSX.Element {
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaView style={styles.safeArea}>
         <View style={[
-          styles.container, 
+          styles.container,
           isLandscape ? styles.landscapeContainer : null,
-          isTablet && styles.tabletContainer
+          isTablet && styles.tabletContainer,
         ]}>
           {views[currentView]}
         </View>

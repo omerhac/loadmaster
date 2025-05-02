@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   TextInput,
   ScrollView,
   Platform,
   KeyboardAvoidingView,
-  Dimensions,
-  Modal
+  Modal,
 } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 import { CargoItem } from '../../types';
@@ -51,19 +50,19 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel }: AddCargoItemModalP
   // Check if form data is valid
   const isDataValid = () => {
     return (
-      name.trim() !== '' && 
-      parseFloat(length) > 0 && 
-      parseFloat(width) > 0 && 
-      parseFloat(height) > 0 && 
-      parseFloat(weight) > 0 && 
-      parseFloat(cog) > 0 && 
+      name.trim() !== '' &&
+      parseFloat(length) > 0 &&
+      parseFloat(width) > 0 &&
+      parseFloat(height) > 0 &&
+      parseFloat(weight) > 0 &&
+      parseFloat(cog) > 0 &&
       parseFloat(cog) <= parseFloat(length)
     );
   };
 
   // Handle form submission
   const handleSubmit = () => {
-    if (!isDataValid()) return;
+    if (!isDataValid()) {return;}
 
     const itemToSave: CargoItem = {
       id: initialItem?.id || uuidv4(),
@@ -74,7 +73,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel }: AddCargoItemModalP
       weight: parseFloat(weight),
       cog: parseFloat(cog),
       status: initialItem?.status || 'inventory',
-      position: initialItem?.position || { x: -1, y: -1 }
+      position: initialItem?.position || { x: -1, y: -1 },
     };
 
     onSave(itemToSave);
@@ -85,7 +84,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel }: AddCargoItemModalP
     if (parseFloat(length) > 0 && (!initialItem || parseFloat(cog) === 0)) {
       setCog((parseFloat(length) / 2).toString());
     }
-  }, [length, initialItem]);
+  }, [length, initialItem, cog]);
 
   return (
     <Modal
@@ -96,7 +95,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel }: AddCargoItemModalP
       presentationStyle="overFullScreen"
       supportedOrientations={[
         'landscape-left',
-        'landscape-right'
+        'landscape-right',
       ]}
     >
       <TouchableWithoutFeedback onPress={onCancel}>
@@ -110,15 +109,15 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel }: AddCargoItemModalP
                 <TouchableOpacity style={styles.closeButton} onPress={onCancel}>
                   <Text style={styles.closeButtonText}>×</Text>
                 </TouchableOpacity>
-                
+
                 <Text style={styles.modalTitle}>
                   {initialItem ? 'Edit Item' : 'Add New Item'}
                 </Text>
-                
+
                 <Text style={styles.modalDescription}>
                   {initialItem ? 'Update cargo details' : 'Enter cargo details'}
                 </Text>
-                
+
                 <ScrollView style={styles.formContainer}>
                   <View style={styles.formGroup}>
                     <Text style={styles.label}>Name</Text>
@@ -129,7 +128,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel }: AddCargoItemModalP
                       placeholder="Item Name"
                     />
                   </View>
-                  
+
                   <View style={styles.formRow}>
                     <View style={styles.formGroupHalf}>
                       <Text style={styles.label}>Length (inches)</Text>
@@ -147,7 +146,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel }: AddCargoItemModalP
                         placeholder="Length"
                       />
                     </View>
-                    
+
                     <View style={styles.formGroupHalf}>
                       <Text style={styles.label}>Width (inches)</Text>
                       <TextInput
@@ -159,7 +158,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel }: AddCargoItemModalP
                       />
                     </View>
                   </View>
-                  
+
                   <View style={styles.formRow}>
                     <View style={styles.formGroupHalf}>
                       <Text style={styles.label}>Height (inches)</Text>
@@ -171,7 +170,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel }: AddCargoItemModalP
                         placeholder="Height"
                       />
                     </View>
-                    
+
                     <View style={styles.formGroupHalf}>
                       <Text style={styles.label}>Weight (lbs)</Text>
                       <TextInput
@@ -183,7 +182,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel }: AddCargoItemModalP
                       />
                     </View>
                   </View>
-                  
+
                   <View style={styles.formGroup}>
                     <Text style={styles.label}>Center of Gravity (inches from front)</Text>
                     <TextInput
@@ -195,10 +194,10 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel }: AddCargoItemModalP
                     />
                   </View>
                 </ScrollView>
-                
+
                 <View style={styles.buttonContainer}>
-                  <TouchableOpacity 
-                    style={[styles.saveButton, !isDataValid() && styles.saveButtonDisabled]} 
+                  <TouchableOpacity
+                    style={[styles.saveButton, !isDataValid() && styles.saveButtonDisabled]}
                     onPress={handleSubmit}
                     disabled={!isDataValid()}
                   >

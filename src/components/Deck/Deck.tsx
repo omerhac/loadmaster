@@ -7,6 +7,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  runOnJS,
 } from 'react-native-reanimated';
 import { Images } from '../../assets';
 
@@ -15,7 +16,12 @@ type DeckProps = {
   onDrop: (id: string, position: Position) => void;
 };
 
-const DeckItem = ({ item }: { item: CargoItem }) => {
+type DeckItemProps = {
+  item: CargoItem;
+  onDrop: (id: string, position: Position) => void;
+};
+
+const DeckItem = ({ item, onDrop }: DeckItemProps) => {
   const translateX = useSharedValue(item.position.x);
   const translateY = useSharedValue(item.position.y);
   const scale = useSharedValue(1);
@@ -30,6 +36,7 @@ const DeckItem = ({ item }: { item: CargoItem }) => {
     },
     onEnd: () => {
       scale.value = withSpring(1);
+      runOnJS(onDrop)(item.id, { x: translateX.value, y: translateY.value });
     },
   });
 
@@ -61,20 +68,20 @@ const DeckItem = ({ item }: { item: CargoItem }) => {
   );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 const Deck = ({ items, onDrop }: DeckProps) => {
   const deckItems = items.filter((item) => item.status === 'onDeck');
 
   return (
     <View style={styles.deckContainer}>
       <Text style={styles.deckTitle}>Cargo Deck</Text>
-      <ImageBackground 
-        source={Images.deck} 
+      <ImageBackground
+        source={Images.deck}
         style={styles.deck}
         resizeMode="cover"
       >
         {deckItems.map((item) => (
-          <DeckItem key={item.id} item={item} />
+          <DeckItem key={item.id} item={item} onDrop={onDrop} />
         ))}
         {deckItems.length === 0 && (
           <Text style={styles.emptyMessage}>Drag items here to load</Text>

@@ -34,15 +34,15 @@ const FloatingMenu = ({ items, isOpen, onClose, position = { top: 60, right: 10 
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <View style={styles.container}>
       <TouchableWithoutFeedback onPress={handleOutsideClick}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
-      
-      <View 
+
+      <View
         ref={menuRef}
         style={[
           styles.menuContainer,
@@ -50,8 +50,8 @@ const FloatingMenu = ({ items, isOpen, onClose, position = { top: 60, right: 10 
             top: position.top,
             right: menuRight,
             left: position.left,
-            bottom: position.bottom
-          }
+            bottom: position.bottom,
+          },
         ]}
       >
         {items.map((item, index) => (
@@ -113,4 +113,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FloatingMenu; 
+export default FloatingMenu;

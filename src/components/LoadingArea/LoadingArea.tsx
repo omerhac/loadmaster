@@ -24,18 +24,18 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
     <View style={[
       styles.loadingArea,
       isTablet && styles.tabletLoadingArea,
-      isLandscape && styles.landscapeLoadingArea
+      isLandscape && styles.landscapeLoadingArea,
     ]}>
       <Deck
         items={items}
         onDrop={(id, position) => onUpdateItemStatus(id, 'onDeck', position)}
       />
-      
+
       <View style={styles.stageAreaContainer}>
         <View style={styles.stageHeader}>
           <Text style={styles.stageTitle}>Stage Area</Text>
           <View style={styles.stageActions}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.stageItemCountButton}
               onPress={() => console.log('Items count clicked')}
             >
@@ -43,14 +43,14 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
             </TouchableOpacity>
           </View>
         </View>
-        
+
         <Stage
           items={items}
           onRemoveFromStage={(id) => onUpdateItemStatus(id, 'inventory')}
           onAddToStage={(id) => onUpdateItemStatus(id, 'onStage')}
         />
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.addToStageButton}
           onPress={() => {
             // Find first inventory item and add it to stage

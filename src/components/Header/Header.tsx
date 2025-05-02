@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform } from 'react-native';
 import FloatingMenu from '../FloatingMenu/FloatingMenu';
 
 type HeaderProps = {
@@ -9,11 +9,6 @@ type HeaderProps = {
 
 const Header = ({ onSettingsClick, onPreviewClick }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
-  const isIpad = Platform.OS === 'ios' && Platform.isPad;
-  const isWindows = Platform.OS === 'windows';
-  const isTablet = isIpad || isWindows || (Platform.OS === 'android' && Dimensions.get('window').width > 900);
-  const { width } = Dimensions.get('window');
 
   const menuItems = [
     {
@@ -45,9 +40,9 @@ const Header = ({ onSettingsClick, onPreviewClick }: HeaderProps) => {
         <StatusBar barStyle="light-content" backgroundColor="#0066cc" />
       )}
       <Text style={styles.title}>Loadmaster</Text>
-      
+
       <View style={styles.menuContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.menuButton}
           onPress={() => setIsMenuOpen(!isMenuOpen)}
         >
@@ -55,7 +50,7 @@ const Header = ({ onSettingsClick, onPreviewClick }: HeaderProps) => {
           <View style={styles.burgerLine} />
           <View style={styles.burgerLine} />
         </TouchableOpacity>
-        
+
         {isMenuOpen && (
           <FloatingMenu
             items={menuItems}

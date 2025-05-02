@@ -20,11 +20,11 @@ const SidebarItem = ({
   onAddToStage,
 }: SidebarItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
   };
-  
+
   const handleStartDrag = () => {
     onDragStart(item);
   };
@@ -43,29 +43,29 @@ const SidebarItem = ({
           <Text style={styles.itemName}>{item.name}</Text>
           <Text style={styles.itemDimensions}>{dimensions}</Text>
         </View>
-        
+
         <View style={styles.actions}>
-          <TouchableOpacity 
-            style={styles.actionButton} 
+          <TouchableOpacity
+            style={styles.actionButton}
             onPress={() => onEdit(item.id)}
           >
             <Text style={styles.actionIcon}>✏️</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={() => onDuplicate(item.id)}
           >
             <Text style={styles.actionIcon}>🔄</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={styles.dragHandle}
             onPressIn={handleStartDrag}
           >
             <Text style={styles.actionIcon}>↔️</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={styles.actionButton}
             onPress={handleAddToStage}
@@ -74,41 +74,41 @@ const SidebarItem = ({
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
-      
+
       {isExpanded && (
         <View style={styles.expandedDetails}>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Dimensions:</Text>
             <Text style={styles.detailValue}>{item.length}" x {item.width}" x {item.height}"</Text>
           </View>
-          
+
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Weight:</Text>
             <Text style={styles.detailValue}>{item.weight} lbs</Text>
           </View>
-          
+
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Center of Gravity:</Text>
             <Text style={styles.detailValue}>{item.cog} inches</Text>
           </View>
-          
+
           <View style={styles.expandedActions}>
-            <TouchableOpacity 
-              style={[styles.actionButtonLarge, styles.editButton]} 
+            <TouchableOpacity
+              style={[styles.actionButtonLarge, styles.editButton]}
               onPress={() => onEdit(item.id)}
             >
               <Text style={styles.actionButtonText}>Edit</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.actionButtonLarge, styles.duplicateButton]} 
+
+            <TouchableOpacity
+              style={[styles.actionButtonLarge, styles.duplicateButton]}
               onPress={() => onDuplicate(item.id)}
             >
               <Text style={styles.actionButtonText}>Duplicate</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.actionButtonLarge, styles.deleteButton]} 
+
+            <TouchableOpacity
+              style={[styles.actionButtonLarge, styles.deleteButton]}
               onPress={() => onDelete(item.id)}
             >
               <Text style={styles.actionButtonText}>Delete</Text>

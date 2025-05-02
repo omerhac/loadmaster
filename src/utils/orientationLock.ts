@@ -8,4 +8,4 @@ export const lockToLandscape = () => {
 export const releaseOrientation = () => {
   // Release the orientation lock
   Orientation.unlockAllOrientations();
-}; 
+};

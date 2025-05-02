@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Platform, Dimensions, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, Dimensions, Switch } from 'react-native';
 import { CargoItem, Status, Position } from '../../types';
 import SidebarItem from '../SidebarItem/SidebarItem';
 import AddCargoItemModal from '../AddCargoItemModal/AddCargoItemModal';
@@ -25,10 +25,11 @@ const Sidebar = ({
 }: SidebarProps) => {
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<CargoItem | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [draggingItem, setDraggingItem] = useState<CargoItem | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('none');
   const [showLoadedItems, setShowLoadedItems] = useState(true);
-  
+
   const isIpad = Platform.OS === 'ios' && Platform.isPad;
   const isWindows = Platform.OS === 'windows';
   const isTablet = isIpad || isWindows || (Platform.OS === 'android' && Dimensions.get('window').width > 900);
@@ -36,7 +37,7 @@ const Sidebar = ({
   const isLandscape = width > Dimensions.get('window').height;
 
   // Filter and sort items for display
-  const filteredItems = items.filter(item => 
+  const filteredItems = items.filter(item =>
     showLoadedItems || item.status === 'inventory'
   );
 
@@ -74,14 +75,14 @@ const Sidebar = ({
 
   return (
     <View style={[
-      styles.sidebar, 
+      styles.sidebar,
       isTablet && styles.tabletSidebar,
-      isLandscape && styles.landscapeSidebar
+      isLandscape && styles.landscapeSidebar,
     ]}>
       <View style={styles.sortContainer}>
         <Text style={styles.sortLabel}>Sort by:</Text>
         <View style={styles.sortControls}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.sortSelect}
             onPress={() => {
               // Cycle through sort options

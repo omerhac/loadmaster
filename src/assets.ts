@@ -5,4 +5,4 @@ export const Images = {
 
 // Export the Icon component and IconName type
 export { default as Icon } from './components/Icon/Icon';
-export type { IconName } from './components/Icon/Icon'; 
+export type { IconName } from './components/Icon/Icon';
