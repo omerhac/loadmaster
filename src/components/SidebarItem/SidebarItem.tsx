@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { CargoItem } from '../../types';
+import Icon from '../Icon/Icon';
 
 type SidebarItemProps = {
   item: CargoItem;
@@ -34,19 +35,19 @@ const SidebarItem = ({
           style={styles.actionButton}
           onPress={() => onEdit(item.id)}
         >
-          <Text style={styles.actionText}>Edit</Text>
+          <Icon name="edit" size={16} color="#0066cc" />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => onDuplicate(item.id)}
         >
-          <Text style={styles.actionText}>Copy</Text>
+          <Icon name="duplicate" size={16} color="#0066cc" />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => onDelete(item.id)}
         >
-          <Text style={styles.actionText}>Delete</Text>
+          <Icon name="trash" size={16} color="#0066cc" />
         </TouchableOpacity>
       </View>
     </TouchableOpacity>

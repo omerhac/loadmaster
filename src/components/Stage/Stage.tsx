@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { CargoItem } from '../../types';
+import Icon from '../Icon/Icon';
 
 type StageProps = {
   items: CargoItem[];
@@ -31,6 +32,7 @@ const Stage = ({ items, onRemoveFromStage, onAddToStage }: StageProps) => {
               style={styles.removeButton}
               onPress={() => onRemoveFromStage(item.id)}
             >
+              <Icon name="close-white" size={14} color="#fff" style={styles.buttonIcon} />
               <Text style={styles.removeButtonText}>Remove</Text>
             </TouchableOpacity>
           </View>
@@ -94,6 +96,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff6b6b',
     padding: 8,
     borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  buttonIcon: {
+    marginRight: 4,
   },
   removeButtonText: {
     color: 'white',

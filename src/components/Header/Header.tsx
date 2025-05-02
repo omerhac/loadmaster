@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform } from 'react-native';
+import Icon from '../Icon/Icon';
 
 type HeaderProps = {
   onSettingsClick: () => void;
@@ -16,12 +17,14 @@ const Header = ({ onSettingsClick, onPreviewClick }: HeaderProps) => {
           style={styles.button}
           onPress={onPreviewClick}
         >
+          <Icon name="preview" size={16} color="#fff" style={styles.buttonIcon} />
           <Text style={styles.buttonText}>Preview</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
           onPress={onSettingsClick}
         >
+          <Icon name="settings" size={16} color="#fff" style={styles.buttonIcon} />
           <Text style={styles.buttonText}>Settings</Text>
         </TouchableOpacity>
       </View>
@@ -53,6 +56,11 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 4,
     marginLeft: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  buttonIcon: {
+    marginRight: 4,
   },
   buttonText: {
     color: 'white',

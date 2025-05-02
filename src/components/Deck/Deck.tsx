@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground } from 'react-native';
 import { CargoItem, Position } from '../../types';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import Animated, {
@@ -8,6 +8,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { Images } from '../../assets';
 
 type DeckProps = {
   items: CargoItem[];
@@ -67,14 +68,18 @@ const Deck = ({ items, onDrop }: DeckProps) => {
   return (
     <View style={styles.deckContainer}>
       <Text style={styles.deckTitle}>Cargo Deck</Text>
-      <View style={styles.deck}>
+      <ImageBackground 
+        source={Images.deck} 
+        style={styles.deck}
+        resizeMode="cover"
+      >
         {deckItems.map((item) => (
           <DeckItem key={item.id} item={item} />
         ))}
         {deckItems.length === 0 && (
           <Text style={styles.emptyMessage}>Drag items here to load</Text>
         )}
-      </View>
+      </ImageBackground>
     </View>
   );
 };
@@ -116,8 +121,11 @@ const styles = StyleSheet.create({
   },
   emptyMessage: {
     textAlign: 'center',
-    color: '#888',
+    color: '#fff',
     marginTop: 50,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 8,
+    borderRadius: 4,
   },
 });
 
