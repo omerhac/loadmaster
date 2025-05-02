@@ -15,6 +15,7 @@ import LoadingArea from './src/components/LoadingArea/LoadingArea';
 import MissionSettingsComponent from './src/components/MissionSettings/MissionSettings';
 import Preview from './src/components/Preview/Preview';
 import { v4 as uuidv4 } from 'uuid';
+import { lockToLandscape } from './src/utils/orientationLock';
 
 function getRandomDimension(min: number = 50, max: number = 120): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -65,6 +66,10 @@ function App(): React.JSX.Element {
   const isTablet = Platform.OS === 'ios' && Platform.isPad || 
                    Platform.OS === 'windows' || 
                    (Platform.OS === 'android' && Dimensions.get('window').width > 900);
+
+  useEffect(() => {
+    lockToLandscape();
+  }, []);
 
   useEffect(() => {
     const updateOrientation = () => {
@@ -144,16 +149,12 @@ function App(): React.JSX.Element {
       />
     ),
     planning: (
-      <View style={[
-        styles.planningContainer, 
-        isLandscape ? styles.landscapeContainer : null,
-        isTablet && styles.tabletContainer
-      ]}>
+      <View style={[styles.planningContainer, isLandscape ? styles.landscapeContainer : null]}>
         <Header
           onSettingsClick={() => setCurrentView('settings')}
           onPreviewClick={() => setCurrentView('preview')}
         />
-        <View style={[styles.contentContainer, isTablet && styles.tabletContentContainer]}>
+        <View style={styles.contentContainer}>
           <Sidebar
             items={cargoItems}
             onAddItem={handleAddItem}
@@ -180,12 +181,14 @@ function App(): React.JSX.Element {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <SafeAreaView style={[
-        styles.container, 
-        isLandscape ? styles.landscapeContainer : null,
-        isTablet && styles.tabletContainer
-      ]}>
-        {views[currentView]}
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[
+          styles.container, 
+          isLandscape ? styles.landscapeContainer : null,
+          isTablet && styles.tabletContainer
+        ]}>
+          {views[currentView]}
+        </View>
       </SafeAreaView>
     </GestureHandlerRootView>
   );
@@ -194,13 +197,28 @@ function App(): React.JSX.Element {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#f5f5f5',
+  },
+  safeArea: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
   },
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+    width: '100%',
+    height: '100%',
+    alignSelf: 'stretch',
   },
   planningContainer: {
     flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    width: '100%',
+    height: '100%',
   },
   landscapeContainer: {
     flexDirection: 'column',
@@ -211,9 +229,8 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     flexDirection: 'row',
-  },
-  tabletContentContainer: {
-    margin: Platform.OS === 'windows' ? 4 : 0,
+    height: '100%',
+    width: '100%',
   },
 });
 

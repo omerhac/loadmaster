@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Platform, Dimensions, Switch } from 'react-native';
 import { CargoItem, Status, Position } from '../../types';
 import SidebarItem from '../SidebarItem/SidebarItem';
 import AddCargoItemModal from '../AddCargoItemModal/AddCargoItemModal';
+
+type SortOption = 'none' | 'name' | 'weight' | 'dimensions' | 'status';
 
 type SidebarProps = {
   items: CargoItem[];
@@ -13,20 +15,19 @@ type SidebarProps = {
   onUpdateItemStatus: (id: string, status: Status, position?: Position) => void;
 };
 
-
 const Sidebar = ({
   items,
   onAddItem,
   onEditItem,
   onDeleteItem,
   onDuplicateItem,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onUpdateItemStatus,
 }: SidebarProps) => {
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<CargoItem | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [draggingItem, setDraggingItem] = useState<CargoItem | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('none');
+  const [showLoadedItems, setShowLoadedItems] = useState(true);
   
   const isIpad = Platform.OS === 'ios' && Platform.isPad;
   const isWindows = Platform.OS === 'windows';
@@ -34,7 +35,10 @@ const Sidebar = ({
   const { width } = Dimensions.get('window');
   const isLandscape = width > Dimensions.get('window').height;
 
-  const inventoryItems = items.filter(item => item.status === 'inventory');
+  // Filter and sort items for display
+  const filteredItems = items.filter(item => 
+    showLoadedItems || item.status === 'inventory'
+  );
 
   const handleAddItem = () => {
     setEditingItem(null);
@@ -63,46 +67,48 @@ const Sidebar = ({
     setDraggingItem(item);
   };
 
+  // Add to staging area by updating item status to 'onStage'
+  const handleAddToStage = (id: string) => {
+    onUpdateItemStatus(id, 'onStage');
+  };
+
   return (
     <View style={[
       styles.sidebar, 
-      isIpad && styles.ipadSidebar,
-      isWindows && styles.windowsSidebar,
       isTablet && styles.tabletSidebar,
       isLandscape && styles.landscapeSidebar
     ]}>
-      <View style={[
-        styles.header, 
-        isIpad && styles.ipadHeader,
-        isWindows && styles.windowsHeader,
-        isTablet && styles.tabletHeader
-      ]}>
-        <Text style={[
-          styles.title, 
-          isIpad && styles.ipadTitle,
-          isWindows && styles.windowsTitle,
-          isTablet && styles.tabletTitle
-        ]}>Inventory</Text>
-        <TouchableOpacity
-          style={[
-            styles.addButton, 
-            isIpad && styles.ipadAddButton,
-            isWindows && styles.windowsAddButton,
-            isTablet && styles.tabletAddButton
-          ]}
-          onPress={handleAddItem}
-        >
-          <Text style={[
-            styles.addButtonText, 
-            isIpad && styles.ipadButtonText,
-            isWindows && styles.windowsButtonText,
-            isTablet && styles.tabletButtonText
-          ]}>Add Item</Text>
-        </TouchableOpacity>
+      <View style={styles.sortContainer}>
+        <Text style={styles.sortLabel}>Sort by:</Text>
+        <View style={styles.sortControls}>
+          <TouchableOpacity 
+            style={styles.sortSelect}
+            onPress={() => {
+              // Cycle through sort options
+              const options: SortOption[] = ['none', 'name', 'weight', 'dimensions', 'status'];
+              const currentIndex = options.indexOf(sortBy);
+              const nextIndex = (currentIndex + 1) % options.length;
+              setSortBy(options[nextIndex]);
+            }}
+          >
+            <Text style={styles.sortSelectText}>
+              {sortBy === 'none' ? 'Sort by...' : sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.toggleContainer}>
+          <Switch
+            value={showLoadedItems}
+            onValueChange={setShowLoadedItems}
+            trackColor={{ false: '#b3b3b3', true: '#0066cc' }}
+            thumbColor={showLoadedItems ? '#ffffff' : '#f4f3f4'}
+          />
+          <Text style={styles.toggleLabel}>Show loaded items</Text>
+        </View>
       </View>
 
-      <ScrollView style={[styles.itemsList, isWindows && styles.windowsItemsList]}>
-        {inventoryItems.map(item => (
+      <ScrollView style={styles.itemsList}>
+        {filteredItems.map(item => (
           <SidebarItem
             key={item.id}
             item={item}
@@ -110,25 +116,31 @@ const Sidebar = ({
             onDelete={onDeleteItem}
             onDuplicate={onDuplicateItem}
             onDragStart={handleDragStart}
+            onAddToStage={handleAddToStage}
           />
         ))}
-        {inventoryItems.length === 0 && (
-          <Text style={[styles.emptyState, isWindows && styles.windowsEmptyState]}>No items in inventory</Text>
+        {filteredItems.length === 0 && (
+          <Text style={styles.emptyState}>No items in inventory</Text>
         )}
       </ScrollView>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isAddModalVisible}
-        onRequestClose={() => setIsAddModalVisible(false)}
-      >
+      <View style={styles.addButtonContainer}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={handleAddItem}
+        >
+          <Text style={styles.addButtonText}>Add Cargo Item</Text>
+          <Text style={styles.addButtonIcon}>+</Text>
+        </TouchableOpacity>
+      </View>
+
+      {isAddModalVisible && (
         <AddCargoItemModal
           initialItem={editingItem || undefined}
           onSave={handleSaveItem}
           onCancel={() => setIsAddModalVisible(false)}
         />
-      </Modal>
+      )}
     </View>
   );
 };
@@ -136,118 +148,96 @@ const Sidebar = ({
 const styles = StyleSheet.create({
   sidebar: {
     width: '100%',
-    height: 300,
+    height: '100%',
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderColor: '#ddd',
-  },
-  ipadSidebar: {
-    height: 'auto',
-    maxHeight: 'auto',
-  },
-  windowsSidebar: {
-    height: 'auto',
     borderRightWidth: 1,
-    borderBottomWidth: 0,
-    borderColor: '#d0d0d0',
+    borderColor: '#ddd',
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
   },
   tabletSidebar: {
-    height: 'auto',
+    height: '100%',
   },
   landscapeSidebar: {
-    width: 320,
+    width: 260,
     height: '100%',
-    borderRightWidth: 1,
-    borderBottomWidth: 0,
+    flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
+  sortContainer: {
+    padding: 10,
+    backgroundColor: '#f5f5f5',
     borderBottomWidth: 1,
-    borderColor: '#eee',
+    borderBottomColor: '#ddd',
   },
-  ipadHeader: {
-    padding: 20,
-  },
-  windowsHeader: {
-    padding: 16,
-    borderBottomColor: '#e0e0e0',
-  },
-  tabletHeader: {
-    padding: 18,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  ipadTitle: {
-    fontSize: 22,
-  },
-  windowsTitle: {
-    fontSize: 20,
-    fontFamily: Platform.OS === 'windows' ? 'Segoe UI' : undefined,
+  sortLabel: {
+    fontSize: 14,
     fontWeight: '500',
+    marginBottom: 5,
   },
-  tabletTitle: {
-    fontSize: 20,
-  },
-  addButton: {
-    backgroundColor: '#0066cc',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
+  sortControls: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 10,
   },
-  ipadAddButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  sortSelect: {
+    flex: 1,
+    height: 32,
+    backgroundColor: '#fff',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    paddingHorizontal: 10,
+    justifyContent: 'center',
   },
-  windowsAddButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 2,
-    backgroundColor: '#0078d4', // Windows blue
+  sortSelectText: {
+    color: '#484848',
+    fontSize: 14,
   },
-  tabletAddButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
   },
-  buttonIcon: {
-    marginRight: 4,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: '500',
-  },
-  ipadButtonText: {
-    fontSize: 16,
-  },
-  windowsButtonText: {
-    fontSize: 15,
-    fontFamily: Platform.OS === 'windows' ? 'Segoe UI' : undefined,
-    fontWeight: '400',
-  },
-  tabletButtonText: {
-    fontSize: 15,
+  toggleLabel: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#484848',
   },
   itemsList: {
     flex: 1,
-    padding: 16,
-  },
-  windowsItemsList: {
-    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
   },
   emptyState: {
     textAlign: 'center',
     color: '#888',
     marginTop: 20,
+    padding: 15,
   },
-  windowsEmptyState: {
-    fontFamily: Platform.OS === 'windows' ? 'Segoe UI' : undefined,
-    color: '#777',
+  addButtonContainer: {
+    padding: 15,
+    backgroundColor: '#f5f5f5',
+  },
+  addButton: {
+    backgroundColor: '#0066cc',
+    borderRadius: 4,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  addButtonText: {
+    color: '#fff',
+    fontWeight: '500',
+    fontSize: 16,
+  },
+  addButtonIcon: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
 });
 
