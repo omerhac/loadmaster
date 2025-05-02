@@ -15,11 +15,15 @@
     "postinstall": "npm run copy-db"
   },
   "dependencies": {
+    "@types/uuid": "^10.0.0",
     "react": "19.0.0",
     "react-native": "0.78.0",
     "react-native-fs": "^2.20.0",
+    "react-native-gesture-handler": "^2.25.0",
+    "react-native-reanimated": "^3.17.5",
     "react-native-sqlite-storage": "^6.0.1",
-    "react-native-windows": "^0.78.0"
+    "react-native-windows": "^0.78.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

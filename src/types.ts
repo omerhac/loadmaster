@@ -1,0 +1,49 @@
+export type Status = 'inventory'  | 'onStage' | 'onDeck';
+export type View = 'settings' | 'planning' | 'preview';
+
+export type Position = {
+    x: number;
+    y: number;
+};
+
+export type CargoItem = {
+    id: string;
+    name: string;
+    length: number;
+    width: number;
+    height: number;
+    weight: number;
+    cog: number;
+    status: Status;
+    position: Position;
+}
+
+export type Cargo = {
+    items: CargoItem[];
+    id?: string;
+    name?: string;
+    description?: string;
+    owner?: string;
+}
+
+export type FuelDistribution = {
+    outbd: number,
+    inbd: number,
+    aux: number,
+    ext: number,
+};
+
+export type MissionSettings = {
+    id: string;
+    name: string;
+    date: string;
+    departureLocation: string;
+    arrivalLocation: string;
+    aircraftIndex: string;
+    crewMembers: number;
+    cockpit: number;
+    safetyGearWeight: number;
+    fuelPods: boolean;
+    fuelDistribution: FuelDistribution;
+    notes?: string;
+} 
