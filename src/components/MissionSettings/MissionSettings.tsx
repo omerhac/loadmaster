@@ -8,6 +8,7 @@ type MissionSettingsProps = {
   onSave: (settings: MissionSettings) => void;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const MissionSettingsComponent = ({ settings, onReturn }: MissionSettingsProps) => {
   return (
     <View style={styles.container}>
@@ -66,4 +67,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MissionSettingsComponent; 
+export default MissionSettingsComponent;

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { CargoItem, Position } from '../../types';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import Animated, {
@@ -7,7 +7,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  runOnJS,
 } from 'react-native-reanimated';
 
 type DeckProps = {
@@ -61,6 +60,7 @@ const DeckItem = ({ item }: { item: CargoItem }) => {
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Deck = ({ items, onDrop }: DeckProps) => {
   const deckItems = items.filter((item) => item.status === 'onDeck');
 
@@ -78,8 +78,6 @@ const Deck = ({ items, onDrop }: DeckProps) => {
     </View>
   );
 };
-
-const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   deckContainer: {
@@ -123,4 +121,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Deck; 
+export default Deck;

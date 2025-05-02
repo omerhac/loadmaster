@@ -8,15 +8,16 @@ type StageProps = {
   onAddToStage: (id: string) => void;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Stage = ({ items, onRemoveFromStage, onAddToStage }: StageProps) => {
   const stageItems = items.filter(item => item.status === 'onStage');
-  
+
   return (
     <View style={styles.stageContainer}>
       <View style={styles.stageHeader}>
         <Text style={styles.stageTitle}>Staging Area</Text>
       </View>
-      
+
       <ScrollView style={styles.itemsContainer}>
         {stageItems.map(item => (
           <View key={item.id} style={styles.stageItem}>
@@ -34,7 +35,7 @@ const Stage = ({ items, onRemoveFromStage, onAddToStage }: StageProps) => {
             </TouchableOpacity>
           </View>
         ))}
-        
+
         {stageItems.length === 0 && (
           <Text style={styles.emptyMessage}>
             No items in staging area
@@ -105,4 +106,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Stage; 
+export default Stage;

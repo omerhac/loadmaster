@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal } from 'rea
 import { CargoItem, Status, Position } from '../../types';
 import SidebarItem from '../SidebarItem/SidebarItem';
 import AddCargoItemModal from '../AddCargoItemModal/AddCargoItemModal';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 type SidebarProps = {
   items: CargoItem[];
@@ -14,16 +13,19 @@ type SidebarProps = {
   onUpdateItemStatus: (id: string, status: Status, position?: Position) => void;
 };
 
+
 const Sidebar = ({
   items,
   onAddItem,
   onEditItem,
   onDeleteItem,
   onDuplicateItem,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onUpdateItemStatus,
 }: SidebarProps) => {
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<CargoItem | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [draggingItem, setDraggingItem] = useState<CargoItem | null>(null);
 
   const inventoryItems = items.filter(item => item.status === 'inventory');
@@ -59,7 +61,7 @@ const Sidebar = ({
     <View style={styles.sidebar}>
       <View style={styles.header}>
         <Text style={styles.title}>Inventory</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.addButton}
           onPress={handleAddItem}
         >
@@ -140,4 +142,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Sidebar; 
+export default Sidebar;

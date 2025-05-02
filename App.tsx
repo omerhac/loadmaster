@@ -30,7 +30,7 @@ const DEFAULT_CARGO_ITEMS: CargoItem[] = [
     weight: 100,
     cog: 50,
     status: 'inventory',
-    position: { x: -1, y: -1 }
+    position: { x: -1, y: -1 },
   },
   {
     id: '2',
@@ -41,7 +41,7 @@ const DEFAULT_CARGO_ITEMS: CargoItem[] = [
     weight: 100,
     cog: 50,
     status: 'inventory',
-    position: { x: -1, y: -1 }
+    position: { x: -1, y: -1 },
   },
   {
     id: '3',
@@ -52,7 +52,7 @@ const DEFAULT_CARGO_ITEMS: CargoItem[] = [
     weight: 100,
     cog: 50,
     status: 'inventory',
-    position: { x: -1, y: -1 }
+    position: { x: -1, y: -1 },
   },
 ];
 
@@ -76,14 +76,14 @@ function App(): React.JSX.Element {
   const handleDuplicateItem = useCallback((id: string) => {
     setCargoItems(prev => {
       const itemToDuplicate = prev.find(item => item.id === id);
-      if (!itemToDuplicate) return prev;
+      if (!itemToDuplicate) {return prev;}
 
       const newItem = {
         ...itemToDuplicate,
         id: uuidv4(),
         name: `${itemToDuplicate.name} (copy)`,
         status: 'inventory' as const,
-        position: { x: -1, y: -1 }
+        position: { x: -1, y: -1 },
       };
       return [...prev, newItem];
     });
@@ -95,7 +95,7 @@ function App(): React.JSX.Element {
     position?: Position
   ) => {
     setCargoItems(prev => prev.map(i => {
-      if (i.id !== id) return i;
+      if (i.id !== id) {return i;}
 
       const newPosition = status === 'onDeck'
         ? (position || i.position)
@@ -127,9 +127,9 @@ function App(): React.JSX.Element {
     ),
     planning: (
       <View style={styles.planningContainer}>
-        <Header 
-          onSettingsClick={() => setCurrentView('settings')} 
-          onPreviewClick={() => setCurrentView('preview')} 
+        <Header
+          onSettingsClick={() => setCurrentView('settings')}
+          onPreviewClick={() => setCurrentView('preview')}
         />
         <Sidebar
           items={cargoItems}

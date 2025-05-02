@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TextInput, 
-  TouchableOpacity, 
-  KeyboardAvoidingView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
 } from 'react-native';
 import { CargoItem } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
@@ -75,7 +75,7 @@ const AddCargoItemModal = ({
         <Text style={styles.modalTitle}>
           {initialItem ? 'Edit Cargo Item' : 'Add New Cargo Item'}
         </Text>
-        
+
         <ScrollView style={styles.formContainer}>
           <Text style={styles.label}>Name</Text>
           <TextInput
@@ -132,18 +132,18 @@ const AddCargoItemModal = ({
         </ScrollView>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={[styles.button, styles.cancelButton]} 
+          <TouchableOpacity
+            style={[styles.button, styles.cancelButton]}
             onPress={onCancel}
           >
             <Text style={styles.buttonText}>Cancel</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
-              styles.button, 
+              styles.button,
               styles.saveButton,
-              !isValid() && styles.disabledButton
-            ]} 
+              !isValid() && styles.disabledButton,
+            ]}
             onPress={handleSave}
             disabled={!isValid()}
           >
@@ -225,4 +225,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddCargoItemModal; 
+export default AddCargoItemModal;

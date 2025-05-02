@@ -46,4 +46,4 @@ export type MissionSettings = {
     fuelPods: boolean;
     fuelDistribution: FuelDistribution;
     notes?: string;
-} 
+}
