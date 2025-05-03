@@ -182,13 +182,7 @@ function App(): React.JSX.Element {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaView style={styles.safeArea}>
-        <View style={[
-          styles.container,
-          isLandscape ? styles.landscapeContainer : null,
-          isTablet && styles.tabletContainer,
-        ]}>
-          {views[currentView]}
-        </View>
+        {views[currentView]}
       </SafeAreaView>
     </GestureHandlerRootView>
   );
@@ -198,27 +192,18 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     width: '100%',
-    height: '100%',
     backgroundColor: '#f5f5f5',
   },
   safeArea: {
     flex: 1,
     width: '100%',
-    height: '100%',
-  },
-  container: {
-    flex: 1,
     backgroundColor: '#f5f5f5',
-    width: '100%',
-    height: '100%',
-    alignSelf: 'stretch',
   },
   planningContainer: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
     width: '100%',
-    height: '100%',
   },
   landscapeContainer: {
     flexDirection: 'column',
@@ -229,7 +214,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     flexDirection: 'row',
-    height: '100%',
     width: '100%',
   },
 });

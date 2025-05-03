@@ -33,14 +33,9 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
 
       <View style={styles.stageAreaContainer}>
         <View style={styles.stageHeader}>
-          <Text style={styles.stageTitle}>Stage Area</Text>
+          <Text style={styles.stageTitle} accessibilityRole="header">Stage Area</Text>
           <View style={styles.stageActions}>
-            <TouchableOpacity
-              style={styles.stageItemCountButton}
-              onPress={() => console.log('Items count clicked')}
-            >
-              <Text style={styles.stageItemCount}>{stageItemCount} items</Text>
-            </TouchableOpacity>
+            <Text style={styles.stageItemCount} accessibilityRole="header">{stageItemCount} items</Text>
           </View>
         </View>
 
@@ -49,19 +44,6 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
           onRemoveFromStage={(id) => onUpdateItemStatus(id, 'inventory')}
           onAddToStage={(id) => onUpdateItemStatus(id, 'onStage')}
         />
-
-        <TouchableOpacity
-          style={styles.addToStageButton}
-          onPress={() => {
-            // Find first inventory item and add it to stage
-            const inventoryItem = items.find(item => item.status === 'inventory');
-            if (inventoryItem) {
-              onUpdateItemStatus(inventoryItem.id, 'onStage');
-            }
-          }}
-        >
-          <Text style={styles.addToStageButtonText}>+</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -81,6 +63,7 @@ const styles = StyleSheet.create({
     flex: 3,
   },
   stageAreaContainer: {
+    flex: 1,
     display: 'flex',
     flexDirection: 'column',
     borderTopWidth: 1,
@@ -92,54 +75,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
   stageTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
     color: '#333',
   },
   stageActions: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  stageItemCountButton: {
-    backgroundColor: '#f0f0f0',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 15,
-  },
   stageItemCount: {
-    fontSize: 14,
-    color: '#0066cc',
-    fontWeight: '500',
-  },
-  addToStageButton: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#0066cc',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
-    zIndex: 100,
-  },
-  addToStageButtonText: {
-    color: '#fff',
-    fontSize: 30,
-    fontWeight: 'bold',
-    lineHeight: 36,
+    fontSize: 12,
+    color: '#666',
+    fontWeight: 'normal',
   },
 });
 

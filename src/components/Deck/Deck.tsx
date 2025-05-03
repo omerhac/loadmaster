@@ -74,7 +74,6 @@ const Deck = ({ items, onDrop }: DeckProps) => {
 
   return (
     <View style={styles.deckContainer}>
-      <Text style={styles.deckTitle}>Cargo Deck</Text>
       <ImageBackground
         source={Images.deck}
         style={styles.deck}
@@ -83,9 +82,6 @@ const Deck = ({ items, onDrop }: DeckProps) => {
         {deckItems.map((item) => (
           <DeckItem key={item.id} item={item} onDrop={onDrop} />
         ))}
-        {deckItems.length === 0 && (
-          <Text style={styles.emptyMessage}>Drag items here to load</Text>
-        )}
       </ImageBackground>
     </View>
   );
@@ -95,11 +91,6 @@ const styles = StyleSheet.create({
   deckContainer: {
     flex: 2,
     padding: 10,
-  },
-  deckTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 10,
   },
   deck: {
     flex: 1,
@@ -125,14 +116,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontSize: 14,
     textAlign: 'center',
-  },
-  emptyMessage: {
-    textAlign: 'center',
-    color: '#fff',
-    marginTop: 50,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 8,
-    borderRadius: 4,
   },
 });
 

@@ -92,13 +92,23 @@ const Sidebar = ({
               setSortBy(options[nextIndex]);
             }}
           >
-            <Text style={styles.sortSelectText}>
-              {sortBy === 'none' ? 'Sort by...' : sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}
-            </Text>
+            <View style={styles.sortSelectInner}>
+              <Text style={styles.sortSelectText} numberOfLines={1}>
+                {sortBy === 'none' ? 'Sort by...' : sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}
+              </Text>
+              <Text style={styles.sortSelectArrow}>▼</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.sortDirectionButton}
+          >
+            <Text style={styles.sortDirectionText}>↓</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.toggleContainer}>
           <Switch
+            style={styles.switchStyle}
             value={showLoadedItems}
             onValueChange={setShowLoadedItems}
             trackColor={{ false: '#b3b3b3', true: '#0066cc' }}
@@ -131,7 +141,6 @@ const Sidebar = ({
           onPress={handleAddItem}
         >
           <Text style={styles.addButtonText}>Add Cargo Item</Text>
-          <Text style={styles.addButtonIcon}>+</Text>
         </TouchableOpacity>
       </View>
 
@@ -150,7 +159,7 @@ const styles = StyleSheet.create({
   sidebar: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
     borderRightWidth: 1,
     borderColor: '#ddd',
     display: 'flex',
@@ -161,13 +170,12 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   landscapeSidebar: {
-    width: 260,
+    width: 340,
     height: '100%',
     flex: 1,
   },
   sortContainer: {
     padding: 10,
-    backgroundColor: '#f5f5f5',
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
@@ -187,13 +195,42 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#ddd',
-    paddingHorizontal: 10,
+    borderColor: '#bbb',
+    paddingHorizontal: 0,
+    paddingVertical: 0,
     justifyContent: 'center',
   },
+  sortSelectInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    width: '100%',
+  },
   sortSelectText: {
-    color: '#484848',
+    color: '#333',
     fontSize: 14,
+    marginRight: 5,
+  },
+  sortSelectArrow: {
+    fontSize: 10,
+    color: '#555',
+  },
+  sortDirectionButton: {
+    marginLeft: 8,
+    padding: 0,
+    height: 32,
+    width: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#bbb',
+    borderRadius: 4,
+    backgroundColor: '#fff',
+  },
+  sortDirectionText: {
+    fontSize: 14,
+    color: '#333',
   },
   toggleContainer: {
     flexDirection: 'row',
@@ -204,11 +241,11 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     color: '#484848',
+    flex: 1,
   },
   itemsList: {
     flex: 1,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    padding: 10,
   },
   emptyState: {
     textAlign: 'center',
@@ -218,12 +255,13 @@ const styles = StyleSheet.create({
   },
   addButtonContainer: {
     padding: 15,
-    backgroundColor: '#f5f5f5',
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
   },
   addButton: {
     backgroundColor: '#0066cc',
     borderRadius: 4,
-    paddingVertical: 12,
+    paddingVertical: 6,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -232,13 +270,11 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#fff',
     fontWeight: '500',
-    fontSize: 16,
+    fontSize: 12,
   },
-  addButtonIcon: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginLeft: 8,
+  switchStyle: {
+    transform: [{ scaleX: 0.75 }, { scaleY: 0.75 }],
+    marginRight: -10,
   },
 });
 

@@ -33,89 +33,28 @@ const SidebarItem = ({
     onAddToStage(item.id);
   };
 
-  // Format dimensions for display
-  const dimensions = `${item.length}x${item.width} | ${item.weight}kg`;
+  // Format dimensions for display - Use all three dimensions like reference
+  const dimensions = `${item.length}\" x ${item.width}\" x ${item.height}\"`;
 
   return (
     <View style={styles.itemContainer}>
-      <TouchableOpacity style={styles.itemHeader} onPress={toggleExpand}>
+      <View style={styles.itemContent}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => { /* TODO: Define action? Drag? */ }}>
+          <Text style={styles.iconText}>...</Text>
+        </TouchableOpacity>
+
         <View style={styles.itemInfo}>
           <Text style={styles.itemName}>{item.name}</Text>
           <Text style={styles.itemDimensions}>{dimensions}</Text>
         </View>
 
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => onEdit(item.id)}
-          >
-            <Text style={styles.actionIcon}>✏️</Text>
-          </TouchableOpacity>
+        <TouchableOpacity style={styles.iconButton} onPress={handleAddToStage}>
+          <Text style={styles.iconText}>+</Text>
+        </TouchableOpacity>
+      </View>
 
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => onDuplicate(item.id)}
-          >
-            <Text style={styles.actionIcon}>🔄</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.dragHandle}
-            onPressIn={handleStartDrag}
-          >
-            <Text style={styles.actionIcon}>↔️</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleAddToStage}
-          >
-            <Text style={styles.actionIcon}>➕</Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-
-      {isExpanded && (
-        <View style={styles.expandedDetails}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Dimensions:</Text>
-            <Text style={styles.detailValue}>{item.length}" x {item.width}" x {item.height}"</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Weight:</Text>
-            <Text style={styles.detailValue}>{item.weight} lbs</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Center of Gravity:</Text>
-            <Text style={styles.detailValue}>{item.cog} inches</Text>
-          </View>
-
-          <View style={styles.expandedActions}>
-            <TouchableOpacity
-              style={[styles.actionButtonLarge, styles.editButton]}
-              onPress={() => onEdit(item.id)}
-            >
-              <Text style={styles.actionButtonText}>Edit</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.actionButtonLarge, styles.duplicateButton]}
-              onPress={() => onDuplicate(item.id)}
-            >
-              <Text style={styles.actionButtonText}>Duplicate</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.actionButtonLarge, styles.deleteButton]}
-              onPress={() => onDelete(item.id)}
-            >
-              <Text style={styles.actionButtonText}>Delete</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+      {/* Expanded details (Keep or remove depending on final design) */}
+      {/* {isExpanded && ( ... )} */}
     </View>
   );
 };
@@ -123,52 +62,54 @@ const SidebarItem = ({
 const styles = StyleSheet.create({
   itemContainer: {
     backgroundColor: '#fff',
-    marginBottom: 8,
+    marginBottom: 3,
     borderRadius: 4,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#eee',
   },
-  itemHeader: {
+  itemContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
   },
+  itemHeader: { },
   itemInfo: {
-    flex: 1,
+    flexShrink: 1,
+    alignItems: 'center',
+    marginHorizontal: 10,
   },
   itemName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#000',
   },
   itemDimensions: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 2,
+    fontSize: 9,
+    color: '#888',
+    marginTop: 0,
   },
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  actions: { },
+
+  plainActionButton: { },
+  plainActionButtonText: { },
+  styledActionButton: { },
+  styledActionButtonText: { },
+  actionButton: { },
+  actionIcon: { },
+  dragHandle: { },
+
+  iconButton: {
+    padding: 1,
   },
-  actionButton: {
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 4,
-  },
-  actionIcon: {
+  iconText: {
     fontSize: 16,
+    color: '#555',
+    fontWeight: 'bold',
   },
-  dragHandle: {
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 4,
-  },
+
   expandedDetails: {
     padding: 12,
     backgroundColor: '#f9f9f9',

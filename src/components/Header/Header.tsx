@@ -66,7 +66,7 @@ const Header = ({ onSettingsClick, onPreviewClick }: HeaderProps) => {
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: '#0066cc',
+    backgroundColor: '#000000',
     paddingTop: Platform.OS === 'ios' ? 10 : 5,
     paddingBottom: 5,
     paddingHorizontal: 16,
