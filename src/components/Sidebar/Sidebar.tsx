@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, Dimensions, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, Dimensions, Switch, Alert } from 'react-native';
 import { CargoItem, Status, Position } from '../../types';
 import SidebarItem from '../SidebarItem/SidebarItem';
 import AddCargoItemModal from '../AddCargoItemModal/AddCargoItemModal';
@@ -100,9 +100,39 @@ const Sidebar = ({
 
   // Update saved presets when requested
   const handleSaveAsPreset = (item: CargoItem) => {
-    if (!savedPresets.some(preset => preset.id === item.id)) {
-      setSavedPresets(prev => [...prev, item]);
+    // Create a copy of the item to use as a preset (removing status and position)
+    const presetItem = {
+      ...item,
+      id: `preset_${item.id}`,
+      name: `${item.name} (Preset)`,
+      status: 'inventory' as const,
+      position: { x: -1, y: -1 },
+    };
+    
+    // Check if a preset with similar dimensions already exists
+    const presetExists = savedPresets.some(
+      preset => 
+        preset.length === item.length &&
+        preset.width === item.width &&
+        preset.height === item.height &&
+        preset.weight === item.weight
+    );
+    
+    if (!presetExists) {
+      setSavedPresets(prev => [...prev, presetItem]);
+      Alert.alert(
+        "Preset Saved",
+        `"${item.name}" has been saved as a preset and can be loaded when adding new items.`,
+        [{ text: "OK" }]
+      );
+    } else {
+      Alert.alert(
+        "Similar Preset Exists",
+        "A preset with similar dimensions already exists.",
+        [{ text: "OK" }]
+      );
     }
+    
     onSaveAsPreset(item);
   };
 
