@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
   TextInput,
@@ -29,11 +28,11 @@ const generateID = () => {
   return Date.now().toString() + Math.floor(Math.random() * 1000000).toString();
 };
 
-const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({ 
-  initialItem, 
-  onSave, 
-  onCancel, 
-  savedPresets = [] 
+const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
+  initialItem,
+  onSave,
+  onCancel,
+  savedPresets = [],
 }) => {
   const [name, setName] = useState('');
   const [length, setLength] = useState<string>('');
@@ -88,7 +87,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
 
   // Handle form submission
   const handleSubmit = useCallback(() => {
-    if (!isDataValid) return;
+    if (!isDataValid) {return;}
 
     const cogValue = parseFloat(cog || '0');
     const lengthValue = parseFloat(length);
@@ -143,7 +142,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
         {`${item.length}" x ${item.width}" x ${item.height}"`}
       </Text>
     </TouchableOpacity>
-  ), [handleLoadPreset, styles]);
+  ), [handleLoadPreset]);
 
   return (
     <Modal

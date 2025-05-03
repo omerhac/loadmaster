@@ -11,11 +11,11 @@ interface DeckProps {
   onRemoveFromDeck?: (id: string) => void;
 }
 
-const Deck: React.FC<DeckProps> = React.memo(({ 
-  items, 
-  onRemoveFromDeck 
+const Deck: React.FC<DeckProps> = React.memo(({
+  items,
+  onRemoveFromDeck,
 }) => {
-  const deckItems = useMemo(() => 
+  const deckItems = useMemo(() =>
     items.filter((item) => item.status === 'onDeck'),
     [items]
   );

@@ -25,7 +25,7 @@ const DimensionsForm: React.FC<DimensionsFormProps> = React.memo(({
   onLengthChange,
   onWidthChange,
   onHeightChange,
-  onWeightChange
+  onWeightChange,
 }) => {
   return (
     <View style={styles.compactFormContainer}>
@@ -94,4 +94,4 @@ const DimensionsForm: React.FC<DimensionsFormProps> = React.memo(({
 
 DimensionsForm.displayName = 'DimensionsForm';
 
-export default DimensionsForm; 
+export default DimensionsForm;

@@ -23,4 +23,4 @@ export const styles = StyleSheet.create({
     bottom: 2,
     transform: [{ rotate: '135deg' }],
   },
-}); 
+});

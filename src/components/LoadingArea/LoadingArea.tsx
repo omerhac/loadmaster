@@ -52,7 +52,7 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
   ], [isTablet, isLandscape]);
 
   // Count items in stage
-  const stageItems = useMemo(() => 
+  const stageItems = useMemo(() =>
     items.filter(item => item.status === 'onStage'),
     [items]
   );

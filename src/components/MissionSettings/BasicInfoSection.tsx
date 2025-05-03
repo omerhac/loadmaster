@@ -15,7 +15,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = React.memo(({
   date,
   departureLocation,
   arrivalLocation,
-  onChange
+  onChange,
 }) => {
   const handleChange = useCallback((fieldName: string, value: string) => {
     onChange(fieldName, value);
@@ -66,4 +66,4 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = React.memo(({
 
 BasicInfoSection.displayName = 'BasicInfoSection';
 
-export default BasicInfoSection; 
+export default BasicInfoSection;

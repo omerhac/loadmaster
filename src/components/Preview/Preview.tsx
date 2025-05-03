@@ -9,17 +9,17 @@ interface PreviewProps {
   onReturn: () => void;
 }
 
-const Preview: React.FC<PreviewProps> = React.memo(({ 
-  items, 
-  onReturn 
+const Preview: React.FC<PreviewProps> = React.memo(({
+  items,
+  onReturn,
 }) => {
-  const itemsOnDeck = useMemo(() => 
-    items.filter(i => i.status === 'onDeck').length, 
+  const itemsOnDeck = useMemo(() =>
+    items.filter(i => i.status === 'onDeck').length,
     [items]
   );
-  
-  const itemsOnStage = useMemo(() => 
-    items.filter(i => i.status === 'onStage').length, 
+
+  const itemsOnStage = useMemo(() =>
+    items.filter(i => i.status === 'onStage').length,
     [items]
   );
 

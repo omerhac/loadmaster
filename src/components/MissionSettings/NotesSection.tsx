@@ -7,9 +7,9 @@ interface NotesSectionProps {
   onChange: (name: string, value: string) => void;
 }
 
-const NotesSection: React.FC<NotesSectionProps> = React.memo(({ 
-  notes, 
-  onChange 
+const NotesSection: React.FC<NotesSectionProps> = React.memo(({
+  notes,
+  onChange,
 }) => {
   const handleChange = useCallback((value: string) => {
     onChange('notes', value);
@@ -34,4 +34,4 @@ const NotesSection: React.FC<NotesSectionProps> = React.memo(({
 
 NotesSection.displayName = 'NotesSection';
 
-export default NotesSection; 
+export default NotesSection;

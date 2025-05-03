@@ -10,7 +10,7 @@ interface PresetSelectorProps {
 
 const PresetSelector: React.FC<PresetSelectorProps> = React.memo(({
   savedPresets,
-  onSelectPreset
+  onSelectPreset,
 }) => {
   const [showPresets, setShowPresets] = useState(false);
 
@@ -68,4 +68,4 @@ const PresetSelector: React.FC<PresetSelectorProps> = React.memo(({
 
 PresetSelector.displayName = 'PresetSelector';
 
-export default PresetSelector; 
+export default PresetSelector;

@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Platform,
 } from 'react-native';
 import { MissionSettings, FuelDistribution } from '../../types';
 import { styles } from './MissionSettings.styles';
@@ -24,10 +23,10 @@ interface MissionSettingsProps {
   onSave: (settings: MissionSettings) => void;
 }
 
-const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({ 
-  settings, 
-  onReturn, 
-  onSave 
+const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
+  settings,
+  onReturn,
+  onSave,
 }) => {
   const [formData, setFormData] = useState<MissionSettings>(() => settings ?? {
     id: generateId(),

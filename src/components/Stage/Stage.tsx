@@ -11,13 +11,13 @@ interface StageProps {
   onDragToDeck: (id: string, position: { x: number, y: number }) => void;
 }
 
-const Stage: React.FC<StageProps> = React.memo(({ 
-  items, 
-  onRemoveFromStage, 
-  onDragToDeck 
+const Stage: React.FC<StageProps> = React.memo(({
+  items,
+  onRemoveFromStage,
+  onDragToDeck,
 }) => {
-  const stageItems = useMemo(() => 
-    items.filter(item => item.status === 'onStage'), 
+  const stageItems = useMemo(() =>
+    items.filter(item => item.status === 'onStage'),
     [items]
   );
 

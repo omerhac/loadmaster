@@ -21,7 +21,7 @@ const AircraftConfigSection: React.FC<AircraftConfigSectionProps> = React.memo((
   safetyGearWeight,
   fuelPods,
   fuelDistribution,
-  onChange
+  onChange,
 }) => {
   const handleTextChange = useCallback((name: string, value: string) => {
     onChange(name, value);
@@ -96,7 +96,7 @@ const AircraftConfigSection: React.FC<AircraftConfigSectionProps> = React.memo((
         </View>
       </View>
 
-      <FuelDistributionSection 
+      <FuelDistributionSection
         fuelDistribution={fuelDistribution}
         onChange={onChange}
       />
@@ -106,4 +106,4 @@ const AircraftConfigSection: React.FC<AircraftConfigSectionProps> = React.memo((
 
 AircraftConfigSection.displayName = 'AircraftConfigSection';
 
-export default AircraftConfigSection; 
+export default AircraftConfigSection;

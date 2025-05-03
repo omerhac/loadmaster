@@ -52,7 +52,7 @@ const SidebarItem = ({
 
   // Format dimensions for display
   const dimensions = `${item.length}"×${item.width}"×${item.height}"`;
-  
+
   // Format weight for display
   const weight = `${item.weight}lb`;
 
@@ -76,7 +76,7 @@ const SidebarItem = ({
 
         <View style={styles.itemInfo}>
           <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
-          
+
           {!isExpanded ? (
             <View style={styles.compactInfo}>
               <Text style={styles.itemDimensions}>{dimensions}</Text>

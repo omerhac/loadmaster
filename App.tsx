@@ -18,7 +18,7 @@ import { lockToLandscape } from './src/utils/orientationLock';
 
 // Helper function to generate a simple ID without relying on crypto
 const generateId = () => {
-  return Math.random().toString(36).substring(2, 15) + 
+  return Math.random().toString(36).substring(2, 15) +
          Math.random().toString(36).substring(2, 15);
 };
 

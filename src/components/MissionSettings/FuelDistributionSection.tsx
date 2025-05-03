@@ -9,9 +9,9 @@ interface FuelDistributionSectionProps {
   onChange: (name: string, value: number) => void;
 }
 
-const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.memo(({ 
-  fuelDistribution, 
-  onChange 
+const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.memo(({
+  fuelDistribution,
+  onChange,
 }) => {
   const handleFuelChange = useCallback((field: keyof FuelDistribution, value: number) => {
     onChange(`fuelDistribution.${field}`, value);
@@ -92,4 +92,4 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
 
 FuelDistributionSection.displayName = 'FuelDistributionSection';
 
-export default FuelDistributionSection; 
+export default FuelDistributionSection;

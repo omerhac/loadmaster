@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, PanResponder, Animated } from 'react-native';
+import { Text, TouchableOpacity, PanResponder, Animated } from 'react-native';
 import { CargoItem } from '../../types';
 import { styles } from './Deck.styles';
 
@@ -8,9 +8,9 @@ interface DeckItemProps {
   onRemove?: (id: string) => void;
 }
 
-const DeckItem: React.FC<DeckItemProps> = React.memo(({ 
-  item, 
-  onRemove 
+const DeckItem: React.FC<DeckItemProps> = React.memo(({
+  item,
+  onRemove,
 }) => {
   // Track selected state for deletion
   const [isSelected, setIsSelected] = useState(false);
@@ -112,4 +112,4 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
 
 DeckItem.displayName = 'DeckItem';
 
-export default DeckItem; 
+export default DeckItem;

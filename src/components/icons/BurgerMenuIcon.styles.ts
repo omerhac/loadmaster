@@ -15,4 +15,4 @@ export const styles = StyleSheet.create({
     marginVertical: 2,
     borderRadius: 1,
   },
-}); 
+});

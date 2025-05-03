@@ -130,4 +130,4 @@ export const styles = StyleSheet.create({
     transform: [{ scaleX: 0.65 }, { scaleY: 0.65 }],
     marginRight: -5,
   },
-}); 
+});

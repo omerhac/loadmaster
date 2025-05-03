@@ -138,4 +138,4 @@ export const styles = StyleSheet.create({
     backgroundColor: '#fff',
     fontSize: 13,
   },
-}); 
+});

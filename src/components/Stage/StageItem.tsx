@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, PanResponder, Animated } from 'react-native';
+import { Text, TouchableOpacity, PanResponder, Animated } from 'react-native';
 import { CargoItem } from '../../types';
 import { styles } from './Stage.styles';
 
@@ -166,4 +166,4 @@ const StageItem: React.FC<StageItemProps> = React.memo(({
 
 StageItem.displayName = 'StageItem';
 
-export default StageItem; 
+export default StageItem;

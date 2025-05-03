@@ -45,4 +45,4 @@ export const styles = StyleSheet.create({
     color: '#666',
     fontWeight: '500',
   },
-}); 
+});

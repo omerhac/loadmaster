@@ -23,4 +23,4 @@ export const styles = StyleSheet.create({
     top: 3,
     left: 3,
   },
-}); 
+});

@@ -21,4 +21,4 @@ export const styles = StyleSheet.create({
     borderRadius: 3,
     position: 'absolute',
   },
-}); 
+});
