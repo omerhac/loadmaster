@@ -69,7 +69,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
 
   // Handle form submission
   const handleSubmit = () => {
-    if (!isDataValid()) return;
+    if (!isDataValid()) {return;}
 
     // Generate a simple ID without using uuid
     const generateID = () => {
@@ -78,7 +78,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
 
     const cogValue = parseFloat(cog || '0');
     const lengthValue = parseFloat(length);
-    
+
     const itemToSave: CargoItem = {
       id: initialItem?.id || generateID(),
       name,
@@ -117,9 +117,9 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
   const togglePresetDropdown = () => {
     if (savedPresets.length === 0) {
       Alert.alert(
-        "No Presets Available",
+        'No Presets Available',
         "You haven't saved any presets yet. You can save an item as a preset from the item's menu.",
-        [{ text: "OK" }]
+        [{ text: 'OK' }]
       );
       return;
     }
@@ -162,7 +162,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
                   >
                     <Text style={styles.loadPresetText}>Load Preset</Text>
                   </TouchableOpacity>
-                  
+
                   {/* Preset Dropdown */}
                   {showPresets && savedPresets.length > 0 && (
                     <View style={styles.presetDropdown}>

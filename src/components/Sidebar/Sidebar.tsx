@@ -24,6 +24,7 @@ const Sidebar = ({
   onEditItem,
   onDeleteItem,
   onDuplicateItem,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onUpdateItemStatus,
   onSaveAsPreset,
   onAddToStage,
@@ -44,7 +45,7 @@ const Sidebar = ({
 
   // Sort and filter items
   const sortAndFilterItems = useCallback(() => {
-    let filtered = items.filter(item => 
+    let filtered = items.filter(item =>
       showLoadedItems || item.status === 'inventory'
     );
 
@@ -108,42 +109,32 @@ const Sidebar = ({
       status: 'inventory' as const,
       position: { x: -1, y: -1 },
     };
-    
+
     // Check if a preset with similar dimensions already exists
     const presetExists = savedPresets.some(
-      preset => 
+      preset =>
         preset.length === item.length &&
         preset.width === item.width &&
         preset.height === item.height &&
         preset.weight === item.weight
     );
-    
+
     if (!presetExists) {
       setSavedPresets(prev => [...prev, presetItem]);
       Alert.alert(
-        "Preset Saved",
+        'Preset Saved',
         `"${item.name}" has been saved as a preset and can be loaded when adding new items.`,
-        [{ text: "OK" }]
+        [{ text: 'OK' }]
       );
     } else {
       Alert.alert(
-        "Similar Preset Exists",
-        "A preset with similar dimensions already exists.",
-        [{ text: "OK" }]
+        'Similar Preset Exists',
+        'A preset with similar dimensions already exists.',
+        [{ text: 'OK' }]
       );
     }
-    
+
     onSaveAsPreset(item);
-  };
-
-  // Handle adding to stage area
-  const handleAddToStage = (id: string) => {
-    onAddToStage(id);
-  };
-
-  // Handle removing from stage area
-  const handleRemoveFromStage = (id: string) => {
-    onRemoveFromStage(id);
   };
 
   return (

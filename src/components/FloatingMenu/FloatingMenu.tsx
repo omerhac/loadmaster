@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Dimensions } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 
 type MenuItem = {
   label: string;
@@ -8,7 +8,7 @@ type MenuItem = {
   style?: any;
 };
 
-type FloatingMenuProps = {
+interface FloatingMenuProps {
   items: MenuItem[];
   isOpen: boolean;
   onClose: () => void;
@@ -18,37 +18,30 @@ type FloatingMenuProps = {
     left?: number;
     bottom?: number;
   };
-};
+}
 
-const FloatingMenu = ({ items, isOpen, onClose, position = { top: 60, right: 10 } }: FloatingMenuProps) => {
-  const menuRef = useRef<View>(null);
-  const { width: screenWidth } = Dimensions.get('window');
+const DEFAULT_POSITION = { top: 45, right: 0 };
 
-  // Calculate position to ensure menu stays on screen
-  const menuRight = Math.min(position.right || 10, screenWidth - 220);
-
-  // Close the menu when clicking outside
-  const handleOutsideClick = () => {
-    if (isOpen) {
-      onClose();
-    }
-  };
-
+const FloatingMenu = ({
+  items,
+  isOpen,
+  onClose,
+  position = DEFAULT_POSITION,
+}: FloatingMenuProps) => {
   if (!isOpen) {return null;}
 
   return (
     <View style={styles.container}>
-      <TouchableWithoutFeedback onPress={handleOutsideClick}>
+      <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
 
       <View
-        ref={menuRef}
         style={[
           styles.menuContainer,
           {
             top: position.top,
-            right: menuRight,
+            right: position.right,
             left: position.left,
             bottom: position.bottom,
           },
@@ -76,9 +69,8 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     zIndex: 1002,
-    width: 220,
-    maxWidth: '90%',
-    right: 0,
+    width: '100%',
+    height: '100%',
   },
   backdrop: {
     position: 'absolute',
@@ -89,8 +81,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   menuContainer: {
+    position: 'absolute',
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -98,18 +91,17 @@ const styles = StyleSheet.create({
     elevation: 5,
     width: 200,
     padding: 5,
-    maxWidth: '100%',
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: 10,
     borderRadius: 4,
   },
   menuItemText: {
     marginLeft: 8,
-    fontSize: 16,
-    color: '#484848',
+    fontSize: 14,
+    color: '#333',
   },
 });
 

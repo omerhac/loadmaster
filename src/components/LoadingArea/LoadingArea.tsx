@@ -15,29 +15,29 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
   const isTablet = isIpad || isWindows || (Platform.OS === 'android' && Dimensions.get('window').width > 900);
   const { width, height } = Dimensions.get('window');
   const isLandscape = width > height;
-  
+
   // Refs for measuring components
   const deckRef = useRef<View>(null);
   const [deckMeasurements, setDeckMeasurements] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  
+
   // Measure the deck component after layout
   useEffect(() => {
     const measureDeck = () => {
       if (deckRef.current && Platform.OS !== 'web') {
         const nodeHandle = findNodeHandle(deckRef.current);
         if (nodeHandle) {
-          UIManager.measure(nodeHandle, (x, y, width, height, pageX, pageY) => {
-            setDeckMeasurements({ 
-              x: pageX, 
-              y: pageY, 
-              width, 
-              height 
+          UIManager.measure(nodeHandle, (x, y, width_, height_, pageX, pageY) => {
+            setDeckMeasurements({
+              x: pageX,
+              y: pageY,
+              width: width_,
+              height: height_,
             });
           });
         }
       }
     };
-    
+
     // Allow component to render first
     const timer = setTimeout(measureDeck, 500);
     return () => clearTimeout(timer);
@@ -61,7 +61,7 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
   const handleRemoveFromStage = (id: string) => {
     onUpdateItemStatus(id, 'inventory');
   };
-  
+
   // Handle removing an item from the deck (return to inventory)
   const handleRemoveFromDeck = (id: string) => {
     onUpdateItemStatus(id, 'inventory');
@@ -74,18 +74,18 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
     // Add padding offset (10px from styles.deckContainer)
     const adjustedPosition = {
       x: Math.max(0, position.x - deckMeasurements.x - 10),
-      y: Math.max(0, position.y - deckMeasurements.y - 10)
+      y: Math.max(0, position.y - deckMeasurements.y - 10),
     };
-    
+
     // Make sure the item stays within the deck boundaries
     if (adjustedPosition.x > deckMeasurements.width - 20) {
       adjustedPosition.x = deckMeasurements.width - 50;
     }
-    
+
     if (adjustedPosition.y > deckMeasurements.height - 20) {
       adjustedPosition.y = deckMeasurements.height - 50;
     }
-    
+
     onUpdateItemStatus(id, 'onDeck', adjustedPosition);
   };
 
@@ -95,7 +95,7 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
       isTablet && styles.tabletLoadingArea,
       isLandscape && styles.landscapeLoadingArea,
     ]}>
-      <View 
+      <View
         ref={deckRef}
         style={styles.deckWrapper}
         onLayout={() => {
@@ -103,12 +103,12 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
           if (deckRef.current && Platform.OS !== 'web') {
             const nodeHandle = findNodeHandle(deckRef.current);
             if (nodeHandle) {
-              UIManager.measure(nodeHandle, (x, y, width, height, pageX, pageY) => {
-                setDeckMeasurements({ 
-                  x: pageX, 
-                  y: pageY, 
-                  width, 
-                  height 
+              UIManager.measure(nodeHandle, (x, y, width_, height_, pageX, pageY) => {
+                setDeckMeasurements({
+                  x: pageX,
+                  y: pageY,
+                  width: width_,
+                  height: height_,
                 });
               });
             }

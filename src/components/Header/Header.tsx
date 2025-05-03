@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import FloatingMenu from '../FloatingMenu/FloatingMenu';
+import {
+  NewIcon,
+  SaveIcon,
+  LoadIcon,
+  SettingsIcon,
+  PreviewIcon,
+  BurgerMenuIcon,
+} from '../icons';
 
-type HeaderProps = {
+interface HeaderProps {
   onSettingsClick: () => void;
   onPreviewClick: () => void;
-};
+}
 
 const Header = ({ onSettingsClick, onPreviewClick }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,68 +21,67 @@ const Header = ({ onSettingsClick, onPreviewClick }: HeaderProps) => {
   const menuItems = [
     {
       label: 'New Plan',
+      icon: <NewIcon />,
       onClick: () => console.log('New Plan clicked'),
     },
     {
       label: 'Save Plan',
+      icon: <SaveIcon />,
       onClick: () => console.log('Save Plan clicked'),
     },
     {
       label: 'Load Plan',
+      icon: <LoadIcon />,
       onClick: () => console.log('Load Plan clicked'),
     },
     {
       label: 'Mission Settings',
+      icon: <SettingsIcon />,
       onClick: onSettingsClick,
-      style: { borderTopWidth: 1, borderTopColor: '#ddd', marginTop: 5, paddingTop: 10 },
+      style: {
+        borderTopWidth: 1,
+        borderTopColor: '#ddd',
+        borderTopStyle: 'dashed',
+        marginTop: 5,
+        paddingTop: 10,
+      },
     },
     {
       label: 'Preview Mission',
+      icon: <PreviewIcon />,
       onClick: onPreviewClick,
     },
   ];
 
   return (
     <View style={styles.header}>
-      {Platform.OS !== 'windows' && (
-        <StatusBar barStyle="light-content" backgroundColor="#0066cc" />
-      )}
       <Text style={styles.title}>Loadmaster</Text>
-
-      <View style={styles.menuContainer}>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          <View style={styles.burgerLine} />
-          <View style={styles.burgerLine} />
-          <View style={styles.burgerLine} />
-        </TouchableOpacity>
-
-        {isMenuOpen && (
-          <FloatingMenu
-            items={menuItems}
-            isOpen={isMenuOpen}
-            onClose={() => setIsMenuOpen(false)}
-            position={{ top: 40, right: 0 }}
-          />
-        )}
-      </View>
+      <TouchableOpacity
+        style={styles.burgerButton}
+        onPress={() => setIsMenuOpen(!isMenuOpen)}
+      >
+        <BurgerMenuIcon />
+        <FloatingMenu
+          items={menuItems}
+          isOpen={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+          position={{ top: 45, right: 0 }}
+        />
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: '#000000',
-    paddingTop: Platform.OS === 'ios' ? 10 : 5,
-    paddingBottom: 5,
+    backgroundColor: '#333',
+    paddingVertical: 10,
     paddingHorizontal: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     height: Platform.OS === 'ios' ? 50 : 45,
-    zIndex: 1000,
+    zIndex: 100,
     width: '100%',
   },
   title: {
@@ -82,21 +89,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
   },
-  menuContainer: {
-    position: 'relative',
-  },
-  menuButton: {
-    width: 28,
-    height: 28,
-    justifyContent: 'space-between',
+  burgerButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
     alignItems: 'center',
-    padding: 6,
-  },
-  burgerLine: {
-    width: '100%',
-    height: 2,
-    backgroundColor: 'white',
-    borderRadius: 1,
+    position: 'relative',
   },
 });
 

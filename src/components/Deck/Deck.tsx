@@ -18,12 +18,12 @@ const DeckItem = ({ item, onRemove }: DeckItemProps) => {
   // Track selected state for deletion
   const [isSelected, setIsSelected] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  
+
   // Create animated values for dragging items on the deck
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(1)).current;
-  
+
   // Allow dragging items that are already on the deck
   const panResponder = useRef(
     PanResponder.create({
@@ -35,13 +35,13 @@ const DeckItem = ({ item, onRemove }: DeckItemProps) => {
         // Store the current position as an offset
         translateX.extractOffset();
         translateY.extractOffset();
-        
+
         // Show visual feedback
         setIsDragging(true);
         Animated.spring(scale, {
           toValue: 1.05,
           friction: 5,
-          useNativeDriver: true
+          useNativeDriver: true,
         }).start();
       },
       onPanResponderMove: Animated.event(
@@ -52,16 +52,16 @@ const DeckItem = ({ item, onRemove }: DeckItemProps) => {
         // Flatten offset to lock in the new position
         translateX.flattenOffset();
         translateY.flattenOffset();
-        
+
         // Return to normal size
         Animated.spring(scale, {
           toValue: 1,
           friction: 5,
-          useNativeDriver: true
+          useNativeDriver: true,
         }).start();
-        
+
         setIsDragging(false);
-      }
+      },
     })
   ).current;
 
@@ -85,11 +85,11 @@ const DeckItem = ({ item, onRemove }: DeckItemProps) => {
           transform: [
             { translateX: translateX },
             { translateY: translateY },
-            { scale: scale }
-          ]
+            { scale: scale },
+          ],
         },
         isSelected && styles.selectedItem,
-        isDragging && styles.draggingItem
+        isDragging && styles.draggingItem,
       ]}
     >
       <TouchableOpacity
@@ -112,7 +112,7 @@ const DeckItem = ({ item, onRemove }: DeckItemProps) => {
     </Animated.View>
   );
 };
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Deck = ({ items, onDrop, onRemoveFromDeck }: DeckProps) => {
   const deckItems = items.filter((item) => item.status === 'onDeck');
 
@@ -124,8 +124,8 @@ const Deck = ({ items, onDrop, onRemoveFromDeck }: DeckProps) => {
         resizeMode="cover"
       >
         {deckItems.map((item) => (
-          <DeckItem 
-            key={item.id} 
+          <DeckItem
+            key={item.id}
             item={item}
             onRemove={onRemoveFromDeck}
           />

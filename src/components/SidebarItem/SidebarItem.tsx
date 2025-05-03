@@ -57,27 +57,27 @@ const SidebarItem = ({
 
   return (
     <View style={[styles.itemContainer, isInInventory ? styles.inInventory : styles.onStage]}>
-      <TouchableOpacity 
+      <TouchableOpacity
         activeOpacity={0.8}
         onPress={toggleExpand}
         style={styles.itemHeader}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.menuButton}
           onPress={showActionsMenu}
           hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
         >
           <Text style={styles.menuButtonText}>⋮</Text>
         </TouchableOpacity>
-        
+
         <View style={styles.itemNameContainer}>
           <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
           {!isExpanded && (
             <Text style={styles.itemDimensions} numberOfLines={1}>{dimensions}</Text>
           )}
         </View>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.actionButton}
           onPress={handleAddToStage}
           hitSlop={{top: 5, bottom: 5, left: 5, right: 5}}

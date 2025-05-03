@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, PanResponder, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, PanResponder, Animated } from 'react-native';
 import { CargoItem } from '../../types';
 
 type StageProps = {
@@ -9,12 +9,12 @@ type StageProps = {
   onDragToDeck: (id: string, position: { x: number, y: number }) => void;
 };
 
-const StageItem = ({ 
-  item, 
+const StageItem = ({
+  item,
   onRemove,
-  onDragToDeck
-}: { 
-  item: CargoItem; 
+  onDragToDeck,
+}: {
+  item: CargoItem;
   onRemove: (id: string) => void;
   onDragToDeck: (id: string, position: { x: number, y: number }) => void;
 }) => {
@@ -23,14 +23,9 @@ const StageItem = ({
   const translateY = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(1)).current;
   const [isDragging, setIsDragging] = useState(false);
-  
-  // Get screen dimensions to help with position calculations
-  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-  // This is a direct handler approach that will be more reliable
   const panResponder = useRef(
     PanResponder.create({
-      // Improved gesture handling for better responsiveness
       onStartShouldSetPanResponder: () => true,
       onStartShouldSetPanResponderCapture: () => true,
       onMoveShouldSetPanResponder: (_, gestureState) => {
@@ -44,16 +39,16 @@ const StageItem = ({
       onPanResponderGrant: () => {
         // Show visual feedback when dragging starts
         setIsDragging(true);
-        
+
         // Store the current value as an offset to avoid jumping
         translateX.extractOffset();
         translateY.extractOffset();
-        
+
         // Animate the item to look "picked up"
         Animated.spring(scale, {
           toValue: 1.1,
           friction: 5,
-          useNativeDriver: true
+          useNativeDriver: true,
         }).start();
       },
       onPanResponderMove: Animated.event(
@@ -64,18 +59,18 @@ const StageItem = ({
         // Clear offsets
         translateX.flattenOffset();
         translateY.flattenOffset();
-                
+
         // Determine if the item was dragged far enough to be considered a "drop on deck"
         if (Math.abs(gestureState.dx) > 10 || Math.abs(gestureState.dy) > 10) {
           // Get the absolute screen position where the item was dropped
           const dropX = event.nativeEvent.pageX;
           const dropY = event.nativeEvent.pageY;
-          
+
           const deckPosition = {
             x: dropX,
-            y: dropY
+            y: dropY,
           };
-          
+
           // Move to deck with exact position
           onDragToDeck(item.id, deckPosition);
         } else {
@@ -84,48 +79,48 @@ const StageItem = ({
             Animated.spring(translateX, {
               toValue: 0,
               friction: 5,
-              useNativeDriver: true
+              useNativeDriver: true,
             }),
             Animated.spring(translateY, {
               toValue: 0,
               friction: 5,
-              useNativeDriver: true
+              useNativeDriver: true,
             }),
             Animated.spring(scale, {
               toValue: 1,
               friction: 5,
-              useNativeDriver: true
-            })
+              useNativeDriver: true,
+            }),
           ]).start();
         }
-        
+
         setIsDragging(false);
       },
       // Ensure dragging is canceled properly if interrupted
       onPanResponderTerminate: () => {
         translateX.flattenOffset();
         translateY.flattenOffset();
-        
+
         Animated.parallel([
           Animated.spring(translateX, {
             toValue: 0,
             friction: 5,
-            useNativeDriver: true
+            useNativeDriver: true,
           }),
           Animated.spring(translateY, {
             toValue: 0,
             friction: 5,
-            useNativeDriver: true
+            useNativeDriver: true,
           }),
           Animated.spring(scale, {
             toValue: 1,
             friction: 5,
-            useNativeDriver: true
-          })
+            useNativeDriver: true,
+          }),
         ]).start();
-        
+
         setIsDragging(false);
-      }
+      },
     })
   ).current;
 
@@ -145,11 +140,11 @@ const StageItem = ({
           transform: [
             { translateX: translateX },
             { translateY: translateY },
-            { scale: scale }
-          ]
+            { scale: scale },
+          ],
         },
         isSelected && styles.selectedItem,
-        isDragging && styles.draggingItem
+        isDragging && styles.draggingItem,
       ]}
     >
       <TouchableOpacity
@@ -173,9 +168,10 @@ const StageItem = ({
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Stage = ({ items, onRemoveFromStage, onAddToStage, onDragToDeck }: StageProps) => {
   const stageItems = items.filter(item => item.status === 'onStage');
-  
+
   return (
     <View style={styles.stageContainer}>
       <View style={styles.stageItems}>
