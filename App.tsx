@@ -14,8 +14,13 @@ import Sidebar from './src/components/Sidebar/Sidebar';
 import LoadingArea from './src/components/LoadingArea/LoadingArea';
 import MissionSettingsComponent from './src/components/MissionSettings/MissionSettings';
 import Preview from './src/components/Preview/Preview';
-import { v4 as uuidv4 } from 'uuid';
 import { lockToLandscape } from './src/utils/orientationLock';
+
+// Helper function to generate a simple ID without relying on crypto
+const generateId = () => {
+  return Math.random().toString(36).substring(2, 15) + 
+         Math.random().toString(36).substring(2, 15);
+};
 
 function getRandomDimension(min: number = 50, max: number = 120): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -187,7 +192,7 @@ function App(): React.JSX.Element {
 
       const newItem = {
         ...itemToDuplicate,
-        id: uuidv4(),
+        id: generateId(),
         name: `${itemToDuplicate.name} (copy)`,
         status: 'inventory' as const,
         position: { x: -1, y: -1 },
