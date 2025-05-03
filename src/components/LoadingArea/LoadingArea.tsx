@@ -33,7 +33,6 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
               width, 
               height 
             });
-            console.log('Deck measurements:', { x: pageX, y: pageY, width, height });
           });
         }
       }
@@ -50,32 +49,26 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
 
   // Handle dropping an item onto the deck
   const handleDrop = (id: string, position: { x: number, y: number }) => {
-    console.log(`Dropping item ${id} onto deck at position:`, position);
     onUpdateItemStatus(id, 'onDeck', position);
   };
 
   // Handle adding an item to the stage
   const handleAddToStage = (id: string) => {
-    console.log(`Adding item ${id} to stage`);
     onUpdateItemStatus(id, 'onStage');
   };
 
   // Handle removing an item from the stage
   const handleRemoveFromStage = (id: string) => {
-    console.log(`Removing item ${id} from stage`);
     onUpdateItemStatus(id, 'inventory');
   };
   
   // Handle removing an item from the deck (return to inventory)
   const handleRemoveFromDeck = (id: string) => {
-    console.log(`Removing item ${id} from deck`);
     onUpdateItemStatus(id, 'inventory');
   };
 
   // Handle dragging an item from stage to deck
   const handleDragToDeck = (id: string, position: { x: number, y: number }) => {
-    console.log(`Raw drop coordinates:`, position);
-    
     // Calculate relative position within the deck
     // Subtracting deck's position to get coordinates relative to deck
     // Add padding offset (10px from styles.deckContainer)
@@ -93,7 +86,6 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
       adjustedPosition.y = deckMeasurements.height - 50;
     }
     
-    console.log(`Dragging item ${id} from stage to deck at adjusted position:`, adjustedPosition);
     onUpdateItemStatus(id, 'onDeck', adjustedPosition);
   };
 
@@ -118,7 +110,6 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
                   width, 
                   height 
                 });
-                console.log('Deck measurements on layout:', { x: pageX, y: pageY, width, height });
               });
             }
           }
@@ -133,10 +124,8 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
 
       <View style={styles.stageAreaContainer}>
         <View style={styles.stageHeader}>
-          <Text style={styles.stageTitle} accessibilityRole="header">Stage Area</Text>
-          <View style={styles.stageActions}>
-            <Text style={styles.stageItemCount} accessibilityRole="header">{stageItemCount} items</Text>
-          </View>
+          <Text style={styles.stageTitle}>Stage Area</Text>
+          <Text style={styles.stageItemCount}>{stageItemCount} items</Text>
         </View>
 
         <Stage
@@ -186,18 +175,14 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ddd',
   },
   stageTitle: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#333',
-  },
-  stageActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   stageItemCount: {
     fontSize: 12,
     color: '#666',
-    fontWeight: 'normal',
+    fontWeight: '500',
   },
 });
 

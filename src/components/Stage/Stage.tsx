@@ -44,10 +44,8 @@ const StageItem = ({
       onPanResponderGrant: () => {
         // Show visual feedback when dragging starts
         setIsDragging(true);
-        console.log("Started dragging item:", item.id);
         
         // Store the current value as an offset to avoid jumping
-        // Use a proper way to set offsets without accessing the _value property
         translateX.extractOffset();
         translateY.extractOffset();
         
@@ -66,27 +64,19 @@ const StageItem = ({
         // Clear offsets
         translateX.flattenOffset();
         translateY.flattenOffset();
-        
-        console.log(`Item ${item.id} dragged: dx=${gestureState.dx}, dy=${gestureState.dy}`);
-        
+                
         // Determine if the item was dragged far enough to be considered a "drop on deck"
-        // Using a very small threshold to make it more responsive
         if (Math.abs(gestureState.dx) > 10 || Math.abs(gestureState.dy) > 10) {
           // Get the absolute screen position where the item was dropped
           const dropX = event.nativeEvent.pageX;
           const dropY = event.nativeEvent.pageY;
           
-          console.log(`Raw drop coordinates: x=${dropX}, y=${dropY}`);
-          
-          // Calculate position on deck based on exact drop location
-          // We need to ensure we handle the coordinate system correctly
           const deckPosition = {
             x: dropX,
             y: dropY
           };
           
           // Move to deck with exact position
-          console.log(`Dragging item ${item.id} to deck at position:`, deckPosition);
           onDragToDeck(item.id, deckPosition);
         } else {
           // Not dragged far enough, return to original position with animation

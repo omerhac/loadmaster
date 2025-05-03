@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, Dimensions, Switch } from 'react-native';
 import { CargoItem, Status, Position } from '../../types';
 import SidebarItem from '../SidebarItem/SidebarItem';
@@ -31,10 +31,10 @@ const Sidebar = ({
 }: SidebarProps) => {
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<CargoItem | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [draggingItem, setDraggingItem] = useState<CargoItem | null>(null);
+  const [savedPresets, setSavedPresets] = useState<CargoItem[]>([]);
   const [sortBy, setSortBy] = useState<SortOption>('none');
   const [showLoadedItems, setShowLoadedItems] = useState(true);
+  const [reverseSort, setReverseSort] = useState(false);
 
   const isIpad = Platform.OS === 'ios' && Platform.isPad;
   const isWindows = Platform.OS === 'windows';
@@ -42,10 +42,41 @@ const Sidebar = ({
   const { width } = Dimensions.get('window');
   const isLandscape = width > Dimensions.get('window').height;
 
-  // Filter and sort items for display
-  const filteredItems = items.filter(item =>
-    showLoadedItems || item.status === 'inventory'
-  );
+  // Sort and filter items
+  const sortAndFilterItems = useCallback(() => {
+    let filtered = items.filter(item => 
+      showLoadedItems || item.status === 'inventory'
+    );
+
+    // Sort items based on selected criterion
+    if (sortBy !== 'none') {
+      filtered = [...filtered].sort((a, b) => {
+        switch (sortBy) {
+          case 'name':
+            return a.name.localeCompare(b.name);
+          case 'weight':
+            return a.weight - b.weight;
+          case 'dimensions':
+            const aVolume = a.length * a.width * a.height;
+            const bVolume = b.length * b.width * b.height;
+            return aVolume - bVolume;
+          case 'status':
+            return a.status.localeCompare(b.status);
+          default:
+            return 0;
+        }
+      });
+
+      // Reverse the sort order if needed
+      if (reverseSort) {
+        filtered.reverse();
+      }
+    }
+
+    return filtered;
+  }, [items, sortBy, showLoadedItems, reverseSort]);
+
+  const filteredItems = sortAndFilterItems();
 
   const handleAddItem = () => {
     setEditingItem(null);
@@ -67,25 +98,22 @@ const Sidebar = ({
     setEditingItem(null);
   };
 
-  const handleDragStart = (item: CargoItem) => {
-    setDraggingItem(item);
-  };
-
-  // Add to staging area by updating item status to 'onStage'
-  const handleAddToStage = (id: string) => {
-    onUpdateItemStatus(id, 'onStage');
-  };
-
-  // Remove from staging area by updating item status to 'inventory'
-  const handleRemoveFromStage = (id: string) => {
-    onUpdateItemStatus(id, 'inventory');
-  };
-
-  // Save item as preset (can be implemented later if needed)
+  // Update saved presets when requested
   const handleSaveAsPreset = (item: CargoItem) => {
-    console.log('Save as preset:', item);
-    // This would typically save the item to some form of persistent storage
-    // For now it's just a placeholder
+    if (!savedPresets.some(preset => preset.id === item.id)) {
+      setSavedPresets(prev => [...prev, item]);
+    }
+    onSaveAsPreset(item);
+  };
+
+  // Handle adding to stage area
+  const handleAddToStage = (id: string) => {
+    onAddToStage(id);
+  };
+
+  // Handle removing from stage area
+  const handleRemoveFromStage = (id: string) => {
+    onRemoveFromStage(id);
   };
 
   return (
@@ -117,8 +145,9 @@ const Sidebar = ({
 
           <TouchableOpacity
             style={styles.sortDirectionButton}
+            onPress={() => setReverseSort(!reverseSort)}
           >
-            <Text style={styles.sortDirectionText}>↓</Text>
+            <Text style={styles.sortDirectionText}>{reverseSort ? '↑' : '↓'}</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.toggleContainer}>
@@ -156,7 +185,7 @@ const Sidebar = ({
           style={styles.addButton}
           onPress={handleAddItem}
         >
-          <Text style={styles.addButtonText}>Add Cargo Item</Text>
+          <Text style={styles.addButtonText}>Add Cargo Item+</Text>
         </TouchableOpacity>
       </View>
 
@@ -165,6 +194,7 @@ const Sidebar = ({
           initialItem={editingItem || undefined}
           onSave={handleSaveItem}
           onCancel={() => setIsAddModalVisible(false)}
+          savedPresets={savedPresets}
         />
       )}
     </View>
@@ -277,7 +307,8 @@ const styles = StyleSheet.create({
   addButton: {
     backgroundColor: '#0066cc',
     borderRadius: 4,
-    paddingVertical: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -286,7 +317,7 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#fff',
     fontWeight: '500',
-    fontSize: 12,
+    fontSize: 14,
   },
   switchStyle: {
     transform: [{ scaleX: 0.75 }, { scaleY: 0.75 }],

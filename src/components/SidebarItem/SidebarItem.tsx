@@ -56,7 +56,7 @@ const SidebarItem = ({
   const isInInventory = item.status === 'inventory';
 
   return (
-    <View style={[styles.itemContainer, isInInventory ? styles.inInventory : null]}>
+    <View style={[styles.itemContainer, isInInventory ? styles.inInventory : styles.onStage]}>
       <TouchableOpacity 
         activeOpacity={0.8}
         onPress={toggleExpand}
@@ -82,9 +82,11 @@ const SidebarItem = ({
           onPress={handleAddToStage}
           hitSlop={{top: 5, bottom: 5, left: 5, right: 5}}
         >
-          <Text style={styles.actionButtonText}>
-            {isInInventory ? '+' : '−'}
-          </Text>
+          {isInInventory ? (
+            <Text style={styles.actionButtonText}>+</Text>
+          ) : (
+            <Text style={styles.actionButtonRemoveText}>×</Text>
+          )}
         </TouchableOpacity>
       </TouchableOpacity>
 
@@ -120,6 +122,10 @@ const styles = StyleSheet.create({
   inInventory: {
     borderLeftWidth: 4,
     borderLeftColor: '#4a90e2',
+  },
+  onStage: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#4fc08d', // Green color for items on stage
   },
   itemHeader: {
     flexDirection: 'row',
@@ -164,6 +170,13 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 14,
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  actionButtonRemoveText: {
+    fontSize: 16,
     color: 'white',
     fontWeight: 'bold',
     textAlign: 'center',

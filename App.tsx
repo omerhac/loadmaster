@@ -17,7 +17,6 @@ import Preview from './src/components/Preview/Preview';
 import { v4 as uuidv4 } from 'uuid';
 import { lockToLandscape } from './src/utils/orientationLock';
 
-
 function getRandomDimension(min: number = 50, max: number = 120): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -48,6 +47,94 @@ const DEFAULT_CARGO_ITEMS: CargoItem[] = [
   {
     id: '3',
     name: 'Item 3',
+    length: getRandomDimension(),
+    width: getRandomDimension(),
+    height: 100,
+    weight: 100,
+    cog: 50,
+    status: 'inventory',
+    position: { x: -1, y: -1 },
+  },
+  {
+    id: '4',
+    name: 'Item 4',
+    length: getRandomDimension(),
+    width: getRandomDimension(),
+    height: 100,
+    weight: 100,
+    cog: 50,
+    status: 'inventory',
+    position: { x: -1, y: -1 },
+  },
+  {
+    id: '5',
+    name: 'Item 5',
+    length: getRandomDimension(),
+    width: getRandomDimension(),
+    height: 100,
+    weight: 100,
+    cog: 50,
+    status: 'inventory',
+    position: { x: -1, y: -1 },
+  },
+  {
+    id: '6',
+    name: 'Item 6',
+    length: getRandomDimension(),
+    width: getRandomDimension(),
+    height: 100,
+    weight: 100,
+    cog: 50,
+    status: 'inventory',
+    position: { x: -1, y: -1 },
+  },
+  {
+    id: '7',
+    name: 'Item 7',
+    length: getRandomDimension(),
+    width: getRandomDimension(),
+    height: 100,
+    weight: 100,
+    cog: 50,
+    status: 'inventory',
+    position: { x: -1, y: -1 },
+  },
+  {
+    id: '8',
+    name: 'Item 8',
+    length: getRandomDimension(),
+    width: getRandomDimension(),
+    height: 100,
+    weight: 100,
+    cog: 50,
+    status: 'inventory',
+    position: { x: -1, y: -1 },
+  },
+  {
+    id: '9',
+    name: 'Item 9',
+    length: getRandomDimension(),
+    width: getRandomDimension(),
+    height: 100,
+    weight: 100,
+    cog: 50,
+    status: 'inventory',
+    position: { x: -1, y: -1 },
+  },
+  {
+    id: '10',
+    name: 'Item 10',
+    length: getRandomDimension(),
+    width: getRandomDimension(),
+    height: 100,
+    weight: 100,
+    cog: 50,
+    status: 'inventory',
+    position: { x: -1, y: -1 },
+  },
+  {
+    id: '11',
+    name: 'Item 11',
     length: getRandomDimension(),
     width: getRandomDimension(),
     height: 100,
@@ -121,23 +208,22 @@ function App(): React.JSX.Element {
         ? (position || i.position)
         : { x: -1, y: -1 };
 
-      console.log(`Updating item ${id} to status: ${status}, position: ${JSON.stringify(newPosition)}`);
       return { ...i, status, position: newPosition };
     }));
   }, []);
 
   const handleSaveAsPreset = useCallback((item: CargoItem) => {
-    console.log(`Saving item ${item.id} as preset`);
     // This would typically save the item to persistent storage
-    // For now just show a log message
+    // For now just log a message
+    console.log('Saved item as preset:', item.name);
   }, []);
-
-  const handleRemoveFromStage = useCallback((id: string) => {
-    handleUpdateItemStatus(id, 'inventory');
-  }, [handleUpdateItemStatus]);
 
   const handleAddToStage = useCallback((id: string) => {
     handleUpdateItemStatus(id, 'onStage');
+  }, [handleUpdateItemStatus]);
+
+  const handleRemoveFromStage = useCallback((id: string) => {
+    handleUpdateItemStatus(id, 'inventory');
   }, [handleUpdateItemStatus]);
 
   const handleMissionSave = useCallback((settings: MissionSettings) => {
