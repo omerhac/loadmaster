@@ -144,7 +144,19 @@ const Sidebar = ({
       isLandscape && styles.landscapeSidebar,
     ]}>
       <View style={styles.sortContainer}>
-        <Text style={styles.sortLabel}>Sort by:</Text>
+        <View style={styles.sortHeader}>
+          <Text style={styles.sortLabel}>Sort by:</Text>
+          <View style={styles.switchRow}>
+            <Switch
+              style={styles.switchStyle}
+              value={showLoadedItems}
+              onValueChange={setShowLoadedItems}
+              trackColor={{ false: '#b3b3b3', true: '#0066cc' }}
+              thumbColor={showLoadedItems ? '#ffffff' : '#f4f3f4'}
+            />
+            <Text style={styles.toggleLabel}>Show loaded</Text>
+          </View>
+        </View>
         <View style={styles.sortControls}>
           <TouchableOpacity
             style={styles.sortSelect}
@@ -171,16 +183,6 @@ const Sidebar = ({
             <Text style={styles.sortDirectionText}>{reverseSort ? '↑' : '↓'}</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.toggleContainer}>
-          <Switch
-            style={styles.switchStyle}
-            value={showLoadedItems}
-            onValueChange={setShowLoadedItems}
-            trackColor={{ false: '#b3b3b3', true: '#0066cc' }}
-            thumbColor={showLoadedItems ? '#ffffff' : '#f4f3f4'}
-          />
-          <Text style={styles.toggleLabel}>Show loaded items</Text>
-        </View>
       </View>
 
       <ScrollView style={styles.itemsList}>
@@ -206,7 +208,7 @@ const Sidebar = ({
           style={styles.addButton}
           onPress={handleAddItem}
         >
-          <Text style={styles.addButtonText}>Add Cargo Item+</Text>
+          <Text style={styles.addButtonText}>Add Item+</Text>
         </TouchableOpacity>
       </View>
 
@@ -237,28 +239,36 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   landscapeSidebar: {
-    width: 340,
+    width: 280,
     height: '100%',
     flex: 1,
   },
   sortContainer: {
-    padding: 10,
+    padding: 6,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
+  sortHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   sortLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
-    marginBottom: 5,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   sortControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
   },
   sortSelect: {
     flex: 1,
-    height: 32,
+    height: 28,
     backgroundColor: '#fff',
     borderRadius: 4,
     borderWidth: 1,
@@ -271,23 +281,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     width: '100%',
   },
   sortSelectText: {
     color: '#333',
-    fontSize: 14,
+    fontSize: 12,
     marginRight: 5,
   },
   sortSelectArrow: {
-    fontSize: 10,
+    fontSize: 8,
     color: '#555',
   },
   sortDirectionButton: {
-    marginLeft: 8,
+    marginLeft: 6,
     padding: 0,
-    height: 32,
-    width: 32,
+    height: 28,
+    width: 28,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
@@ -296,40 +306,40 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   sortDirectionText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#333',
   },
   toggleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 5,
+    marginTop: 3,
   },
   toggleLabel: {
-    marginLeft: 8,
-    fontSize: 14,
+    fontSize: 11,
     color: '#484848',
-    flex: 1,
+    marginLeft: 1,
   },
   itemsList: {
     flex: 1,
-    padding: 10,
+    padding: 6,
   },
   emptyState: {
     textAlign: 'center',
     color: '#888',
     marginTop: 20,
-    padding: 15,
+    padding: 10,
+    fontSize: 12,
   },
   addButtonContainer: {
-    padding: 15,
+    padding: 6,
     borderTopWidth: 1,
     borderTopColor: '#ddd',
   },
   addButton: {
     backgroundColor: '#0066cc',
     borderRadius: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -338,11 +348,11 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#fff',
     fontWeight: '500',
-    fontSize: 14,
+    fontSize: 12,
   },
   switchStyle: {
-    transform: [{ scaleX: 0.75 }, { scaleY: 0.75 }],
-    marginRight: -10,
+    transform: [{ scaleX: 0.65 }, { scaleY: 0.65 }],
+    marginRight: -5,
   },
 });
 

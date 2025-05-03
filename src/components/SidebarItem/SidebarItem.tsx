@@ -50,7 +50,10 @@ const SidebarItem = ({
   };
 
   // Format dimensions for display
-  const dimensions = `${item.length}" x ${item.width}" x ${item.height}"`;
+  const dimensions = `${item.length}"×${item.width}"×${item.height}"`;
+  
+  // Format weight for display
+  const weight = `${item.weight}lb`;
 
   // Determine if item is in inventory
   const isInInventory = item.status === 'inventory';
@@ -70,11 +73,15 @@ const SidebarItem = ({
           <Text style={styles.menuButtonText}>⋮</Text>
         </TouchableOpacity>
 
-        <View style={styles.itemNameContainer}>
+        <View style={styles.itemInfo}>
           <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
-          {!isExpanded && (
-            <Text style={styles.itemDimensions} numberOfLines={1}>{dimensions}</Text>
-          )}
+          
+          {!isExpanded ? (
+            <View style={styles.compactInfo}>
+              <Text style={styles.itemDimensions}>{dimensions}</Text>
+              <Text style={styles.itemWeight}>{weight}</Text>
+            </View>
+          ) : null}
         </View>
 
         <TouchableOpacity
@@ -93,16 +100,16 @@ const SidebarItem = ({
       {isExpanded && (
         <View style={styles.itemDetails}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Dimensions: </Text>
+            <Text style={styles.detailLabel}>Dim:</Text>
             <Text style={styles.detailValue}>{dimensions}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Weight: </Text>
+            <Text style={styles.detailLabel}>Weight:</Text>
             <Text style={styles.detailValue}>{item.weight} lbs</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Center of Gravity: </Text>
-            <Text style={styles.detailValue}>{item.cog} inches</Text>
+            <Text style={styles.detailLabel}>CoG:</Text>
+            <Text style={styles.detailValue}>{item.cog}"</Text>
           </View>
         </View>
       )}
@@ -113,94 +120,101 @@ const SidebarItem = ({
 const styles = StyleSheet.create({
   itemContainer: {
     backgroundColor: '#fff',
-    marginBottom: 8,
-    borderRadius: 6,
+    marginBottom: 5,
+    borderRadius: 4,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#eee',
   },
   inInventory: {
-    borderLeftWidth: 4,
+    borderLeftWidth: 3,
     borderLeftColor: '#4a90e2',
   },
   onStage: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#4fc08d', // Green color for items on stage
+    borderLeftWidth: 3,
+    borderLeftColor: '#4fc08d',
   },
   itemHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
   },
   menuButton: {
-    width: 20,
-    height: 20,
+    width: 16,
+    height: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: 4,
   },
   menuButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#555',
     textAlign: 'center',
   },
-  itemNameContainer: {
+  itemInfo: {
     flex: 1,
-    marginRight: 8,
+    marginRight: 4,
+  },
+  compactInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   itemName: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: '#333',
   },
   itemDimensions: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#666',
-    marginTop: 2,
+  },
+  itemWeight: {
+    fontSize: 10,
+    color: '#666',
+    fontWeight: '500',
   },
   actionButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: '#4a90e2',
     justifyContent: 'center',
     alignItems: 'center',
   },
   actionButtonText: {
+    fontSize: 12,
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    lineHeight: 14,
+  },
+  actionButtonRemoveText: {
     fontSize: 14,
     color: 'white',
     fontWeight: 'bold',
     textAlign: 'center',
-    lineHeight: 16,
-  },
-  actionButtonRemoveText: {
-    fontSize: 16,
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    lineHeight: 16,
+    lineHeight: 14,
   },
   itemDetails: {
-    padding: 10,
+    padding: 5,
     backgroundColor: '#f9f9f9',
     borderTopWidth: 1,
     borderTopColor: '#eee',
   },
   detailRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 6,
+    marginBottom: 2,
   },
   detailLabel: {
     fontWeight: '600',
-    fontSize: 12,
+    fontSize: 10,
     color: '#555',
-    minWidth: 60,
+    width: 45,
   },
   detailValue: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#333',
     flex: 1,
   },
