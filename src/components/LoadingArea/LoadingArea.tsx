@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, Platform, Dimensions, TouchableOpacity } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, Platform, Dimensions, findNodeHandle, UIManager } from 'react-native';
 import { CargoItem } from '../../types';
 import Deck from '../Deck/Deck';
 import Stage from '../Stage/Stage';
@@ -15,10 +15,87 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
   const isTablet = isIpad || isWindows || (Platform.OS === 'android' && Dimensions.get('window').width > 900);
   const { width, height } = Dimensions.get('window');
   const isLandscape = width > height;
+  
+  // Refs for measuring components
+  const deckRef = useRef<View>(null);
+  const [deckMeasurements, setDeckMeasurements] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  
+  // Measure the deck component after layout
+  useEffect(() => {
+    const measureDeck = () => {
+      if (deckRef.current && Platform.OS !== 'web') {
+        const nodeHandle = findNodeHandle(deckRef.current);
+        if (nodeHandle) {
+          UIManager.measure(nodeHandle, (x, y, width, height, pageX, pageY) => {
+            setDeckMeasurements({ 
+              x: pageX, 
+              y: pageY, 
+              width, 
+              height 
+            });
+            console.log('Deck measurements:', { x: pageX, y: pageY, width, height });
+          });
+        }
+      }
+    };
+    
+    // Allow component to render first
+    const timer = setTimeout(measureDeck, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Count items in stage
   const stageItems = items.filter(item => item.status === 'onStage');
   const stageItemCount = stageItems.length;
+
+  // Handle dropping an item onto the deck
+  const handleDrop = (id: string, position: { x: number, y: number }) => {
+    console.log(`Dropping item ${id} onto deck at position:`, position);
+    onUpdateItemStatus(id, 'onDeck', position);
+  };
+
+  // Handle adding an item to the stage
+  const handleAddToStage = (id: string) => {
+    console.log(`Adding item ${id} to stage`);
+    onUpdateItemStatus(id, 'onStage');
+  };
+
+  // Handle removing an item from the stage
+  const handleRemoveFromStage = (id: string) => {
+    console.log(`Removing item ${id} from stage`);
+    onUpdateItemStatus(id, 'inventory');
+  };
+  
+  // Handle removing an item from the deck (return to inventory)
+  const handleRemoveFromDeck = (id: string) => {
+    console.log(`Removing item ${id} from deck`);
+    onUpdateItemStatus(id, 'inventory');
+  };
+
+  // Handle dragging an item from stage to deck
+  const handleDragToDeck = (id: string, position: { x: number, y: number }) => {
+    console.log(`Raw drop coordinates:`, position);
+    
+    // Calculate relative position within the deck
+    // Subtracting deck's position to get coordinates relative to deck
+    // Add padding offset (10px from styles.deckContainer)
+    const adjustedPosition = {
+      x: Math.max(0, position.x - deckMeasurements.x - 10),
+      y: Math.max(0, position.y - deckMeasurements.y - 10)
+    };
+    
+    // Make sure the item stays within the deck boundaries
+    if (adjustedPosition.x > deckMeasurements.width - 20) {
+      adjustedPosition.x = deckMeasurements.width - 50;
+    }
+    
+    if (adjustedPosition.y > deckMeasurements.height - 20) {
+      adjustedPosition.y = deckMeasurements.height - 50;
+    }
+    
+    console.log(`Dragging item ${id} from stage to deck at adjusted position:`, adjustedPosition);
+    onUpdateItemStatus(id, 'onDeck', adjustedPosition);
+  };
 
   return (
     <View style={[
@@ -26,10 +103,33 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
       isTablet && styles.tabletLoadingArea,
       isLandscape && styles.landscapeLoadingArea,
     ]}>
-      <Deck
-        items={items}
-        onDrop={(id, position) => onUpdateItemStatus(id, 'onDeck', position)}
-      />
+      <View 
+        ref={deckRef}
+        style={styles.deckWrapper}
+        onLayout={() => {
+          // Re-measure when layout changes
+          if (deckRef.current && Platform.OS !== 'web') {
+            const nodeHandle = findNodeHandle(deckRef.current);
+            if (nodeHandle) {
+              UIManager.measure(nodeHandle, (x, y, width, height, pageX, pageY) => {
+                setDeckMeasurements({ 
+                  x: pageX, 
+                  y: pageY, 
+                  width, 
+                  height 
+                });
+                console.log('Deck measurements on layout:', { x: pageX, y: pageY, width, height });
+              });
+            }
+          }
+        }}
+      >
+        <Deck
+          items={items}
+          onDrop={handleDrop}
+          onRemoveFromDeck={handleRemoveFromDeck}
+        />
+      </View>
 
       <View style={styles.stageAreaContainer}>
         <View style={styles.stageHeader}>
@@ -41,8 +141,9 @@ const LoadingArea = ({ items, onUpdateItemStatus }: LoadingAreaProps) => {
 
         <Stage
           items={items}
-          onRemoveFromStage={(id) => onUpdateItemStatus(id, 'inventory')}
-          onAddToStage={(id) => onUpdateItemStatus(id, 'onStage')}
+          onRemoveFromStage={handleRemoveFromStage}
+          onAddToStage={handleAddToStage}
+          onDragToDeck={handleDragToDeck}
         />
       </View>
     </View>
@@ -62,6 +163,9 @@ const styles = StyleSheet.create({
   landscapeLoadingArea: {
     flex: 3,
   },
+  deckWrapper: {
+    flex: 2,
+  },
   stageAreaContainer: {
     flex: 1,
     display: 'flex',
@@ -70,6 +174,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#ddd',
     marginTop: 10,
     position: 'relative',
+    backgroundColor: '#ffffff',
   },
   stageHeader: {
     flexDirection: 'row',
@@ -77,6 +182,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
   },
   stageTitle: {
     fontSize: 14,

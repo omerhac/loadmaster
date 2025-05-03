@@ -17,6 +17,7 @@ import Preview from './src/components/Preview/Preview';
 import { v4 as uuidv4 } from 'uuid';
 import { lockToLandscape } from './src/utils/orientationLock';
 
+
 function getRandomDimension(min: number = 50, max: number = 120): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -62,10 +63,6 @@ function App(): React.JSX.Element {
   const [missionSettings, setMissionSettings] = useState<MissionSettings | null>(null);
   const [cargoItems, setCargoItems] = useState<CargoItem[]>(DEFAULT_CARGO_ITEMS);
   const [isLandscape, setIsLandscape] = useState(true);
-
-  const isTablet = Platform.OS === 'ios' && Platform.isPad ||
-                   Platform.OS === 'windows' ||
-                   (Platform.OS === 'android' && Dimensions.get('window').width > 900);
 
   useEffect(() => {
     lockToLandscape();
@@ -124,6 +121,7 @@ function App(): React.JSX.Element {
         ? (position || i.position)
         : { x: -1, y: -1 };
 
+      console.log(`Updating item ${id} to status: ${status}, position: ${JSON.stringify(newPosition)}`);
       return { ...i, status, position: newPosition };
     }));
   }, []);
@@ -191,19 +189,16 @@ function App(): React.JSX.Element {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    width: '100%',
     backgroundColor: '#f5f5f5',
   },
   safeArea: {
     flex: 1,
-    width: '100%',
     backgroundColor: '#f5f5f5',
   },
   planningContainer: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    width: '100%',
   },
   landscapeContainer: {
     flexDirection: 'column',
@@ -214,7 +209,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     flexDirection: 'row',
-    width: '100%',
   },
 });
 
