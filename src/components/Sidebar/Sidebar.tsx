@@ -13,6 +13,9 @@ type SidebarProps = {
   onDeleteItem: (id: string) => void;
   onDuplicateItem: (id: string) => void;
   onUpdateItemStatus: (id: string, status: Status, position?: Position) => void;
+  onSaveAsPreset: (item: CargoItem) => void;
+  onAddToStage: (id: string) => void;
+  onRemoveFromStage: (id: string) => void;
 };
 
 const Sidebar = ({
@@ -22,6 +25,9 @@ const Sidebar = ({
   onDeleteItem,
   onDuplicateItem,
   onUpdateItemStatus,
+  onSaveAsPreset,
+  onAddToStage,
+  onRemoveFromStage,
 }: SidebarProps) => {
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<CargoItem | null>(null);
@@ -46,12 +52,9 @@ const Sidebar = ({
     setIsAddModalVisible(true);
   };
 
-  const handleEditItem = (id: string) => {
-    const item = items.find(i => i.id === id);
-    if (item) {
-      setEditingItem(item);
-      setIsAddModalVisible(true);
-    }
+  const handleEditItem = (item: CargoItem) => {
+    setEditingItem(item);
+    setIsAddModalVisible(true);
   };
 
   const handleSaveItem = (item: CargoItem) => {
@@ -71,6 +74,18 @@ const Sidebar = ({
   // Add to staging area by updating item status to 'onStage'
   const handleAddToStage = (id: string) => {
     onUpdateItemStatus(id, 'onStage');
+  };
+
+  // Remove from staging area by updating item status to 'inventory'
+  const handleRemoveFromStage = (id: string) => {
+    onUpdateItemStatus(id, 'inventory');
+  };
+
+  // Save item as preset (can be implemented later if needed)
+  const handleSaveAsPreset = (item: CargoItem) => {
+    console.log('Save as preset:', item);
+    // This would typically save the item to some form of persistent storage
+    // For now it's just a placeholder
   };
 
   return (
@@ -126,8 +141,9 @@ const Sidebar = ({
             onEdit={handleEditItem}
             onDelete={onDeleteItem}
             onDuplicate={onDuplicateItem}
-            onDragStart={handleDragStart}
-            onAddToStage={handleAddToStage}
+            onSaveAsPreset={handleSaveAsPreset}
+            onAddToStage={onAddToStage}
+            onRemoveFromStage={onRemoveFromStage}
           />
         ))}
         {filteredItems.length === 0 && (

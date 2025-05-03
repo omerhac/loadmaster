@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { CargoItem } from '../../types';
 
 type SidebarItemProps = {
   item: CargoItem;
-  onEdit: (id: string) => void;
+  onEdit: (item: CargoItem) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
-  onDragStart: (item: CargoItem) => void;
+  onSaveAsPreset: (item: CargoItem) => void;
   onAddToStage: (id: string) => void;
+  onRemoveFromStage: (id: string) => void;
 };
 
 const SidebarItem = ({
@@ -16,8 +17,9 @@ const SidebarItem = ({
   onEdit,
   onDelete,
   onDuplicate,
-  onDragStart,
+  onSaveAsPreset,
   onAddToStage,
+  onRemoveFromStage,
 }: SidebarItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -25,85 +27,83 @@ const SidebarItem = ({
     setIsExpanded(!isExpanded);
   };
 
-  const handleStartDrag = () => {
-    onDragStart(item);
-  };
-
   const handleAddToStage = () => {
-    console.log(`SidebarItem: handleAddToStage called for item ${item.id}`);
-    onAddToStage(item.id);
+    if (item.status === 'inventory') {
+      onAddToStage(item.id);
+    } else {
+      onRemoveFromStage(item.id);
+    }
   };
 
-  // Format dimensions for display - Use all three dimensions like reference
-  const dimensions = `${item.length}\" x ${item.width}\" x ${item.height}\"`;
+  const showActionsMenu = () => {
+    Alert.alert(
+      'Item Actions',
+      'Choose an action:',
+      [
+        { text: 'Edit item', onPress: () => onEdit(item) },
+        { text: 'Duplicate item', onPress: () => onDuplicate(item.id) },
+        { text: 'Save as preset', onPress: () => onSaveAsPreset(item) },
+        { text: 'Delete item', style: 'destructive', onPress: () => onDelete(item.id) },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
 
-  // Show different styles or disable button based on item status
+  // Format dimensions for display
+  const dimensions = `${item.length}" x ${item.width}" x ${item.height}"`;
+
+  // Determine if item is in inventory
   const isInInventory = item.status === 'inventory';
-  const addButtonStyle = isInInventory ? styles.addButton : [styles.addButton, styles.addButtonDisabled];
-  const addButtonTextStyle = isInInventory ? styles.addButtonText : [styles.addButtonText, styles.addButtonTextDisabled];
 
   return (
-    <View style={styles.itemContainer}>
-      <View style={styles.itemContent}>
-        <TouchableOpacity style={styles.dragHandle} onPress={handleStartDrag}>
-          <Text style={styles.iconText}>≡</Text>
-        </TouchableOpacity>
-
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemName}>{item.name}</Text>
-          <Text style={styles.itemDimensions}>{dimensions}</Text>
-        </View>
-
+    <View style={[styles.itemContainer, isInInventory ? styles.inInventory : null]}>
+      <TouchableOpacity 
+        activeOpacity={0.8}
+        onPress={toggleExpand}
+        style={styles.itemHeader}
+      >
         <TouchableOpacity 
-          style={addButtonStyle}
-          onPress={handleAddToStage}
-          disabled={!isInInventory} // Disable if not in inventory
+          style={styles.menuButton}
+          onPress={showActionsMenu}
+          hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
         >
-          <Text style={addButtonTextStyle}>+</Text>
+          <Text style={styles.menuButtonText}>⋮</Text>
         </TouchableOpacity>
-      </View>
+        
+        <View style={styles.itemNameContainer}>
+          <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
+          {!isExpanded && (
+            <Text style={styles.itemDimensions} numberOfLines={1}>{dimensions}</Text>
+          )}
+        </View>
+        
+        <TouchableOpacity 
+          style={styles.actionButton}
+          onPress={handleAddToStage}
+          hitSlop={{top: 5, bottom: 5, left: 5, right: 5}}
+        >
+          <Text style={styles.actionButtonText}>
+            {isInInventory ? '+' : '−'}
+          </Text>
+        </TouchableOpacity>
+      </TouchableOpacity>
 
       {isExpanded && (
-        <View style={styles.expandedDetails}>
+        <View style={styles.itemDetails}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Dimensions:</Text>
+            <Text style={styles.detailLabel}>Dimensions: </Text>
             <Text style={styles.detailValue}>{dimensions}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Weight:</Text>
-            <Text style={styles.detailValue}>{item.weight} kg</Text>
+            <Text style={styles.detailLabel}>Weight: </Text>
+            <Text style={styles.detailValue}>{item.weight} lbs</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Status:</Text>
-            <Text style={styles.detailValue}>{item.status}</Text>
-          </View>
-          
-          <View style={styles.expandedActions}>
-            <TouchableOpacity 
-              style={[styles.actionButtonLarge, styles.editButton]} 
-              onPress={() => onEdit(item.id)}
-            >
-              <Text style={styles.actionButtonText}>Edit</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionButtonLarge, styles.duplicateButton]} 
-              onPress={() => onDuplicate(item.id)}
-            >
-              <Text style={styles.actionButtonText}>Duplicate</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionButtonLarge, styles.deleteButton]} 
-              onPress={() => onDelete(item.id)}
-            >
-              <Text style={styles.actionButtonText}>Delete</Text>
-            </TouchableOpacity>
+            <Text style={styles.detailLabel}>Center of Gravity: </Text>
+            <Text style={styles.detailValue}>{item.cog} inches</Text>
           </View>
         </View>
       )}
-      
-      <TouchableOpacity style={styles.expandToggle} onPress={toggleExpand}>
-        <Text style={styles.expandToggleText}>{isExpanded ? '▲' : '▼'}</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -117,16 +117,32 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#eee',
   },
-  itemContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+  inInventory: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#4a90e2',
   },
-  itemInfo: {
+  itemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+  },
+  menuButton: {
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  menuButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#555',
+    textAlign: 'center',
+  },
+  itemNameContainer: {
     flex: 1,
-    marginHorizontal: 10,
+    marginRight: 8,
   },
   itemName: {
     fontSize: 14,
@@ -134,93 +150,46 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   itemDimensions: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#666',
     marginTop: 2,
   },
-  dragHandle: {
-    padding: 5,
-  },
-  addButton: {
+  actionButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#4a90e2',
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
     justifyContent: 'center',
-  },
-  addButtonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  addButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  addButtonTextDisabled: {
-    color: '#999',
-  },
-  iconText: {
-    fontSize: 16,
-    color: '#555',
-    fontWeight: 'bold',
-  },
-  expandToggle: {
-    backgroundColor: '#f5f5f5',
     alignItems: 'center',
-    padding: 4,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
   },
-  expandToggleText: {
-    fontSize: 10,
-    color: '#888',
+  actionButtonText: {
+    fontSize: 14,
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    lineHeight: 16,
   },
-  expandedDetails: {
-    padding: 12,
+  itemDetails: {
+    padding: 10,
     backgroundColor: '#f9f9f9',
     borderTopWidth: 1,
     borderTopColor: '#eee',
   },
   detailRow: {
     flexDirection: 'row',
-    marginBottom: 8,
+    flexWrap: 'wrap',
+    marginBottom: 6,
   },
   detailLabel: {
     fontWeight: '600',
-    width: 100,
+    fontSize: 12,
     color: '#555',
+    minWidth: 60,
   },
   detailValue: {
-    flex: 1,
-    color: '#333',
-  },
-  expandedActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  actionButtonLarge: {
-    flex: 1,
-    paddingVertical: 8,
-    marginHorizontal: 4,
-    borderRadius: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  editButton: {
-    backgroundColor: '#0066cc',
-  },
-  duplicateButton: {
-    backgroundColor: '#33cc33',
-  },
-  deleteButton: {
-    backgroundColor: '#cc3333',
-  },
-  actionButtonText: {
-    color: '#fff',
-    fontWeight: '600',
     fontSize: 12,
+    color: '#333',
+    flex: 1,
   },
 });
 

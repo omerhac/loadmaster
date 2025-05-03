@@ -126,6 +126,20 @@ function App(): React.JSX.Element {
     }));
   }, []);
 
+  const handleSaveAsPreset = useCallback((item: CargoItem) => {
+    console.log(`Saving item ${item.id} as preset`);
+    // This would typically save the item to persistent storage
+    // For now just show a log message
+  }, []);
+
+  const handleRemoveFromStage = useCallback((id: string) => {
+    handleUpdateItemStatus(id, 'inventory');
+  }, [handleUpdateItemStatus]);
+
+  const handleAddToStage = useCallback((id: string) => {
+    handleUpdateItemStatus(id, 'onStage');
+  }, [handleUpdateItemStatus]);
+
   const handleMissionSave = useCallback((settings: MissionSettings) => {
     setMissionSettings(settings);
     setCurrentView('planning');
@@ -160,6 +174,9 @@ function App(): React.JSX.Element {
             onDeleteItem={handleDeleteItem}
             onDuplicateItem={handleDuplicateItem}
             onUpdateItemStatus={handleUpdateItemStatus}
+            onSaveAsPreset={handleSaveAsPreset}
+            onAddToStage={handleAddToStage}
+            onRemoveFromStage={handleRemoveFromStage}
           />
           <LoadingArea
             items={cargoItems}
