@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,14 +17,24 @@ import { CargoItem } from '../../types';
 import { lockToLandscape } from '../../utils/orientationLock';
 import { styles } from './AddCargoItemModal.styles';
 
-type AddCargoItemModalProps = {
+interface AddCargoItemModalProps {
   initialItem?: CargoItem;
   onSave: (item: CargoItem) => void;
   onCancel: () => void;
   savedPresets?: CargoItem[];
+}
+
+// Generate a simple ID without using uuid
+const generateID = () => {
+  return Date.now().toString() + Math.floor(Math.random() * 1000000).toString();
 };
 
-const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }: AddCargoItemModalProps) => {
+const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({ 
+  initialItem, 
+  onSave, 
+  onCancel, 
+  savedPresets = [] 
+}) => {
   const [name, setName] = useState('');
   const [length, setLength] = useState<string>('');
   const [width, setWidth] = useState<string>('');
@@ -57,8 +67,16 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
     lockToLandscape();
   }, []);
 
+  // Update COG when length changes
+  useEffect(() => {
+    const lengthValue = parseFloat(length || '0');
+    if (lengthValue > 0) {
+      setCog((lengthValue / 2).toFixed(1));
+    }
+  }, [length]);
+
   // Check if form data is valid
-  const isDataValid = () => {
+  const isDataValid = useMemo(() => {
     return (
       name.trim() !== '' &&
       parseFloat(length || '0') > 0 &&
@@ -66,16 +84,11 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
       parseFloat(height || '0') > 0 &&
       parseFloat(weight || '0') > 0
     );
-  };
+  }, [name, length, width, height, weight]);
 
   // Handle form submission
-  const handleSubmit = () => {
-    if (!isDataValid()) {return;}
-
-    // Generate a simple ID without using uuid
-    const generateID = () => {
-      return Date.now().toString() + Math.floor(Math.random() * 1000000).toString();
-    };
+  const handleSubmit = useCallback(() => {
+    if (!isDataValid) return;
 
     const cogValue = parseFloat(cog || '0');
     const lengthValue = parseFloat(length);
@@ -93,18 +106,10 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
     };
 
     onSave(itemToSave);
-  };
-
-  // Update COG when length changes
-  useEffect(() => {
-    const lengthValue = parseFloat(length || '0');
-    if (lengthValue > 0) {
-      setCog((lengthValue / 2).toFixed(1));
-    }
-  }, [length]);
+  }, [name, length, width, height, weight, cog, initialItem, isDataValid, onSave]);
 
   // Handle loading a preset
-  const handleLoadPreset = (preset: CargoItem) => {
+  const handleLoadPreset = useCallback((preset: CargoItem) => {
     setName(preset.name);
     setLength(preset.length.toString());
     setWidth(preset.width.toString());
@@ -112,10 +117,10 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
     setWeight(preset.weight.toString());
     setCog(preset.cog.toString());
     setShowPresets(false);
-  };
+  }, []);
 
   // Toggle preset dropdown visibility
-  const togglePresetDropdown = () => {
+  const togglePresetDropdown = useCallback(() => {
     if (savedPresets.length === 0) {
       Alert.alert(
         'No Presets Available',
@@ -124,8 +129,21 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
       );
       return;
     }
-    setShowPresets(!showPresets);
-  };
+    setShowPresets(prev => !prev);
+  }, [savedPresets.length]);
+
+  // Render a preset item
+  const renderPresetItem = useCallback(({ item }: { item: CargoItem }) => (
+    <TouchableOpacity
+      style={styles.presetItem}
+      onPress={() => handleLoadPreset(item)}
+    >
+      <Text style={styles.presetItemName}>{item.name}</Text>
+      <Text style={styles.presetItemDimensions}>
+        {`${item.length}" x ${item.width}" x ${item.height}"`}
+      </Text>
+    </TouchableOpacity>
+  ), [handleLoadPreset, styles]);
 
   return (
     <Modal
@@ -170,17 +188,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
                       <FlatList
                         data={savedPresets}
                         keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => (
-                          <TouchableOpacity
-                            style={styles.presetItem}
-                            onPress={() => handleLoadPreset(item)}
-                          >
-                            <Text style={styles.presetItemName}>{item.name}</Text>
-                            <Text style={styles.presetItemDimensions}>
-                              {`${item.length}" x ${item.width}" x ${item.height}"`}
-                            </Text>
-                          </TouchableOpacity>
-                        )}
+                        renderItem={renderPresetItem}
                         style={styles.presetList}
                       />
                     </View>
@@ -280,9 +288,9 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
 
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity
-                    style={[styles.saveButton, !isDataValid() && styles.saveButtonDisabled]}
+                    style={[styles.saveButton, !isDataValid && styles.saveButtonDisabled]}
                     onPress={handleSubmit}
-                    disabled={!isDataValid()}
+                    disabled={!isDataValid}
                   >
                     <Text style={styles.saveButtonText}>
                       {initialItem ? 'Update Item' : 'Add Item'}
@@ -296,6 +304,8 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
       </TouchableWithoutFeedback>
     </Modal>
   );
-};
+});
+
+AddCargoItemModal.displayName = 'AddCargoItemModal';
 
 export default AddCargoItemModal;

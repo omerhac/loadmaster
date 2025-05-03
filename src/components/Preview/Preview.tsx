@@ -1,20 +1,37 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { CargoItem } from '../../types';
 import { styles } from './Preview.styles';
 
-type PreviewProps = {
+interface PreviewProps {
   items: CargoItem[];
   onSave: (items: CargoItem[]) => void;
   onReturn: () => void;
-};
+}
 
-const Preview = ({ items, onReturn }: PreviewProps) => {
+const Preview: React.FC<PreviewProps> = React.memo(({ 
+  items, 
+  onReturn 
+}) => {
+  const itemsOnDeck = useMemo(() => 
+    items.filter(i => i.status === 'onDeck').length, 
+    [items]
+  );
+  
+  const itemsOnStage = useMemo(() => 
+    items.filter(i => i.status === 'onStage').length, 
+    [items]
+  );
+
+  const handleReturn = useCallback(() => {
+    onReturn();
+  }, [onReturn]);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Mission Preview</Text>
-        <TouchableOpacity onPress={onReturn} style={styles.backButton}>
+        <TouchableOpacity onPress={handleReturn} style={styles.backButton}>
           <Text style={styles.backButtonText}>Back to Planning</Text>
         </TouchableOpacity>
       </View>
@@ -28,14 +45,16 @@ const Preview = ({ items, onReturn }: PreviewProps) => {
           {`Total Items: ${items.length}`}
         </Text>
         <Text style={styles.statsText}>
-          {`Items on Deck: ${items.filter(i => i.status === 'onDeck').length}`}
+          {`Items on Deck: ${itemsOnDeck}`}
         </Text>
         <Text style={styles.statsText}>
-          {`Items on Stage: ${items.filter(i => i.status === 'onStage').length}`}
+          {`Items on Stage: ${itemsOnStage}`}
         </Text>
       </View>
     </View>
   );
-};
+});
+
+Preview.displayName = 'Preview';
 
 export default Preview;
