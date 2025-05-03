@@ -1,0 +1,163 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  keyboardAvoidingView: {
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 20,
+    width: '80%',
+    maxWidth: 800,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: '#666',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#333',
+  },
+  presetContainer: {
+    position: 'relative',
+    marginBottom: 15,
+    zIndex: 2,
+  },
+  loadPresetButton: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  loadPresetText: {
+    color: '#333',
+    fontWeight: '500',
+    fontSize: 14,
+  },
+  presetDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 3,
+    zIndex: 3,
+  },
+  presetList: {
+    maxHeight: 150,
+  },
+  presetItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  presetItemName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+  },
+  presetItemDimensions: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  compactFormContainer: {
+    padding: 5,
+  },
+  formRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    width: '100%',
+  },
+  formColumn: {
+    width: '24%',
+    paddingHorizontal: 5,
+  },
+  formFullWidth: {
+    width: '100%',
+    paddingHorizontal: 5,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 5,
+    color: '#333',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    padding: 8,
+    fontSize: 14,
+    height: 38,
+  },
+  cogContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  slider: {
+    flex: 1,
+    height: 38,
+    marginRight: 10,
+  },
+  cogInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    padding: 8,
+    width: 80,
+    textAlign: 'center',
+    height: 38,
+  },
+  buttonContainer: {
+    marginTop: 15,
+  },
+  saveButton: {
+    backgroundColor: '#0066cc',
+    borderRadius: 4,
+    padding: 12,
+    alignItems: 'center',
+    height: 44,
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#b3b3b3',
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+}); 

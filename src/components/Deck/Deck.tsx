@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, ImageBackground, PanResponder, Animated, TouchableOpacity } from 'react-native';
+import { View, Text, ImageBackground, PanResponder, Animated, TouchableOpacity } from 'react-native';
 import { CargoItem, Position } from '../../types';
 import { Images } from '../../assets';
+import { styles } from './Deck.styles';
 
 type DeckProps = {
   items: CargoItem[];
@@ -134,73 +135,5 @@ const Deck = ({ items, onDrop, onRemoveFromDeck }: DeckProps) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  deckContainer: {
-    flex: 2,
-    padding: 10,
-  },
-  deck: {
-    flex: 1,
-    backgroundColor: '#e5e5e5',
-    borderRadius: 8,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  cargoItem: {
-    position: 'absolute',
-    backgroundColor: '#4a90e2',
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    zIndex: 1,
-  },
-  selectedItem: {
-    borderWidth: 2,
-    borderColor: '#ff6b6b',
-    zIndex: 2,
-  },
-  draggingItem: {
-    opacity: 0.8,
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    zIndex: 999,
-  },
-  itemName: {
-    color: '#fff',
-    fontWeight: '500',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  itemContentContainer: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 4,
-  },
-  removeButton: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    backgroundColor: '#ff6b6b',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 3,
-  },
-  removeButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});
 
 export default Deck;

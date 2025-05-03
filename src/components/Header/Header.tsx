@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import FloatingMenu from '../FloatingMenu/FloatingMenu';
 import {
   NewIcon,
@@ -9,6 +9,7 @@ import {
   PreviewIcon,
   BurgerMenuIcon,
 } from '../icons';
+import { styles } from './Header.styles';
 
 interface HeaderProps {
   onSettingsClick: () => void;
@@ -71,31 +72,5 @@ const Header = ({ onSettingsClick, onPreviewClick }: HeaderProps) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  header: {
-    backgroundColor: '#333',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: Platform.OS === 'ios' ? 50 : 45,
-    zIndex: 100,
-    width: '100%',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  burgerButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-});
 
 export default Header;

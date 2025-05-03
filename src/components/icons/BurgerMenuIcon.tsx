@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
+import { styles } from './BurgerMenuIcon.styles';
 
 const BurgerMenuIcon = () => {
   return (
@@ -10,22 +11,5 @@ const BurgerMenuIcon = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    width: 24,
-    height: 24,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  line: {
-    width: 24,
-    height: 2,
-    backgroundColor: 'white',
-    marginVertical: 2,
-    borderRadius: 1,
-  },
-});
 
 export default BurgerMenuIcon;
