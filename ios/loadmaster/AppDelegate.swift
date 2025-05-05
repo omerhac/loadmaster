@@ -12,6 +12,16 @@ class AppDelegate: RCTAppDelegate {
     // You can add your custom initial props in the dictionary below.
     // They will be passed down to the ViewController used by React Native.
     self.initialProps = [:]
+    
+    // Force landscape orientation for iPad
+    if UIDevice.current.userInterfaceIdiom == .pad {
+      // Set the initial orientation
+      UIDevice.current.setValue(UIInterfaceOrientation.landscapeRight.rawValue, forKey: "orientation")
+      
+      // Apply rotation
+      let value = UIInterfaceOrientation.landscapeRight.rawValue
+      UIDevice.current.setValue(value, forKey: "orientation")
+    }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
@@ -26,5 +36,13 @@ class AppDelegate: RCTAppDelegate {
 #else
     Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #endif
+  }
+  
+  // Lock orientation to landscape for iPad
+  override func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+    if UIDevice.current.userInterfaceIdiom == .pad {
+      return .landscape
+    }
+    return .all
   }
 }

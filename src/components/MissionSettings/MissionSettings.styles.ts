@@ -1,0 +1,141 @@
+import { StyleSheet, Platform } from 'react-native';
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#333',
+    padding: 8,
+    paddingTop: Platform.OS === 'ios' ? 40 : 8,
+  },
+  headerButton: {
+    backgroundColor: '#007bff',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 4,
+  },
+  headerButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  scrollContainer: {
+    padding: 10,
+  },
+  formGroup: {
+    backgroundColor: 'white',
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 3,
+  },
+  subsectionTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    padding: 6,
+    marginBottom: 8,
+    backgroundColor: '#fff',
+    fontSize: 13,
+    height: 32,
+  },
+  inputHalf: {
+    flex: 1,
+    marginHorizontal: 2,
+  },
+  numberInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    padding: 6,
+    flex: 1,
+    backgroundColor: '#fff',
+    fontSize: 13,
+    height: 32,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  inputGroup: {
+    flex: 1,
+    marginRight: 8,
+  },
+  switchContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  labelSmall: {
+    fontSize: 12,
+    marginBottom: 2,
+    color: '#555',
+  },
+  fuelDistribution: {
+    marginTop: 5,
+  },
+  sliderContainer: {
+    marginTop: 5,
+  },
+  sliderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  sliderLabel: {
+    fontSize: 12,
+    width: 55,
+    color: '#555',
+  },
+  slider: {
+    flex: 1,
+    height: 30,
+    marginHorizontal: 5,
+  },
+  sliderValue: {
+    fontSize: 12,
+    color: '#333',
+    width: 40,
+    textAlign: 'right',
+  },
+  textArea: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    padding: 6,
+    height: 60,
+    backgroundColor: '#fff',
+    fontSize: 13,
+  },
+});
