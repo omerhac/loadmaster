@@ -32,9 +32,18 @@ const config = {
       new RegExp(`${rnwPath}/build/.*`),
       new RegExp(`${rnwPath}/target/.*`),
       /.*\.ProjectImports\.zip/,
+      /node_modules\/better-sqlite3\/.*/,
     ]),
     assetExts: assetExts.filter(ext => ext !== 'svg'),
     sourceExts: [...sourceExts, 'svg'],
+    // Mock native modules to prevent errors
+    extraNodeModules: {
+      'sqlite3': require.resolve('./src/mocks/sqlite3Mock.js'),
+      'better-sqlite3': require.resolve('./src/mocks/better-sqlite3Mock.js'),
+      // Add core Node.js modules as mocks
+      'fs': require.resolve('./src/mocks/fsMock.js'),
+      'path': require.resolve('./src/mocks/pathMock.js')
+    }
     //
   },
   transformer: {
