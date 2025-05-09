@@ -1,8 +1,7 @@
 import SQLite, { SQLiteDatabase } from 'react-native-sqlite-storage';
 import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
-import { DatabaseResponse, SqlStatement, QueryResult } from '@/services/db/DatabaseTypes';
-import { TestDatabaseService } from '@/services/db/TestDatabaseService';
+import { DatabaseResponse, SqlStatement, QueryResult } from './DatabaseTypes';
 
 declare const process: {
   env: {
@@ -43,6 +42,7 @@ export class DatabaseFactory {
       const isTestEnvironment = process.env.NODE_ENV === 'test';
       if (isTestEnvironment) {
         // For Jest tests, we'll use the TestDatabaseService
+        const { TestDatabaseService } = require('./TestDatabaseService');
         this.instance = await TestDatabaseService.initialize();
       } else {
         // For production app, use the native implementation

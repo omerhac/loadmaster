@@ -13,7 +13,7 @@ import {
   getAircraftById,
   getFuelStateByMissionId,
   findClosestFuelMacConfiguration,
-} from '@/services/db/operations';
+} from '../db/operations';
 
 /**
  * Calculates the MAC percentage for a given mission

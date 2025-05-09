@@ -6,7 +6,7 @@ import {
   CargoItem as DBCargoItem,
   Compartment as DBCompartment,
   CargoType as DBCargoType,
-} from '@/services/db/operations';
+} from '../db/operations';
 
 import {
   getTouchpointCompartments,
