@@ -15,11 +15,23 @@ import LoadingArea from './src/components/LoadingArea/LoadingArea';
 import MissionSettingsComponent from './src/components/MissionSettings/MissionSettings';
 import Preview from './src/components/Preview/Preview';
 import { lockToLandscape } from './src/utils/orientationLock';
+import initAppDatabase from './src/initAppDatabase';
+import { getCargoItemsByMissionId } from './src/services/db/operations/CargoItemOperations';
+
+const DEFAULT_MISSION_ID = 1;
+
+initAppDatabase();
+
+async function getDefaultCargoItems() {
+  const defaultCargoItems = await getCargoItemsByMissionId(DEFAULT_MISSION_ID);
+  return defaultCargoItems;
+}
+getDefaultCargoItems().then(items => console.log(items));
 
 // Helper function to generate a simple ID without relying on crypto
 const generateId = () => {
   return Math.random().toString(36).substring(2, 15) +
-         Math.random().toString(36).substring(2, 15);
+    Math.random().toString(36).substring(2, 15);
 };
 
 function getRandomDimension(min: number = 50, max: number = 120): number {
@@ -188,7 +200,7 @@ function App(): React.JSX.Element {
   const handleDuplicateItem = useCallback((id: string) => {
     setCargoItems(prev => {
       const itemToDuplicate = prev.find(item => item.id === id);
-      if (!itemToDuplicate) {return prev;}
+      if (!itemToDuplicate) { return prev; }
 
       const newItem = {
         ...itemToDuplicate,
@@ -207,7 +219,7 @@ function App(): React.JSX.Element {
     position?: Position
   ) => {
     setCargoItems(prev => prev.map(i => {
-      if (i.id !== id) {return i;}
+      if (i.id !== id) { return i; }
 
       const newPosition = status === 'onDeck'
         ? (position || i.position)

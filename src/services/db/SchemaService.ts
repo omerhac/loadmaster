@@ -127,6 +127,7 @@ export function getCargoTypeTableSchema(): SchemaDefinition {
         default_height REAL NOT NULL,
         default_forward_overhang REAL NOT NULL,
         default_back_overhang REAL NOT NULL,
+        default_cog REAL NOT NULL,
         type TEXT CHECK (type IN ('bulk', '2_wheeled', '4_wheeled')) NOT NULL,
         FOREIGN KEY (user_id) REFERENCES user (id)
       );
@@ -152,6 +153,7 @@ export function getCargoItemTableSchema(): SchemaDefinition {
         height REAL NOT NULL,
         forward_overhang REAL NOT NULL,
         back_overhang REAL NOT NULL,
+        cog REAL NOT NULL,
         x_start_position REAL NOT NULL,
         y_start_position REAL NOT NULL,
         FOREIGN KEY (mission_id) REFERENCES mission (id),

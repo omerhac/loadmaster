@@ -42,6 +42,7 @@ export interface CargoType {
   default_height: number;
   default_forward_overhang: number;
   default_back_overhang: number;
+  default_cog?: number;
   type: 'bulk' | '2_wheeled' | '4_wheeled';
 }
 
@@ -56,6 +57,7 @@ export interface CargoItem {
   height?: number;
   forward_overhang?: number;
   back_overhang?: number;
+  cog?: number;
   x_start_position: number;
   y_start_position: number;
 }

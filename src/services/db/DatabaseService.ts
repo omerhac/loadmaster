@@ -39,8 +39,7 @@ export class DatabaseFactory {
 
   static async getDatabase(): Promise<DatabaseInterface> {
     if (!this.instance) {
-      const isTestEnvironment = process.env.NODE_ENV === 'test';
-      if (isTestEnvironment) {
+      if (__DEV__ && process.env.NODE_ENV === 'test') {
         // For Jest tests, we'll use the TestDatabaseService
         const { TestDatabaseService } = require('./TestDatabaseService');
         this.instance = await TestDatabaseService.initialize();
