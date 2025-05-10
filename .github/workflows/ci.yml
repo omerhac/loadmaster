@@ -90,6 +90,10 @@ jobs:
     - name: Run tests
       run: npm test
       
+    - name: Install RNW Dependencies
+      run: .\node_modules\react-native-windows\scripts\rnw-dependencies.ps1
+      shell: pwsh # or powershell
+      
     # Build for Windows tablets
     - name: Build Windows
       run: |
