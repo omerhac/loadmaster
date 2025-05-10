@@ -17,6 +17,7 @@ import Preview from './src/components/Preview/Preview';
 import { lockToLandscape } from './src/utils/orientationLock';
 import initAppDatabase from './src/initAppDatabase';
 import { getCargoItemsByMissionId } from './src/services/db/operations/CargoItemOperations';
+import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
 
 const DEFAULT_MISSION_ID = 1;
 
@@ -38,138 +39,42 @@ function getRandomDimension(min: number = 50, max: number = 120): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-const DEFAULT_CARGO_ITEMS: CargoItem[] = [
-  {
-    id: '1',
-    name: 'Item 1',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '2',
-    name: 'Item 2',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '3',
-    name: 'Item 3',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '4',
-    name: 'Item 4',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '5',
-    name: 'Item 5',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '6',
-    name: 'Item 6',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '7',
-    name: 'Item 7',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '8',
-    name: 'Item 8',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '9',
-    name: 'Item 9',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '10',
-    name: 'Item 10',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '11',
-    name: 'Item 11',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-];
+function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
+  const id = item.id?.toString() ?? generateId();
+  const position = { x: item.x_start_position, y: item.y_start_position };
+  const status = 'inventory' as const;
+  const name = item.name;
+  const length = item.length ?? 0;
+  const width = item.width ?? 0;
+  const height = item.height ?? 0;
+  const weight = item.weight ?? 0;
+  const cog = item.cog ?? 0;
+  return {
+    id,
+    name,
+    length,
+    width,
+    height,
+    weight,
+    cog,
+    status,
+    position,
+  };
+}
 
 function App(): React.JSX.Element {
   const [currentView, setCurrentView] = useState<AppView>('planning');
   const [missionSettings, setMissionSettings] = useState<MissionSettings | null>(null);
-  const [cargoItems, setCargoItems] = useState<CargoItem[]>(DEFAULT_CARGO_ITEMS);
+  const [cargoItems, setCargoItems] = useState<CargoItem[]>([]);
   const [isLandscape, setIsLandscape] = useState(true);
 
   useEffect(() => {
     lockToLandscape();
+    getDefaultCargoItems().then(items => {
+      const dbCargoItems: DbCargoItem[] = items.results.map(item => item?.data as DbCargoItem);
+      const cargoItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
+      setCargoItems(cargoItems);
+    });
   }, []);
 
   useEffect(() => {
