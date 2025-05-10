@@ -45,8 +45,6 @@ describe('Mission Operations', () => {
       name: 'Test Mission',
       created_date: new Date().toISOString(),
       modified_date: new Date().toISOString(),
-      total_weight: 5000,
-      total_mac_percent: 30,
       crew_weight: 800,
       configuration_weights: 150,
       crew_gear_weight: 200,
@@ -74,8 +72,6 @@ describe('Mission Operations', () => {
       name: 'Mission 1',
       created_date: new Date().toISOString(),
       modified_date: new Date().toISOString(),
-      total_weight: 5000,
-      total_mac_percent: 30,
       crew_weight: 800,
       configuration_weights: 150,
       crew_gear_weight: 200,
@@ -89,8 +85,6 @@ describe('Mission Operations', () => {
       name: 'Mission 2',
       created_date: new Date().toISOString(),
       modified_date: new Date().toISOString(),
-      total_weight: 6000,
-      total_mac_percent: 32,
       crew_weight: 850,
       configuration_weights: 175,
       crew_gear_weight: 225,
@@ -114,8 +108,6 @@ describe('Mission Operations', () => {
       name: 'Mission 1',
       created_date: new Date().toISOString(),
       modified_date: new Date().toISOString(),
-      total_weight: 5000,
-      total_mac_percent: 30,
       crew_weight: 800,
       configuration_weights: 150,
       crew_gear_weight: 200,
@@ -129,8 +121,6 @@ describe('Mission Operations', () => {
       name: 'Mission 2',
       created_date: new Date().toISOString(),
       modified_date: new Date().toISOString(),
-      total_weight: 6000,
-      total_mac_percent: 32,
       crew_weight: 850,
       configuration_weights: 175,
       crew_gear_weight: 225,
@@ -154,8 +144,6 @@ describe('Mission Operations', () => {
       name: 'Update Mission',
       created_date: new Date().toISOString(),
       modified_date: new Date().toISOString(),
-      total_weight: 5000,
-      total_mac_percent: 30,
       crew_weight: 800,
       configuration_weights: 150,
       crew_gear_weight: 200,
@@ -174,8 +162,6 @@ describe('Mission Operations', () => {
       name: 'Updated Mission',
       created_date: mission.created_date,
       modified_date: new Date().toISOString(),
-      total_weight: 5500,
-      total_mac_percent: 32,
       crew_weight: 850,
       configuration_weights: 175,
       crew_gear_weight: 225,
@@ -190,7 +176,6 @@ describe('Mission Operations', () => {
     // Verify update
     const getResult = await getMissionById(missionId);
     expect(getResult.results[0].data?.name).toBe('Updated Mission');
-    expect(getResult.results[0].data?.total_weight).toBe(5500);
   });
 
   it('should delete mission', async () => {
@@ -199,8 +184,6 @@ describe('Mission Operations', () => {
       name: 'Delete Mission',
       created_date: new Date().toISOString(),
       modified_date: new Date().toISOString(),
-      total_weight: 5000,
-      total_mac_percent: 30,
       crew_weight: 800,
       configuration_weights: 150,
       crew_gear_weight: 200,

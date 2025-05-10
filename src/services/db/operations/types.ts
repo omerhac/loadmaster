@@ -21,8 +21,6 @@ export interface Mission {
   name: string;
   created_date: string;
   modified_date: string;
-  total_weight: number;
-  total_mac_percent: number;
   crew_weight: number;
   configuration_weights: number;
   crew_gear_weight: number;
@@ -42,6 +40,7 @@ export interface CargoType {
   default_height: number;
   default_forward_overhang: number;
   default_back_overhang: number;
+  default_cog?: number;
   type: 'bulk' | '2_wheeled' | '4_wheeled';
 }
 
@@ -56,8 +55,10 @@ export interface CargoItem {
   height?: number;
   forward_overhang?: number;
   back_overhang?: number;
+  cog?: number;
   x_start_position: number;
   y_start_position: number;
+  status?: 'inventory' | 'onStage' | 'onDeck';
 }
 
 export interface FuelState {

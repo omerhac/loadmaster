@@ -8,6 +8,7 @@ export type Position = {
 
 export type CargoItem = {
     id: string;
+    cargo_type_id: number;
     name: string;
     length: number;
     width: number;

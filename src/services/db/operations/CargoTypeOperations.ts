@@ -14,9 +14,9 @@ export async function createCargoType(cargoType: CargoType): Promise<DatabaseRes
   const sql = `
     INSERT INTO cargo_type (
       user_id, name, default_weight, default_length, default_width,
-      default_height, default_forward_overhang, default_back_overhang, type
+      default_height, default_forward_overhang, default_back_overhang, default_cog, type
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
   return db.executeQuery(sql, [
     cargoType.user_id || null,
@@ -27,6 +27,7 @@ export async function createCargoType(cargoType: CargoType): Promise<DatabaseRes
     cargoType.default_height,
     cargoType.default_forward_overhang,
     cargoType.default_back_overhang,
+    cargoType.default_cog || cargoType.default_length / 2,
     cargoType.type,
   ]);
 }
@@ -68,7 +69,7 @@ export async function updateCargoType(cargoType: CargoType): Promise<DatabaseRes
     UPDATE cargo_type
     SET user_id = ?, name = ?, default_weight = ?, default_length = ?,
         default_width = ?, default_height = ?, default_forward_overhang = ?,
-        default_back_overhang = ?, type = ?
+        default_back_overhang = ?, default_cog = ?, type = ?
     WHERE id = ?;
   `;
   return db.executeQuery(sql, [
@@ -80,6 +81,7 @@ export async function updateCargoType(cargoType: CargoType): Promise<DatabaseRes
     cargoType.default_height,
     cargoType.default_forward_overhang,
     cargoType.default_back_overhang,
+    cargoType?.default_cog || cargoType.default_length / 2,
     cargoType.type,
     cargoType.id,
   ]);

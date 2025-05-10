@@ -9,7 +9,7 @@ import {
   CargoItem as DBCargoItem,
   CargoType as DBCargoType,
   LoadConstraint as DBLoadConstraint,
-} from '@/services/db/operations';
+} from '../db/operations';
 
 import {
   getTouchpointCompartments,

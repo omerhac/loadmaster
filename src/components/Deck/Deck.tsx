@@ -9,11 +9,13 @@ interface DeckProps {
   items: CargoItem[];
   onDrop: (id: string, position: Position) => void;
   onRemoveFromDeck?: (id: string) => void;
+  onUpdateItemStatus: (id: string, status: 'onStage' | 'onDeck' | 'inventory', position?: { x: number, y: number }) => void;
 }
 
 const Deck: React.FC<DeckProps> = React.memo(({
   items,
   onRemoveFromDeck,
+  onUpdateItemStatus,
 }) => {
   const deckItems = useMemo(() =>
     items.filter((item) => item.status === 'onDeck'),
@@ -38,6 +40,7 @@ const Deck: React.FC<DeckProps> = React.memo(({
             key={item.id}
             item={item}
             onRemove={handleRemoveFromDeck}
+            onUpdateItemStatus={onUpdateItemStatus}
           />
         ))}
       </ImageBackground>

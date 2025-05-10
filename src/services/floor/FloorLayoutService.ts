@@ -3,7 +3,7 @@ import {
   getAircraftById,
   getCompartmentsByAircraftId,
   getMissionById,
-} from '@/services/db/operations';
+} from '../db/operations';
 
 import {
   WHEEL_DIMENSIONS,
