@@ -78,6 +78,7 @@ export default async function initAppDatabase() {
         y_start_position: 0,
         mission_id: defaultMissionId as number,
         cargo_type_id: defaultCargoTypeId as number,
+        status: 'inventory',
     };
     await createCargoItem(defaultCargoItem);
 

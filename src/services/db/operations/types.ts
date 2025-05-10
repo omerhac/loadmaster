@@ -58,6 +58,7 @@ export interface CargoItem {
   cog?: number;
   x_start_position: number;
   y_start_position: number;
+  status?: 'inventory' | 'onStage' | 'onDeck';
 }
 
 export interface FuelState {

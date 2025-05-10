@@ -128,8 +128,8 @@ describe('SchemaService Integration Tests', () => {
       // Insert test cargo item
       await testDb.executeQuery(`
         INSERT INTO cargo_item (id, mission_id, cargo_type_id, name, weight, length, width, height, 
-                              forward_overhang, back_overhang, cog, x_start_position, y_start_position)
-        VALUES (1, 1, 1, 'Cargo Item 1', 1000, 5, 2, 2, 0.5, 0.5, 2.5, 10, 5)
+                              forward_overhang, back_overhang, cog, x_start_position, y_start_position, status)
+        VALUES (1, 1, 1, 'Cargo Item 1', 1000, 5, 2, 2, 0.5, 0.5, 2.5, 10, 5, 'inventory')
       `);
 
       // Insert test fuel state

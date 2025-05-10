@@ -154,6 +154,7 @@ export function getCargoItemTableSchema(): SchemaDefinition {
         cog REAL NOT NULL,
         x_start_position REAL NOT NULL,
         y_start_position REAL NOT NULL,
+        status TEXT CHECK (status IN ('inventory', 'onStage', 'onDeck')) NOT NULL,
         FOREIGN KEY (mission_id) REFERENCES mission (id),
         FOREIGN KEY (cargo_type_id) REFERENCES cargo_type (id)
       );

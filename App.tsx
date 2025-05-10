@@ -35,14 +35,11 @@ const generateId = () => {
     Math.random().toString(36).substring(2, 15);
 };
 
-function getRandomDimension(min: number = 50, max: number = 120): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 
 function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
   const id = item.id?.toString() ?? generateId();
   const position = { x: item.x_start_position, y: item.y_start_position };
-  const status = 'inventory' as const;
+  const status = item.status ?? 'inventory';
   const name = item.name;
   const length = item.length ?? 0;
   const width = item.width ?? 0;
@@ -72,8 +69,8 @@ function App(): React.JSX.Element {
     lockToLandscape();
     getDefaultCargoItems().then(items => {
       const dbCargoItems: DbCargoItem[] = items.results.map(item => item?.data as DbCargoItem);
-      const cargoItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
-      setCargoItems(cargoItems);
+      const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
+      setCargoItems(convertedItems);
     });
   }, []);
 
