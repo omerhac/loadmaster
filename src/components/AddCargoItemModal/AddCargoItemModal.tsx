@@ -89,6 +89,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     const itemToSave: CargoItem = {
       id: initialItem?.id || generateID(),
       name,
+      cargo_type_id: initialItem?.cargo_type_id || 1, // TODO: add cargo type id
       length: lengthValue,
       width: parseFloat(width),
       height: parseFloat(height),

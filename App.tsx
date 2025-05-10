@@ -15,7 +15,7 @@ import LoadingArea from './src/components/LoadingArea/LoadingArea';
 import MissionSettingsComponent from './src/components/MissionSettings/MissionSettings';
 import Preview from './src/components/Preview/Preview';
 import initAppDatabase from './src/initAppDatabase';
-import { getCargoItemsByMissionId } from './src/services/db/operations/CargoItemOperations';
+import { getCargoItemsByMissionId, createCargoItem  } from './src/services/db/operations/CargoItemOperations';
 import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
 import { updateCargoItem } from './src/services/db/operations/CargoItemOperations';
 
@@ -90,6 +90,22 @@ function App(): React.JSX.Element {
 
   const handleAddItem = useCallback((item: CargoItem) => {
     setCargoItems(prev => [...prev, item]);
+    const newItem: DbCargoItem = {
+      status: 'inventory' as const,
+      x_start_position: -1,
+      y_start_position: -1,
+      mission_id: DEFAULT_MISSION_ID, // TODO: use current mission
+      cargo_type_id: item.cargo_type_id,
+      name: item.name,
+      length: item.length,
+      width: item.width,
+      height: item.height,
+      weight: item.weight,
+      cog: item.cog,
+      forward_overhang: 0,
+      back_overhang: 0,
+    };
+    createCargoItem(newItem);
   }, []);
 
   const handleEditItem = useCallback((item: CargoItem) => {
