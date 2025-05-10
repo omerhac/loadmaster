@@ -14,7 +14,6 @@ import Sidebar from './src/components/Sidebar/Sidebar';
 import LoadingArea from './src/components/LoadingArea/LoadingArea';
 import MissionSettingsComponent from './src/components/MissionSettings/MissionSettings';
 import Preview from './src/components/Preview/Preview';
-import { lockToLandscape } from './src/utils/orientationLock';
 import initAppDatabase from './src/initAppDatabase';
 import { getCargoItemsByMissionId } from './src/services/db/operations/CargoItemOperations';
 import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
@@ -66,7 +65,6 @@ function App(): React.JSX.Element {
   const [isLandscape, setIsLandscape] = useState(true);
 
   useEffect(() => {
-    lockToLandscape();
     getDefaultCargoItems().then(items => {
       const dbCargoItems: DbCargoItem[] = items.results.map(item => item?.data as DbCargoItem);
       const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);

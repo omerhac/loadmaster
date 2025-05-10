@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { CargoItem } from '../../types';
-import { lockToLandscape } from '../../utils/orientationLock';
 import { styles } from './AddCargoItemModal.styles';
 
 interface AddCargoItemModalProps {
@@ -60,11 +59,6 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
       setCog('');
     }
   }, [initialItem]);
-
-  // Ensure we stay in landscape mode
-  useEffect(() => {
-    lockToLandscape();
-  }, []);
 
   // Update COG when length changes
   useEffect(() => {
