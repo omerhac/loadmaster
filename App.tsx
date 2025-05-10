@@ -26,15 +26,11 @@ const DEFAULT_MISSION_ID = 1;
 initAppDatabase();
 
 
-
-const generateId = () => {
-  return Math.random().toString(36).substring(2, 15) +
-    Math.random().toString(36).substring(2, 15);
-};
-
-
 function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
-  const id = item.id?.toString() ?? generateId();
+  if (!item.id) {
+    throw new Error('Cargo item has no id');
+  }
+  const id = item.id.toString();
   const position = { x: item.x_start_position, y: item.y_start_position };
   const status = item.status ?? 'inventory';
   const name = item.name;
@@ -90,9 +86,8 @@ function App(): React.JSX.Element {
     return () => subscription.remove();
   }, []);
 
-  const handleAddItem = useCallback((item: CargoItem) => {
-    setCargoItems(prev => [...prev, item]);
-    const newItem: DbCargoItem = {
+  const handleAddItem = useCallback(async (item: CargoItem) => {
+    let newItem: DbCargoItem = {
       status: 'inventory' as const,
       x_start_position: -1,
       y_start_position: -1,
@@ -107,7 +102,18 @@ function App(): React.JSX.Element {
       forward_overhang: 0,
       back_overhang: 0,
     };
-    createCargoItem(newItem);
+    try {
+      const response = await createCargoItem(newItem);
+      if (response && response.results && response.results.length > 0) {
+        newItem.id = response.results[0].lastInsertId;
+        const newItemForState = convertDbCargoItemToCargoItem(newItem);
+        setCargoItems(prev => [...prev, newItemForState]);
+      } else {
+        console.error('Failed to add cargo item: Invalid response from createCargoItem', response);
+      }
+    } catch (error) {
+      console.error('Error adding cargo item:', error);
+    }
   }, []);
 
   const handleEditItem = useCallback((item: CargoItem) => {
@@ -118,21 +124,42 @@ function App(): React.JSX.Element {
     setCargoItems(prev => prev.filter(item => item.id !== id));
   }, []);
 
-  const handleDuplicateItem = useCallback((id: string) => {
-    setCargoItems(prev => {
-      const itemToDuplicate = prev.find(item => item.id === id);
-      if (!itemToDuplicate) { return prev; }
+  const handleDuplicateItem = useCallback(async (id: string) => {
+    const itemToDuplicate = cargoItems.find(item => item.id === id);
+    if (!itemToDuplicate) {
+      console.warn(`Item with id ${id} not found for duplication.`);
+      return;
+    }
 
-      const newItem = {
-        ...itemToDuplicate,
-        id: generateId(),
-        name: `${itemToDuplicate.name} (copy)`,
-        status: 'inventory' as const,
-        position: { x: -1, y: -1 },
-      };
-      return [...prev, newItem];
-    });
-  }, []);
+    let newDbItem: DbCargoItem = {
+      name: `${itemToDuplicate.name} (copy)`,
+      status: 'inventory' as const,
+      x_start_position: -1,
+      y_start_position: -1,
+      mission_id: DEFAULT_MISSION_ID,
+      cargo_type_id: itemToDuplicate.cargo_type_id,
+      length: itemToDuplicate.length,
+      width: itemToDuplicate.width,
+      height: itemToDuplicate.height,
+      weight: itemToDuplicate.weight,
+      cog: itemToDuplicate.cog,
+      forward_overhang: 0, // TODO: Add forward overhang
+      back_overhang: 0, // TODO: Add back overhang
+    };
+
+    try {
+      const response = await createCargoItem(newDbItem);
+      if (response && response.results && response.results.length > 0) {
+        newDbItem.id = response.results[0].lastInsertId;
+        const newItemForState = convertDbCargoItemToCargoItem(newDbItem);
+        setCargoItems(prev => [...prev, newItemForState]);
+      } else {
+        console.error('Failed to duplicate item: Invalid response from createCargoItem', response);
+      }
+    } catch (error) {
+      console.error('Error duplicating item:', error);
+    }
+  }, [cargoItems]);
 
   const handleUpdateItemStatus = useCallback((
     id: string,

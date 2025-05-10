@@ -22,11 +22,6 @@ interface AddCargoItemModalProps {
   savedPresets?: CargoItem[];
 }
 
-// Generate a simple ID without using uuid
-const generateID = () => {
-  return Date.now().toString() + Math.floor(Math.random() * 1000000).toString();
-};
-
 const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
   initialItem,
   onSave,
@@ -87,7 +82,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     const lengthValue = parseFloat(length);
 
     const itemToSave: CargoItem = {
-      id: initialItem?.id || generateID(),
+      id: initialItem?.id || '',
       name,
       cargo_type_id: initialItem?.cargo_type_id || 1, // TODO: add cargo type id
       length: lengthValue,
