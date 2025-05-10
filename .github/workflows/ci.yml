@@ -91,12 +91,12 @@ jobs:
       run: npm test
       
     # Build for Windows tablets
-    # - name: Build Windows
-    #   run: |
-    #     npx react-native run-windows --no-launch --no-deploy --release
+    - name: Build Windows
+      run: |
+        npx react-native run-windows --no-launch --no-deploy --release
         
-    # - name: Upload Windows build artifact
-    #   uses: actions/upload-artifact@main
-    #   with:
-    #     name: windows-tablet-build
-    #     path: windows/loadmaster/AppPackages/**/*
+    - name: Upload Windows build artifact
+      uses: actions/upload-artifact@main
+      with:
+        name: windows-tablet-build
+        path: windows/loadmaster/AppPackages/**/*
