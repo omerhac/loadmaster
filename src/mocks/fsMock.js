@@ -7,7 +7,7 @@ module.exports = {
   readdirSync: () => [],
   statSync: () => ({
     isDirectory: () => false,
-    isFile: () => false
+    isFile: () => false,
   }),
   mkdirSync: () => {},
   promises: {
@@ -15,6 +15,6 @@ module.exports = {
     writeFile: async () => {},
     unlink: async () => {},
     mkdir: async () => {},
-    readdir: async () => []
-  }
-}; 
+    readdir: async () => [],
+  },
+};

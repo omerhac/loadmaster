@@ -42,8 +42,8 @@ const config = {
       'better-sqlite3': require.resolve('./src/mocks/better-sqlite3Mock.js'),
       // Add core Node.js modules as mocks
       'fs': require.resolve('./src/mocks/fsMock.js'),
-      'path': require.resolve('./src/mocks/pathMock.js')
-    }
+      'path': require.resolve('./src/mocks/pathMock.js'),
+    },
     //
   },
   transformer: {

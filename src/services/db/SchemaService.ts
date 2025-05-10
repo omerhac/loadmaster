@@ -95,8 +95,6 @@ export function getMissionTableSchema(): SchemaDefinition {
         name TEXT NOT NULL,
         created_date TEXT NOT NULL,
         modified_date TEXT NOT NULL,
-        total_weight REAL NOT NULL,
-        total_mac_percent REAL NOT NULL,
         crew_weight REAL NOT NULL DEFAULT 0,
         configuration_weights REAL NOT NULL DEFAULT 0,
         crew_gear_weight REAL NOT NULL DEFAULT 0,

@@ -6,7 +6,7 @@ const sqlite3Mock = {
   },
   verbose: function() {
     return this;
-  }
+  },
 };
 
-module.exports = sqlite3Mock; 
+module.exports = sqlite3Mock;

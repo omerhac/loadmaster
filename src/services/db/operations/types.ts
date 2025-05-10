@@ -21,8 +21,6 @@ export interface Mission {
   name: string;
   created_date: string;
   modified_date: string;
-  total_weight: number;
-  total_mac_percent: number;
   crew_weight: number;
   configuration_weights: number;
   crew_gear_weight: number;

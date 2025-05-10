@@ -108,7 +108,7 @@ class Database {
     return {
       transfer: () => 0,
       then: (resolve) => resolve(),
-      catch: (reject) => {}
+      catch: (reject) => {},
     };
   }
 }
@@ -123,4 +123,4 @@ betterSqlite3.SqliteError = SqliteError;
 betterSqlite3.Database = Database;
 betterSqlite3.Statement = Statement;
 
-module.exports = betterSqlite3; 
+module.exports = betterSqlite3;

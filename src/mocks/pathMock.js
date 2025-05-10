@@ -16,6 +16,6 @@ module.exports = {
     dir: path.split('/').slice(0, -1).join('/'),
     base: path.split('/').pop(),
     ext: '',
-    name: path.split('/').pop().split('.')[0]
-  })
-}; 
+    name: path.split('/').pop().split('.')[0],
+  }),
+};

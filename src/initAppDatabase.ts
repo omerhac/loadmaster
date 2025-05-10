@@ -44,7 +44,7 @@ export default async function initAppDatabase() {
         default_height: 96,
         default_forward_overhang: 0,
         default_back_overhang: 0,
-        type: 'bulk' as const
+        type: 'bulk' as const,
     };
     const cargoTypeResult = await createCargoType(defaultCargoType);
     const defaultCargoTypeId = cargoTypeResult.results[0].lastInsertId;
@@ -53,8 +53,6 @@ export default async function initAppDatabase() {
         name: 'Default Mission',
         created_date: new Date().toISOString(),
         modified_date: new Date().toISOString(),
-        total_weight: 0,
-        total_mac_percent: 0,
         crew_weight: 1000,
         configuration_weights: 500,
         crew_gear_weight: 300,
