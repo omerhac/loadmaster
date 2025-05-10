@@ -9,13 +9,15 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, View, Platform, Dimensions } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { CargoItem, MissionSettings, Position, View as AppView } from './src/types';
+import { CargoType as DbCargoType } from './src/services/db/operations/types';
 import Header from './src/components/Header/Header';
 import Sidebar from './src/components/Sidebar/Sidebar';
 import LoadingArea from './src/components/LoadingArea/LoadingArea';
 import MissionSettingsComponent from './src/components/MissionSettings/MissionSettings';
 import Preview from './src/components/Preview/Preview';
 import initAppDatabase from './src/initAppDatabase';
-import { getCargoItemsByMissionId, createCargoItem  } from './src/services/db/operations/CargoItemOperations';
+import { getCargoItemsByMissionId, createCargoItem } from './src/services/db/operations/CargoItemOperations';
+import { createCargoType } from './src/services/db/operations/CargoTypeOperations';
 import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
 import { updateCargoItem } from './src/services/db/operations/CargoItemOperations';
 
@@ -23,13 +25,8 @@ const DEFAULT_MISSION_ID = 1;
 
 initAppDatabase();
 
-async function getDefaultCargoItems() {
-  const defaultCargoItems = await getCargoItemsByMissionId(DEFAULT_MISSION_ID);
-  return defaultCargoItems;
-}
-getDefaultCargoItems().then(items => console.log(items));
 
-// Helper function to generate a simple ID without relying on crypto
+
 const generateId = () => {
   return Math.random().toString(36).substring(2, 15) +
     Math.random().toString(36).substring(2, 15);
@@ -68,6 +65,11 @@ function App(): React.JSX.Element {
   const [isLandscape, setIsLandscape] = useState(true);
 
   useEffect(() => {
+    async function getDefaultCargoItems() {
+      const defaultCargoItems = await getCargoItemsByMissionId(DEFAULT_MISSION_ID);
+      return defaultCargoItems;
+    }
+
     getDefaultCargoItems().then(items => {
       const dbCargoItems: DbCargoItem[] = items.results.map(item => item?.data as DbCargoItem);
       const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
@@ -167,9 +169,18 @@ function App(): React.JSX.Element {
   }, []);
 
   const handleSaveAsPreset = useCallback((item: CargoItem) => {
-    // This would typically save the item to persistent storage
-    // For now just log a message
-    console.log('Saved item as preset:', item.name);
+    const cargoType: DbCargoType = {
+      name: item.name,
+      default_weight: item.weight,
+      default_length: item.length,
+      default_width: item.width,
+      default_height: item.height,
+      default_cog: item.cog,
+      default_forward_overhang: 0, // TODO: Add forward overhang
+      default_back_overhang: 0, // TODO: Add back overhang
+      type: 'bulk',
+    };
+    createCargoType(cargoType);
   }, []);
 
   const handleAddToStage = useCallback((id: string) => {
