@@ -31,7 +31,7 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
             setDeckMeasurements({
               x: pageX,
               y: pageY,
-              width: width_,
+              width: width_ ,
               height: height_,
             });
           });
@@ -128,6 +128,7 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
           items={items}
           onDrop={handleDrop}
           onRemoveFromDeck={handleRemoveFromDeck}
+          onUpdateItemStatus={onUpdateItemStatus}
         />
       </View>
 

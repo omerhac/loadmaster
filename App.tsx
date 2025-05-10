@@ -17,6 +17,7 @@ import Preview from './src/components/Preview/Preview';
 import initAppDatabase from './src/initAppDatabase';
 import { getCargoItemsByMissionId } from './src/services/db/operations/CargoItemOperations';
 import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
+import { updateCargoItem } from './src/services/db/operations/CargoItemOperations';
 
 const DEFAULT_MISSION_ID = 1;
 
@@ -45,8 +46,10 @@ function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
   const height = item.height ?? 0;
   const weight = item.weight ?? 0;
   const cog = item.cog ?? 0;
+  const cargo_type_id = item.cargo_type_id ?? 1;
   return {
     id,
+    cargo_type_id,
     name,
     length,
     width,
@@ -124,6 +127,24 @@ function App(): React.JSX.Element {
       const newPosition = status === 'onDeck'
         ? (position || i.position)
         : { x: -1, y: -1 };
+
+      console.log('newPosition', newPosition, status);
+      updateCargoItem({
+        id: parseInt(id),
+        status: status as 'onStage' | 'onDeck' | 'inventory',
+        x_start_position: newPosition.x,
+        y_start_position: newPosition.y,
+        mission_id: DEFAULT_MISSION_ID,
+        cargo_type_id: i.cargo_type_id,
+        name: i.name,
+        weight: i.weight,
+        length: i.length,
+        width: i.width,
+        height: i.height,
+        forward_overhang: 0, // TODO: Add forward overhang
+        back_overhang: 0, // TODO: Add back overhang
+        cog: i.cog,
+      });
 
       return { ...i, status, position: newPosition };
     }));
