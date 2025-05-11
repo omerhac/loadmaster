@@ -93,13 +93,13 @@ jobs:
     - name: Install react-native-windows
       run: npm install --save-dev react-native-windows@latest
       
-    # Build for Windows tablets
-    - name: Build Windows
-      run: |        
-        npx react-native run-windows --no-launch --no-deploy --release
+    # # Build for Windows tablets
+    # - name: Build Windows
+    #   run: |        
+    #     npx react-native run-windows --no-launch --no-deploy --release
         
-    - name: Upload Windows build artifact
-      uses: actions/upload-artifact@main
-      with:
-        name: windows-tablet-build
-        path: windows/loadmaster/AppPackages/**/*
+    # - name: Upload Windows build artifact
+    #   uses: actions/upload-artifact@main
+    #   with:
+    #     name: windows-tablet-build
+    #     path: windows/loadmaster/AppPackages/**/*
