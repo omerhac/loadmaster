@@ -96,18 +96,36 @@ jobs:
     # Build for Windows tablets
     - name: Build Windows
       run: |
-        # Install Windows SDK 10.0.18362.0
-        Invoke-WebRequest -Uri https://go.microsoft.com/fwlink/?linkid=2083338 -OutFile winsdksetup.exe
-        Start-Process -FilePath winsdksetup.exe -ArgumentList "/features /q" -Wait
+        # List installed Windows SDK versions
+        Get-ChildItem "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Kits\Installed Roots"
+        
+        # Check available SDKs in the directory
+        Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Include" -ErrorAction SilentlyContinue
+        
+        # Use rnw-dependencies script to install required components
+        Start-Process powershell.exe -ArgumentList "-ExecutionPolicy Bypass", "-File D:\a\loadmaster\loadmaster\node_modules\react-native-windows\scripts\rnw-dependencies.ps1 -NoPrompt" -Wait
         
         # Update SQLitePlugin project SDK version
         $sqliteProjectPath = "node_modules/react-native-sqlite-storage/platforms/windows/SQLitePlugin/SQLitePlugin.vcxproj"
         if (Test-Path $sqliteProjectPath) {
-          # Update TargetPlatformMinVersion to match required version for Microsoft.UI.Xaml
-          (Get-Content $sqliteProjectPath) -replace '<TargetPlatformMinVersion>([0-9\.]+)</TargetPlatformMinVersion>', '<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>' | Set-Content $sqliteProjectPath
+          Write-Host "Found SQLitePlugin.vcxproj, updating Windows SDK version..."
           
-          # Update WindowsTargetPlatformVersion to a version available on the runner (10.0.19041.0)
-          (Get-Content $sqliteProjectPath) -replace '<WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>', '<WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>' | Set-Content $sqliteProjectPath
+          # Read the file content
+          $content = Get-Content $sqliteProjectPath
+          Write-Host "Original content contains WindowsTargetPlatformVersion:" -ForegroundColor Yellow
+          $content | Select-String "WindowsTargetPlatformVersion" 
+          
+          # Replace all occurrences of any Windows SDK version with 10.0.19041.0
+          $content = $content -replace '<WindowsTargetPlatformVersion>[0-9\.]+</WindowsTargetPlatformVersion>', '<WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>'
+          $content = $content -replace '<TargetPlatformMinVersion>[0-9\.]+</TargetPlatformMinVersion>', '<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>'
+          
+          # Save the updated content
+          $content | Set-Content $sqliteProjectPath
+          
+          # Verify the changes
+          Write-Host "Updated content contains WindowsTargetPlatformVersion:" -ForegroundColor Green
+          Get-Content $sqliteProjectPath | Select-String "WindowsTargetPlatformVersion"
+          Get-Content $sqliteProjectPath | Select-String "TargetPlatformMinVersion"
         }
         
         npx react-native run-windows --no-launch --no-deploy --release
