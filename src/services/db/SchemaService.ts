@@ -95,8 +95,6 @@ export function getMissionTableSchema(): SchemaDefinition {
         name TEXT NOT NULL,
         created_date TEXT NOT NULL,
         modified_date TEXT NOT NULL,
-        total_weight REAL NOT NULL,
-        total_mac_percent REAL NOT NULL,
         crew_weight REAL NOT NULL DEFAULT 0,
         configuration_weights REAL NOT NULL DEFAULT 0,
         crew_gear_weight REAL NOT NULL DEFAULT 0,
@@ -127,6 +125,7 @@ export function getCargoTypeTableSchema(): SchemaDefinition {
         default_height REAL NOT NULL,
         default_forward_overhang REAL NOT NULL,
         default_back_overhang REAL NOT NULL,
+        default_cog REAL NOT NULL,
         type TEXT CHECK (type IN ('bulk', '2_wheeled', '4_wheeled')) NOT NULL,
         FOREIGN KEY (user_id) REFERENCES user (id)
       );
@@ -152,8 +151,10 @@ export function getCargoItemTableSchema(): SchemaDefinition {
         height REAL NOT NULL,
         forward_overhang REAL NOT NULL,
         back_overhang REAL NOT NULL,
+        cog REAL NOT NULL,
         x_start_position REAL NOT NULL,
         y_start_position REAL NOT NULL,
+        status TEXT CHECK (status IN ('inventory', 'onStage', 'onDeck')) NOT NULL,
         FOREIGN KEY (mission_id) REFERENCES mission (id),
         FOREIGN KEY (cargo_type_id) REFERENCES cargo_type (id)
       );

@@ -9,155 +9,68 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, View, Platform, Dimensions } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { CargoItem, MissionSettings, Position, View as AppView } from './src/types';
+import { CargoType as DbCargoType } from './src/services/db/operations/types';
 import Header from './src/components/Header/Header';
 import Sidebar from './src/components/Sidebar/Sidebar';
 import LoadingArea from './src/components/LoadingArea/LoadingArea';
 import MissionSettingsComponent from './src/components/MissionSettings/MissionSettings';
 import Preview from './src/components/Preview/Preview';
-import { lockToLandscape } from './src/utils/orientationLock';
+import initAppDatabase from './src/initAppDatabase';
+import { getCargoItemsByMissionId, createCargoItem } from './src/services/db/operations/CargoItemOperations';
+import { createCargoType } from './src/services/db/operations/CargoTypeOperations';
+import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
+import { updateCargoItem } from './src/services/db/operations/CargoItemOperations';
 
-// Helper function to generate a simple ID without relying on crypto
-const generateId = () => {
-  return Math.random().toString(36).substring(2, 15) +
-         Math.random().toString(36).substring(2, 15);
-};
+const DEFAULT_MISSION_ID = 1;
 
-function getRandomDimension(min: number = 50, max: number = 120): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+initAppDatabase();
+
+
+function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
+  if (!item.id) {
+    throw new Error('Cargo item has no id');
+  }
+  const id = item.id.toString();
+  const position = { x: item.x_start_position, y: item.y_start_position };
+  const status = item.status ?? 'inventory';
+  const name = item.name;
+  const length = item.length ?? 0;
+  const width = item.width ?? 0;
+  const height = item.height ?? 0;
+  const weight = item.weight ?? 0;
+  const cog = item.cog ?? 0;
+  const cargo_type_id = item.cargo_type_id ?? 1;
+  return {
+    id,
+    cargo_type_id,
+    name,
+    length,
+    width,
+    height,
+    weight,
+    cog,
+    status,
+    position,
+  };
 }
-
-const DEFAULT_CARGO_ITEMS: CargoItem[] = [
-  {
-    id: '1',
-    name: 'Item 1',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '2',
-    name: 'Item 2',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '3',
-    name: 'Item 3',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '4',
-    name: 'Item 4',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '5',
-    name: 'Item 5',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '6',
-    name: 'Item 6',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '7',
-    name: 'Item 7',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '8',
-    name: 'Item 8',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '9',
-    name: 'Item 9',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '10',
-    name: 'Item 10',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-  {
-    id: '11',
-    name: 'Item 11',
-    length: getRandomDimension(),
-    width: getRandomDimension(),
-    height: 100,
-    weight: 100,
-    cog: 50,
-    status: 'inventory',
-    position: { x: -1, y: -1 },
-  },
-];
 
 function App(): React.JSX.Element {
   const [currentView, setCurrentView] = useState<AppView>('planning');
   const [missionSettings, setMissionSettings] = useState<MissionSettings | null>(null);
-  const [cargoItems, setCargoItems] = useState<CargoItem[]>(DEFAULT_CARGO_ITEMS);
+  const [cargoItems, setCargoItems] = useState<CargoItem[]>([]);
   const [isLandscape, setIsLandscape] = useState(true);
 
   useEffect(() => {
-    lockToLandscape();
+    async function getDefaultCargoItems() {
+      const defaultCargoItems = await getCargoItemsByMissionId(DEFAULT_MISSION_ID);
+      return defaultCargoItems;
+    }
+
+    getDefaultCargoItems().then(items => {
+      const dbCargoItems: DbCargoItem[] = items.results.map(item => item?.data as DbCargoItem);
+      const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
+      setCargoItems(convertedItems);
+    });
   }, []);
 
   useEffect(() => {
@@ -173,8 +86,34 @@ function App(): React.JSX.Element {
     return () => subscription.remove();
   }, []);
 
-  const handleAddItem = useCallback((item: CargoItem) => {
-    setCargoItems(prev => [...prev, item]);
+  const handleAddItem = useCallback(async (item: CargoItem) => {
+    let newItem: DbCargoItem = {
+      status: 'inventory' as const,
+      x_start_position: -1,
+      y_start_position: -1,
+      mission_id: DEFAULT_MISSION_ID, // TODO: use current mission
+      cargo_type_id: item.cargo_type_id,
+      name: item.name,
+      length: item.length,
+      width: item.width,
+      height: item.height,
+      weight: item.weight,
+      cog: item.cog,
+      forward_overhang: 0,
+      back_overhang: 0,
+    };
+    try {
+      const response = await createCargoItem(newItem);
+      if (response && response.results && response.results.length > 0) {
+        newItem.id = response.results[0].lastInsertId;
+        const newItemForState = convertDbCargoItemToCargoItem(newItem);
+        setCargoItems(prev => [...prev, newItemForState]);
+      } else {
+        console.error('Failed to add cargo item: Invalid response from createCargoItem', response);
+      }
+    } catch (error) {
+      console.error('Error adding cargo item:', error);
+    }
   }, []);
 
   const handleEditItem = useCallback((item: CargoItem) => {
@@ -185,21 +124,42 @@ function App(): React.JSX.Element {
     setCargoItems(prev => prev.filter(item => item.id !== id));
   }, []);
 
-  const handleDuplicateItem = useCallback((id: string) => {
-    setCargoItems(prev => {
-      const itemToDuplicate = prev.find(item => item.id === id);
-      if (!itemToDuplicate) {return prev;}
+  const handleDuplicateItem = useCallback(async (id: string) => {
+    const itemToDuplicate = cargoItems.find(item => item.id === id);
+    if (!itemToDuplicate) {
+      console.warn(`Item with id ${id} not found for duplication.`);
+      return;
+    }
 
-      const newItem = {
-        ...itemToDuplicate,
-        id: generateId(),
-        name: `${itemToDuplicate.name} (copy)`,
-        status: 'inventory' as const,
-        position: { x: -1, y: -1 },
-      };
-      return [...prev, newItem];
-    });
-  }, []);
+    let newDbItem: DbCargoItem = {
+      name: `${itemToDuplicate.name} (copy)`,
+      status: 'inventory' as const,
+      x_start_position: -1,
+      y_start_position: -1,
+      mission_id: DEFAULT_MISSION_ID,
+      cargo_type_id: itemToDuplicate.cargo_type_id,
+      length: itemToDuplicate.length,
+      width: itemToDuplicate.width,
+      height: itemToDuplicate.height,
+      weight: itemToDuplicate.weight,
+      cog: itemToDuplicate.cog,
+      forward_overhang: 0, // TODO: Add forward overhang
+      back_overhang: 0, // TODO: Add back overhang
+    };
+
+    try {
+      const response = await createCargoItem(newDbItem);
+      if (response && response.results && response.results.length > 0) {
+        newDbItem.id = response.results[0].lastInsertId;
+        const newItemForState = convertDbCargoItemToCargoItem(newDbItem);
+        setCargoItems(prev => [...prev, newItemForState]);
+      } else {
+        console.error('Failed to duplicate item: Invalid response from createCargoItem', response);
+      }
+    } catch (error) {
+      console.error('Error duplicating item:', error);
+    }
+  }, [cargoItems]);
 
   const handleUpdateItemStatus = useCallback((
     id: string,
@@ -207,20 +167,47 @@ function App(): React.JSX.Element {
     position?: Position
   ) => {
     setCargoItems(prev => prev.map(i => {
-      if (i.id !== id) {return i;}
+      if (i.id !== id) { return i; }
 
       const newPosition = status === 'onDeck'
         ? (position || i.position)
         : { x: -1, y: -1 };
+
+      console.log('newPosition', newPosition, status);
+      updateCargoItem({
+        id: parseInt(id),
+        status: status as 'onStage' | 'onDeck' | 'inventory',
+        x_start_position: newPosition.x,
+        y_start_position: newPosition.y,
+        mission_id: DEFAULT_MISSION_ID,
+        cargo_type_id: i.cargo_type_id,
+        name: i.name,
+        weight: i.weight,
+        length: i.length,
+        width: i.width,
+        height: i.height,
+        forward_overhang: 0, // TODO: Add forward overhang
+        back_overhang: 0, // TODO: Add back overhang
+        cog: i.cog,
+      });
 
       return { ...i, status, position: newPosition };
     }));
   }, []);
 
   const handleSaveAsPreset = useCallback((item: CargoItem) => {
-    // This would typically save the item to persistent storage
-    // For now just log a message
-    console.log('Saved item as preset:', item.name);
+    const cargoType: DbCargoType = {
+      name: item.name,
+      default_weight: item.weight,
+      default_length: item.length,
+      default_width: item.width,
+      default_height: item.height,
+      default_cog: item.cog,
+      default_forward_overhang: 0, // TODO: Add forward overhang
+      default_back_overhang: 0, // TODO: Add back overhang
+      type: 'bulk',
+    };
+    createCargoType(cargoType);
   }, []);
 
   const handleAddToStage = useCallback((id: string) => {

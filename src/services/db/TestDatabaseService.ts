@@ -1,6 +1,5 @@
 import { DatabaseInterface } from './DatabaseService';
-import { DatabaseResponse, SqlStatement } from '../DatabaseTypes';
-import path from 'path';
+import { DatabaseResponse, SqlStatement } from './DatabaseTypes';
 
 /**
  * Implementation of DatabaseInterface for test environments using better-sqlite3.
@@ -29,6 +28,7 @@ export class TestDatabaseService implements DatabaseInterface {
 
         // Try to load from the loadmaster.db file
         // Construct an absolute path that should work in Jest environment
+        const path = require('path');
         const dbPath = path.resolve(__dirname, '../../../assets/database/loadmaster.db');
         console.log('Attempting to load database from path:', dbPath);
 

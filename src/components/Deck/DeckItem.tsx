@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Text, TouchableOpacity, PanResponder, Animated } from 'react-native';
 import { CargoItem } from '../../types';
 import { styles } from './Deck.styles';
@@ -6,20 +6,35 @@ import { styles } from './Deck.styles';
 interface DeckItemProps {
   item: CargoItem;
   onRemove?: (id: string) => void;
+  onUpdateItemStatus: (id: string, status: 'onStage' | 'onDeck' | 'inventory', position?: { x: number, y: number }) => void;
 }
 
 const DeckItem: React.FC<DeckItemProps> = React.memo(({
   item,
   onRemove,
+  onUpdateItemStatus,
 }) => {
-  // Track selected state for deletion
   const [isSelected, setIsSelected] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [currentPosition, setCurrentPosition] = useState(item.position);
 
-  // Create animated values for dragging items on the deck
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const xListener = translateX.addListener(({ value }) => {
+      setCurrentPosition(prev => ({ ...prev, x: item.position.x + value }));
+    });
+    const yListener = translateY.addListener(({ value }) => {
+      setCurrentPosition(prev => ({ ...prev, y: item.position.y + value }));
+    });
+
+    return () => {
+      translateX.removeListener(xListener);
+      translateY.removeListener(yListener);
+    };
+  }, [translateX, translateY, item.position.x, item.position.y, currentPosition]);
 
   const handleRemove = useCallback(() => {
     if (onRemove) {
@@ -36,38 +51,28 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
         return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
       },
       onPanResponderGrant: () => {
-        // Store the current position as an offset
         translateX.extractOffset();
         translateY.extractOffset();
 
-        // Show visual feedback
         setIsDragging(true);
-        Animated.spring(scale, {
-          toValue: 1.05,
-          friction: 5,
-          useNativeDriver: true,
-        }).start();
       },
       onPanResponderMove: Animated.event(
         [null, { dx: translateX, dy: translateY }],
         { useNativeDriver: false }
       ),
       onPanResponderRelease: () => {
-        // Flatten offset to lock in the new position
-        translateX.flattenOffset();
-        translateY.flattenOffset();
-
-        // Return to normal size
-        Animated.spring(scale, {
-          toValue: 1,
-          friction: 5,
-          useNativeDriver: true,
-        }).start();
 
         setIsDragging(false);
       },
     })
   ).current;
+
+  useEffect(() => {
+    if (!isDragging) {
+      console.log('currentPosition', currentPosition);
+      onUpdateItemStatus(item.id, 'onDeck', currentPosition);
+    }
+  }, [isDragging, currentPosition, onUpdateItemStatus, item.id]);
 
   return (
     <Animated.View

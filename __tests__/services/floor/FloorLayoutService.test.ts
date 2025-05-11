@@ -58,8 +58,6 @@ describe('Floor Layout Service', () => {
       name: 'Test Mission',
       created_date: new Date().toISOString(),
       modified_date: new Date().toISOString(),
-      total_weight: 0,
-      total_mac_percent: 0,
       crew_weight: 0,
       configuration_weights: 0,
       crew_gear_weight: 0,

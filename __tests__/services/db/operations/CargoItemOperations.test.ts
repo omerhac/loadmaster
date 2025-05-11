@@ -43,8 +43,6 @@ describe('CargoItem Operations', () => {
       name: 'Cargo Test Mission',
       created_date: new Date().toISOString(),
       modified_date: new Date().toISOString(),
-      total_weight: 5000,
-      total_mac_percent: 30,
       crew_weight: 800,
       configuration_weights: 150,
       crew_gear_weight: 200,

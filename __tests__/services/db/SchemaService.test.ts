@@ -110,27 +110,26 @@ describe('SchemaService Integration Tests', () => {
 
       // Insert test mission
       await testDb.executeQuery(`
-        INSERT INTO mission (id, name, created_date, modified_date, total_weight, 
-                           total_mac_percent, crew_weight, configuration_weights,
+        INSERT INTO mission (id, name, created_date, modified_date, crew_weight, configuration_weights,
                            crew_gear_weight, food_weight, safety_gear_weight,
                            etc_weight, aircraft_id)
         VALUES (1, 'Test Mission', '2023-01-01T00:00:00.000Z', '2023-01-01T00:00:00.000Z', 
-                50000, 30, 800, 150, 200, 100, 50, 75, 1)
+              800, 150, 200, 100, 50, 75, 1)
       `);
 
       // Insert test cargo type
       await testDb.executeQuery(`
         INSERT INTO cargo_type (id, user_id, name, default_weight, default_length, 
                               default_width, default_height, default_forward_overhang, 
-                              default_back_overhang, type)
-        VALUES (1, 1, 'Test Cargo', 1000, 5, 2, 2, 0.5, 0.5, 'bulk')
+                              default_back_overhang, default_cog, type)
+        VALUES (1, 1, 'Test Cargo', 1000, 5, 2, 2, 0.5, 0.5, 2.5, 'bulk')
       `);
 
       // Insert test cargo item
       await testDb.executeQuery(`
         INSERT INTO cargo_item (id, mission_id, cargo_type_id, name, weight, length, width, height, 
-                              forward_overhang, back_overhang, x_start_position, y_start_position)
-        VALUES (1, 1, 1, 'Cargo Item 1', 1000, 5, 2, 2, 0.5, 0.5, 10, 5)
+                              forward_overhang, back_overhang, cog, x_start_position, y_start_position, status)
+        VALUES (1, 1, 1, 'Cargo Item 1', 1000, 5, 2, 2, 0.5, 0.5, 2.5, 10, 5, 'inventory')
       `);
 
       // Insert test fuel state

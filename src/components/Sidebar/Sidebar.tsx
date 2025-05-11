@@ -1,11 +1,33 @@
-import React, { useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Platform, Dimensions, Switch, Alert } from 'react-native';
 import { CargoItem, Status, Position } from '../../types';
 import SidebarItem from '../SidebarItem/SidebarItem';
 import AddCargoItemModal from '../AddCargoItemModal/AddCargoItemModal';
 import { styles } from './Sidebar.styles';
+import { getAllCargoTypes } from '../../services/db/operations/CargoTypeOperations';
+import { CargoType as DbCargoType } from '../../services/db/operations/types';
 
 type SortOption = 'none' | 'name' | 'weight' | 'dimensions' | 'status';
+
+const generateId = () => {
+  return Math.random().toString(36).substring(2, 15) +
+    Math.random().toString(36).substring(2, 15);
+};
+
+function convertDbCargoTypeToCargoItem(dbCargoType: DbCargoType): CargoItem {
+  return {
+    id: generateId(),
+    name: dbCargoType.name,
+    weight: dbCargoType.default_weight,
+    length: dbCargoType.default_length,
+    width: dbCargoType.default_width,
+    height: dbCargoType.default_height,
+    cargo_type_id: dbCargoType.id || 1,
+    status: 'inventory',
+    cog: dbCargoType.default_cog || 0,
+    position: { x: -1, y: -1 },
+  };
+}
 
 type SidebarProps = {
   items: CargoItem[];
@@ -43,6 +65,15 @@ const Sidebar = ({
   const isTablet = isIpad || isWindows || (Platform.OS === 'android' && Dimensions.get('window').width > 900);
   const { width } = Dimensions.get('window');
   const isLandscape = width > Dimensions.get('window').height;
+
+  useEffect(() => {
+    const fetchCargoTypes = async () => {
+      const dbCargoTypes = (await getAllCargoTypes()).results.map(item => item.data) as DbCargoType[];
+      const cargoItems = dbCargoTypes.map(convertDbCargoTypeToCargoItem);
+      setSavedPresets(cargoItems);
+    };
+    fetchCargoTypes();
+  }, []);
 
   // Sort and filter items
   const sortAndFilterItems = useCallback(() => {
@@ -102,40 +133,21 @@ const Sidebar = ({
 
   // Update saved presets when requested
   const handleSaveAsPreset = (item: CargoItem) => {
-    // Create a copy of the item to use as a preset (removing status and position)
     const presetItem = {
       ...item,
-      id: `preset_${item.id}`,
       name: `${item.name} (Preset)`,
       status: 'inventory' as const,
       position: { x: -1, y: -1 },
     };
 
-    // Check if a preset with similar dimensions already exists
-    const presetExists = savedPresets.some(
-      preset =>
-        preset.length === item.length &&
-        preset.width === item.width &&
-        preset.height === item.height &&
-        preset.weight === item.weight
+    setSavedPresets(prev => [...prev, presetItem]);
+    Alert.alert(
+      'Preset Saved',
+      `"${item.name}" has been saved as a preset and can be loaded when adding new items.`,
+      [{ text: 'OK' }]
     );
 
-    if (!presetExists) {
-      setSavedPresets(prev => [...prev, presetItem]);
-      Alert.alert(
-        'Preset Saved',
-        `"${item.name}" has been saved as a preset and can be loaded when adding new items.`,
-        [{ text: 'OK' }]
-      );
-    } else {
-      Alert.alert(
-        'Similar Preset Exists',
-        'A preset with similar dimensions already exists.',
-        [{ text: 'OK' }]
-      );
-    }
-
-    onSaveAsPreset(item);
+    onSaveAsPreset(presetItem);
   };
 
   return (

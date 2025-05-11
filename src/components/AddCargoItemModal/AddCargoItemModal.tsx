@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { CargoItem } from '../../types';
-import { lockToLandscape } from '../../utils/orientationLock';
 import { styles } from './AddCargoItemModal.styles';
 
 interface AddCargoItemModalProps {
@@ -22,11 +21,6 @@ interface AddCargoItemModalProps {
   onCancel: () => void;
   savedPresets?: CargoItem[];
 }
-
-// Generate a simple ID without using uuid
-const generateID = () => {
-  return Date.now().toString() + Math.floor(Math.random() * 1000000).toString();
-};
 
 const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
   initialItem,
@@ -61,11 +55,6 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     }
   }, [initialItem]);
 
-  // Ensure we stay in landscape mode
-  useEffect(() => {
-    lockToLandscape();
-  }, []);
-
   // Update COG when length changes
   useEffect(() => {
     const lengthValue = parseFloat(length || '0');
@@ -93,8 +82,9 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     const lengthValue = parseFloat(length);
 
     const itemToSave: CargoItem = {
-      id: initialItem?.id || generateID(),
+      id: initialItem?.id || '',
       name,
+      cargo_type_id: initialItem?.cargo_type_id || 1, // TODO: add cargo type id
       length: lengthValue,
       width: parseFloat(width),
       height: parseFloat(height),

@@ -90,9 +90,12 @@ jobs:
     - name: Run tests
       run: npm test
       
-    # Build for Windows tablets
+    - name: Install react-native-windows
+      run: npm install --save-dev react-native-windows@latest
+      
+    # # Build for Windows tablets
     # - name: Build Windows
-    #   run: |
+    #   run: |        
     #     npx react-native run-windows --no-launch --no-deploy --release
         
     # - name: Upload Windows build artifact
