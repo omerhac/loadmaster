@@ -4,10 +4,10 @@ import { CargoItem, Position } from '../../types';
 import { styles } from './Deck.styles';
 import DebugCoordinates, { SHOW_DEBUG_COORDS } from './DebugCoordinates';
 
-// the offset of the "start loading from here position" relative to 
+// the offset of the "start loading from here position" relative to
 // the deck image width (from deck start)
 const FS_250_PIXEL_RELATIVE_OFFSET = 0.0195903829;
-// the offset of the "stop loading here position" relative to 
+// the offset of the "stop loading here position" relative to
 // the deck image width (from deck end)
 const FS_849_PIXEL_RELATIVE_OFFSET = 0.04274265361;
 // the offset of the top of the deck
@@ -75,8 +75,28 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
 
   const itemPixelWidth = convertInchesToPixelSize(item.width, deckSize);
   const itemPixelHeight = convertInchesToPixelSize(item.length, deckSize);
+  const FS_250_INCHES_OFFSET = convertPixelToInchesSize(FS_250_PIXEL_RELATIVE_OFFSET * deckSize.width, deckSize);
+
+  const canonicalizePosition = (position: Position) => {
+    // return the position in the canonical deck coordinate system
+    // where fs250 is at 250
+    return {
+      x: position.x - FS_250_INCHES_OFFSET + 250,
+      y: position.y,
+    };
+  };
+  const uncanonicalizePosition = (position: Position) => {
+    // return the position in the deck coordinate system
+    // where fs250 is at FS_250_INCHES_OFFSET
+    return {
+      x: position.x + FS_250_INCHES_OFFSET - 250,
+      y: position.y,
+    };
+  };
+
+  console.log('FS_250_INCHES_OFFSET', FS_250_INCHES_OFFSET);
   console.log('deckSizeInPixels', deckSize);
-  console.log('loadingAreaPixelWidth', deckSize.width * LOADING_AREA_RELATIVE_WIDTH_IN_IMAGE);
+
   const panResponder = useMemo(
     () => PanResponder.create({
       // claim all touch events
@@ -92,7 +112,8 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
         const px0 = gs.x0 - deckOffset.x;
         const py0 = gs.y0 - deckOffset.y;
         // compute the finger offset from the item top left corner of the item
-        fingerOffsetRef.current = { x: px0 - item.position.x, y: py0 - item.position.y };
+        const uncanonicalizedItemPosition = uncanonicalizePosition(item.position);
+        fingerOffsetRef.current = { x: px0 - uncanonicalizedItemPosition.x, y: py0 - uncanonicalizedItemPosition.y };
       },
       // on drag move callback
       onPanResponderMove: (_e, gs) => {
@@ -109,13 +130,11 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
       },
       // on drag release callback
       onPanResponderRelease: (_e, _gs) => {
-        const finalPos = dragPosition ?? item.position;
+        const finalPos = dragPosition ?? uncanonicalizePosition(item.position);
         setIsDragging(false);
         setDragPosition(null);
         Animated.spring(scale, { toValue: 1, friction: 5, useNativeDriver: true }).start();
-        onUpdateItemStatus(item.id, 'onDeck', finalPos);
-
-
+        onUpdateItemStatus(item.id, 'onDeck', canonicalizePosition(finalPos));
       },
       // on pan responder terminate callback
       onPanResponderTerminate: () => {
@@ -124,6 +143,7 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
         Animated.spring(scale, { toValue: 1, friction: 5, useNativeDriver: true }).start();
       },
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [deckOffset.x, deckOffset.y,
     deckSize.width, deckSize.height,
       dragPosition, item.position, item.id,
@@ -131,9 +151,9 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
       itemPixelWidth, itemPixelHeight]
   );
 
-  const currentPosition = dragPosition ?? item.position;
+  const currentPosition = dragPosition ?? uncanonicalizePosition(item.position);
   // compute the corners of the item in the deck coordinate system
-  // (convert from pixel space to deck space)
+  // (convert from pixel space to deck space and then to canonical deck space)
   const pixelCorners = {
     bottomLeft: { x: currentPosition.x, y: currentPosition.y + itemPixelHeight },
     bottomRight: { x: currentPosition.x + itemPixelWidth, y: currentPosition.y + itemPixelHeight },
@@ -141,8 +161,12 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
     topRight: { x: currentPosition.x + itemPixelWidth, y: currentPosition.y },
   };
   const inchesCorners = convertPixelCornersToInchesCorners(pixelCorners, deckSize);
+  const canonicalInchesCorners = Object.fromEntries(
+    Object.entries(inchesCorners).map(([key, value]) => [key, canonicalizePosition(value)])
+  );
   console.log('Dropped pixel corners:', { corners: pixelCorners });
   console.log('Dropped inches corners:', { corners: inchesCorners });
+  console.log('Dropped canonical inches corners:', { corners: canonicalInchesCorners });
 
   return (
     <Animated.View
@@ -180,10 +204,10 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
       {SHOW_DEBUG_COORDS && (
         <DebugCoordinates
           corners={{
-            topLeft: inchesCorners.topLeft,
-            topRight: inchesCorners.topRight,
-            bottomLeft: inchesCorners.bottomLeft,
-            bottomRight: inchesCorners.bottomRight,
+            topLeft: canonicalInchesCorners.topLeft,
+            topRight: canonicalInchesCorners.topRight,
+            bottomLeft: canonicalInchesCorners.bottomLeft,
+            bottomRight: canonicalInchesCorners.bottomRight,
           }}
         />
       )}
