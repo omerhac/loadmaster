@@ -93,13 +93,26 @@ jobs:
     - name: Install react-native-windows
       run: npm install --save-dev react-native-windows@latest
       
-    # # Build for Windows tablets
-    # - name: Build Windows
-    #   run: |        
-    #     npx react-native run-windows --no-launch --no-deploy --release
+    - name: Update SQLite Windows SDK Version
+      run: |
+        $projFile = "node_modules\react-native-sqlite-storage\platforms\windows\SQLitePlugin\SQLitePlugin.vcxproj"
+        # Verify file exists
+        if (Test-Path $projFile) {
+          # Update to a newer SDK version that's available in the CI environment
+          (Get-Content $projFile) -replace '<WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>', '<WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>' | Set-Content $projFile
+          Write-Host "Updated SQLite Windows SDK version to 10.0.19041.0"
+        } else {
+          Write-Error "SQLitePlugin.vcxproj not found at expected path"
+          exit 1
+        }
+      shell: powershell
+
+    - name: Build Windows
+      run: |        
+        npx react-native run-windows --no-launch --no-deploy --release
         
-    # - name: Upload Windows build artifact
-    #   uses: actions/upload-artifact@main
-    #   with:
-    #     name: windows-tablet-build
-    #     path: windows/loadmaster/AppPackages/**/*
+    - name: Upload Windows build artifact
+      uses: actions/upload-artifact@main
+      with:
+        name: windows-tablet-build
+        path: windows/loadmaster/AppPackages/**/*
