@@ -66,4 +66,12 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  coordLabel: {
+    position: 'absolute',
+    fontSize: 10,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    color: '#000',
+    padding: 2,
+    zIndex: 1000,
+  },
 });
