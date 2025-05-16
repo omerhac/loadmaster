@@ -114,6 +114,11 @@ jobs:
         }
       shell: powershell
 
+    - name: Install Windows Native Dependencies
+      run: |
+        powershell -ExecutionPolicy Bypass -File ".\\node_modules\\react-native-windows\\scripts\\rnw-dependencies.ps1"
+      shell: powershell
+
     - name: Build Windows
       run: |        
         npx react-native run-windows --no-launch --no-deploy --release
