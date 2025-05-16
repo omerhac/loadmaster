@@ -1,19 +1,24 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, ImageBackground } from 'react-native';
-import { CargoItem, Position } from '../../types';
+import { CargoItem } from '../../types';
 import { Images } from '../../assets';
 import { styles } from './Deck.styles';
 import DeckItem from './DeckItem';
 
 interface DeckProps {
   items: CargoItem[];
-  onDrop: (id: string, position: Position) => void;
+  // Inner deck dimensions (in pixels) for child clamping
+  deckSize: { width: number; height: number };
+  // Deck absolute offset on screen for pointer repositioning
+  deckOffset: { x: number; y: number };
   onRemoveFromDeck?: (id: string) => void;
-  onUpdateItemStatus: (id: string, status: 'onStage' | 'onDeck' | 'inventory', position?: { x: number, y: number }) => void;
+  onUpdateItemStatus: (id: string, status: 'onStage' | 'onDeck' | 'inventory', position: { x: number, y: number }) => void;
 }
 
 const Deck: React.FC<DeckProps> = React.memo(({
   items,
+  deckSize,
+  deckOffset,
   onRemoveFromDeck,
   onUpdateItemStatus,
 }) => {
@@ -39,6 +44,8 @@ const Deck: React.FC<DeckProps> = React.memo(({
           <DeckItem
             key={item.id}
             item={item}
+            deckSize={deckSize}
+            deckOffset={deckOffset}
             onRemove={handleRemoveFromDeck}
             onUpdateItemStatus={onUpdateItemStatus}
           />
