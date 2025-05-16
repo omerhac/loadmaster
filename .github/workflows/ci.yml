@@ -108,7 +108,7 @@ jobs:
       shell: powershell
 
     - name: Restore SQLitePlugin NuGet Packages
-      run: nuget restore node_modules/react-native-sqlite-storage/platforms/windows/SQLitePlugin/SQLitePlugin.sln -PackagesDirectory node_modules/react-native-sqlite-storage/platforms/windows/SQLitePlugin/packages
+      run: nuget restore node_modules/react-native-sqlite-storage/platforms/windows/SQLitePlugin.sln -PackagesDirectory windows/packages -ConfigFile windows/NuGet.Config
 
     - name: Restore Windows NuGet Packages
       run: nuget restore windows/loadmaster.sln -ConfigFile windows/NuGet.Config
