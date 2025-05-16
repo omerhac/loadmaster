@@ -79,18 +79,9 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
     // Subtracting deck's position to get coordinates relative to deck
     // Add padding offset (10px from styles.deckContainer)
     const adjustedPosition = {
-      x: Math.max(0, position.x - deckMeasurements.x - 10),
+      x: Math.max(0, position.x - deckMeasurements.x - 10 + 250),
       y: Math.max(0, position.y - deckMeasurements.y - 10),
     };
-
-    // Make sure the item stays within the deck boundaries
-    if (adjustedPosition.x > deckMeasurements.width - 20) {
-      adjustedPosition.x = deckMeasurements.width - 50;
-    }
-
-    if (adjustedPosition.y > deckMeasurements.height - 20) {
-      adjustedPosition.y = deckMeasurements.height - 50;
-    }
 
     onUpdateItemStatus(id, 'onDeck', adjustedPosition);
   }, [deckMeasurements, onUpdateItemStatus]);
