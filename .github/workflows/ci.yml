@@ -140,6 +140,21 @@ jobs:
           exit 1
         }
 
+    - name: Fix Package Path Issues in SQLitePlugin.vcxproj
+      shell: powershell
+      run: |
+        $projFile = "node_modules\react-native-sqlite-storage\platforms\windows\SQLitePlugin\SQLitePlugin.vcxproj"
+        if (Test-Path $projFile) {
+          # Replace the SolutionDir relative path with a more reliable MSBuildThisFileDirectory relative path
+          $content = Get-Content $projFile
+          $content = $content -replace '\$\(SolutionDir\)\\packages', '$(MSBuildThisFileDirectory)..\\..\\..\\..\\..\\..\\windows\\packages'
+          Set-Content $projFile $content
+          Write-Host "Fixed package paths in SQLitePlugin.vcxproj"
+        } else {
+          Write-Error "SQLitePlugin.vcxproj not found at expected path"
+          exit 1
+        }
+
     - name: Restore SQLitePlugin NuGet Packages
       run: nuget restore node_modules/react-native-sqlite-storage/platforms/windows/SQLitePlugin.sln -PackagesDirectory windows/packages
 
