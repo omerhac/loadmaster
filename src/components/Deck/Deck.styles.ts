@@ -3,7 +3,6 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   deckContainer: {
     flex: 2,
-    padding: 10,
   },
   deck: {
     flex: 1,
