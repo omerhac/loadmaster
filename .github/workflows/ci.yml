@@ -127,6 +127,19 @@ jobs:
           exit 1
         }
 
+    - name: Update SQLitePlugin Project File References
+      shell: powershell
+      run: |
+        $projFile = "node_modules\react-native-sqlite-storage\platforms\windows\SQLitePlugin\SQLitePlugin.vcxproj"
+        if (Test-Path $projFile) {
+          # Update all references to CppWinRT version in vcxproj file to match packages.config
+          (Get-Content $projFile) -replace 'Microsoft.Windows.CppWinRT.2.0.200615.7', 'Microsoft.Windows.CppWinRT.2.0.230706.1' | Set-Content $projFile
+          Write-Host "Updated CppWinRT references in SQLitePlugin.vcxproj to 2.0.230706.1"
+        } else {
+          Write-Error "SQLitePlugin.vcxproj not found at expected path"
+          exit 1
+        }
+
     - name: Restore SQLitePlugin NuGet Packages
       run: nuget restore node_modules/react-native-sqlite-storage/platforms/windows/SQLitePlugin.sln -PackagesDirectory windows/packages
 
