@@ -22,6 +22,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 5,
     paddingHorizontal: 5,
+    height: 35
   },
   menuButton: {
     width: 16,
@@ -29,6 +30,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 4,
+    marginTop: 4,
   },
   menuButtonText: {
     fontSize: 14,
@@ -50,7 +52,8 @@ export const styles = StyleSheet.create({
     color: '#333',
   },
   itemDimensions: {
-    fontSize: 10,
+    marginTop: 2,
+    fontSize: 8,
     color: '#666',
   },
   itemWeight: {
@@ -69,16 +72,14 @@ export const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 12,
     color: 'white',
-    fontWeight: 'bold',
     textAlign: 'center',
-    lineHeight: 14,
+    lineHeight: 12,
   },
   actionButtonRemoveText: {
-    fontSize: 14,
+    fontSize: 12,
     color: 'white',
-    fontWeight: 'bold',
     textAlign: 'center',
-    lineHeight: 14,
+    lineHeight: 12,
   },
   itemDetails: {
     padding: 5,

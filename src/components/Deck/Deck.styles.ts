@@ -4,13 +4,15 @@ export const styles = StyleSheet.create({
   deckContainer: {
     flex: 2,
     padding: 10,
+    position: 'relative',
+    zIndex: 1,
   },
   deck: {
     flex: 1,
     backgroundColor: '#e5e5e5',
     borderRadius: 8,
     position: 'relative',
-    overflow: 'hidden',
+    overflow: 'visible',
   },
   cargoItem: {
     position: 'absolute',
@@ -34,7 +36,11 @@ export const styles = StyleSheet.create({
     opacity: 0.8,
     shadowOpacity: 0.5,
     shadowRadius: 10,
-    zIndex: 999,
+    zIndex: 9999,
+    elevation: 9999,
+    borderWidth: 2,
+    borderColor: 'yellow',
+    backgroundColor: '#5da0f2',
   },
   itemName: {
     color: '#fff',

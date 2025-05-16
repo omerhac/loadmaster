@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { Text, TouchableOpacity, PanResponder, Animated } from 'react-native';
+import { Text, TouchableOpacity, PanResponder, Animated, Dimensions } from 'react-native';
 import { CargoItem } from '../../types';
 import { styles } from './Deck.styles';
 
@@ -55,24 +55,55 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
         translateY.extractOffset();
 
         setIsDragging(true);
+        Animated.spring(scale, {
+          toValue: 1.1,
+          friction: 5,
+          useNativeDriver: true,
+        }).start();
       },
       onPanResponderMove: Animated.event(
         [null, { dx: translateX, dy: translateY }],
         { useNativeDriver: false }
       ),
-      onPanResponderRelease: () => {
-
+      onPanResponderRelease: (event, gestureState) => {
         setIsDragging(false);
+        
+        // Get the absolute screen position where the item was dropped
+        const dropX = event.nativeEvent.pageX;
+        const dropY = event.nativeEvent.pageY;
+
+        // If the item was dragged significantly and dropped in the lower half of the screen
+        if (Math.abs(gestureState.dx) > 10 || Math.abs(gestureState.dy) > 10) {
+          const screenHeight = Dimensions.get('window').height;
+          if (dropY > screenHeight / 2) {
+            // Move to stage
+            onUpdateItemStatus(item.id, 'onStage');
+          } else {
+            // Update position on deck
+            onUpdateItemStatus(item.id, 'onDeck', currentPosition);
+          }
+        } else {
+          // Not dragged far enough, update position on deck
+          onUpdateItemStatus(item.id, 'onDeck', currentPosition);
+        }
+
+        // Reset scale
+        Animated.spring(scale, {
+          toValue: 1,
+          friction: 5,
+          useNativeDriver: true,
+        }).start();
+      },
+      onPanResponderTerminate: () => {
+        setIsDragging(false);
+        Animated.spring(scale, {
+          toValue: 1,
+          friction: 5,
+          useNativeDriver: true,
+        }).start();
       },
     })
   ).current;
-
-  useEffect(() => {
-    if (!isDragging) {
-      console.log('currentPosition', currentPosition);
-      onUpdateItemStatus(item.id, 'onDeck', currentPosition);
-    }
-  }, [isDragging, currentPosition, onUpdateItemStatus, item.id]);
 
   return (
     <Animated.View

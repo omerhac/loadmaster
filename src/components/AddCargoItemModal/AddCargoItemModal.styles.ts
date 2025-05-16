@@ -18,6 +18,10 @@ export const styles = StyleSheet.create({
     padding: 20,
     width: '80%',
     maxWidth: 800,
+    maxHeight: '95%',
+  },
+  scrollView: {
+    width: '100%',
   },
   closeButton: {
     position: 'absolute',

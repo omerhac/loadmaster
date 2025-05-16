@@ -5,7 +5,7 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
-    "ipad": "react-native run-ios --simulator=\"iPad Pro (11-inch) (4th generation)\"",
+    "ipad": "npx react-native run-ios --simulator=\"iPad Pro (11-inch) (4th generation)\"",
     "tablet-windows": "npx react-native run-windows --release",
     "lint": "eslint .",
     "start": "react-native start",
@@ -37,7 +37,7 @@
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
     "@babel/runtime": "^7.25.0",
-    "@react-native-community/cli": "15.0.1",
+    "@react-native-community/cli": "^18.0.0",
     "@react-native-community/cli-platform-android": "15.0.1",
     "@react-native-community/cli-platform-ios": "15.0.1",
     "@react-native/babel-preset": "0.78.0",

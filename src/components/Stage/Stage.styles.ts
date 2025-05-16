@@ -38,7 +38,7 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'yellow',
     backgroundColor: '#5da0f2',
-    zIndex: 999,
+    zIndex: 9999,
   },
   itemContentContainer: {
     width: '100%',

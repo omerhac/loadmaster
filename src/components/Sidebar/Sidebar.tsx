@@ -158,7 +158,6 @@ const Sidebar = ({
     ]}>
       <View style={styles.sortContainer}>
         <View style={styles.sortHeader}>
-          <Text style={styles.sortLabel}>Sort by:</Text>
           <View style={styles.switchRow}>
             <Switch
               style={styles.switchStyle}

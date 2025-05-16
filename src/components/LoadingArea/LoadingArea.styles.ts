@@ -6,6 +6,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     display: 'flex',
     flexDirection: 'column',
+    position: 'relative',
   },
   tabletLoadingArea: {
     padding: 0,
@@ -14,7 +15,9 @@ export const styles = StyleSheet.create({
     flex: 3,
   },
   deckWrapper: {
-    flex: 2,
+    flex: 1,
+    position: 'relative',
+    zIndex: 1,
   },
   stageAreaContainer: {
     flex: 1,
@@ -22,21 +25,21 @@ export const styles = StyleSheet.create({
     flexDirection: 'column',
     borderTopWidth: 1,
     borderTopColor: '#ddd',
-    marginTop: 10,
     position: 'relative',
     backgroundColor: '#ffffff',
+    zIndex: 0,
   },
   stageHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 5,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
   stageTitle: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
     color: '#333',
   },

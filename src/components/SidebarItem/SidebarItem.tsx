@@ -80,7 +80,7 @@ const SidebarItem = ({
           {!isExpanded ? (
             <View style={styles.compactInfo}>
               <Text style={styles.itemDimensions}>{dimensions}</Text>
-              <Text style={styles.itemWeight}>{weight}</Text>
+              {/* <Text style={styles.itemWeight}>{weight}</Text> */}
             </View>
           ) : null}
         </View>
