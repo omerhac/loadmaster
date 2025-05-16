@@ -107,11 +107,6 @@ jobs:
         }
       shell: powershell
 
-    - name: Install Windows Native Dependencies
-      run: powershell -ExecutionPolicy Bypass -File ".\\node_modules\\react-native-windows\\scripts\\rnw-dependencies.ps1" -Install -NoPrompt
-      shell: powershell
-      continue-on-error: true
-
     - name: Restore Windows NuGet Packages
       run: nuget restore windows/loadmaster.sln -ConfigFile windows/NuGet.Config
 
