@@ -120,6 +120,28 @@ jobs:
     - name: Restore Windows NuGet Packages
       run: nuget restore windows/loadmaster.sln -ConfigFile windows/NuGet.Config
 
+    # Debug: list contents of windows/packages
+    - name: Debug Windows Packages Folder
+      shell: powershell
+      run: |
+        Write-Host '### windows/packages contents ###'
+        Get-ChildItem -Path windows\packages -Recurse | Format-List
+
+    # Debug: check for CppWinRT.props in windows/packages
+    - name: Check CppWinRT.props Existence
+      shell: powershell
+      run: |
+        $path = 'windows\packages\Microsoft.Windows.CppWinRT.2.0.200615.7\build\native\Microsoft.Windows.CppWinRT.props'
+        Write-Host "Checking $path ..."
+        if (Test-Path $path) { Write-Host 'FOUND' } else { Write-Host 'MISSING' }
+
+    # Debug: list plugin packages folder
+    - name: Debug Plugin Packages Folder
+      shell: powershell
+      run: |
+        Write-Host '### plugin/platforms/windows/packages contents ###'
+        Get-ChildItem -Path node_modules\react-native-sqlite-storage\platforms\windows\packages -Recurse | Format-List
+
     - name: Build Windows
       run: |        
         npx react-native run-windows --no-launch --no-deploy --release
