@@ -34,7 +34,7 @@ const DebugCoordinates: React.FC<DebugCoordinatesProps> = ({ pos, itemWidth, ite
     const { x, y } = corners[key];
     normalizedCorners[key] = {
       x: parseFloat((x * scaleFactor).toFixed(2)),
-      y: parseFloat(((deckSize.height - y) * scaleFactor).toFixed(2)),
+      y: parseFloat(((y) * scaleFactor).toFixed(2)),
     };
   });
 
