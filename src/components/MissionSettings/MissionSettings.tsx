@@ -35,7 +35,8 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
     departureLocation: '',
     arrivalLocation: '',
     aircraftIndex: '',
-    crewMembers: 0,
+    crewMembersFront: 0,
+    crewMembersBack: 0,
     cockpit: 0,
     safetyGearWeight: 250,
     fuelPods: false,
@@ -93,7 +94,8 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
 
         <AircraftConfigSection
           aircraftIndex={formData.aircraftIndex}
-          crewMembers={formData.crewMembers}
+          crewMembersFront={formData.crewMembersFront}
+          crewMembersBack={formData.crewMembersBack}
           cockpit={formData.cockpit}
           safetyGearWeight={formData.safetyGearWeight}
           fuelPods={formData.fuelPods}
