@@ -53,7 +53,7 @@ const AircraftConfigSection = ({
           <Text style={styles.labelSmall}>Crew Front:</Text>
           <TextInput
             style={styles.numberInput}
-            value={crewMembersFront !== undefined ? crewMembersFront.toString() : ''}
+            value={crewMembersFront.toString()}
             onChangeText={(value) => handleNumericChange('crewMembersFront', value)}
             keyboardType="numeric"
             placeholder="0"
