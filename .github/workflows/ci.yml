@@ -76,6 +76,13 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
+    - name: Install RNW Windows Build Dependencies
+      shell: powershell
+      run: |
+        Set-ExecutionPolicy Unrestricted -Scope Process -Force
+        Invoke-WebRequest -UseBasicParsing -Uri 'https://aka.ms/rnw-vs2022-deps.ps1' -OutFile rnw-deps.ps1
+        .\rnw-deps.ps1 -Install -NoPrompt
+
     - name: Cache Windows build
       uses: actions/cache@v3
       with:
@@ -108,7 +115,7 @@ jobs:
       shell: powershell
 
     - name: Restore SQLitePlugin NuGet Packages
-      run: nuget restore node_modules/react-native-sqlite-storage/platforms/windows/SQLitePlugin.sln -PackagesDirectory windows/packages -ConfigFile windows/NuGet.Config
+      run: nuget restore node_modules/react-native-sqlite-storage/platforms/windows/SQLitePlugin.sln -PackagesDirectory node_modules/react-native-sqlite-storage/platforms/windows/packages
 
     - name: Restore Windows NuGet Packages
       run: nuget restore windows/loadmaster.sln -ConfigFile windows/NuGet.Config
