@@ -28,6 +28,7 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
   const panResponder = useMemo(
     () => PanResponder.create({
       onStartShouldSetPanResponder: () => true,
+
       onMoveShouldSetPanResponder: (_, gs) =>
         Math.abs(gs.dx) > 5 || Math.abs(gs.dy) > 5,
       onPanResponderGrant: (_e, gs) => {
@@ -44,7 +45,7 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
         const clampedY = Math.max(0, Math.min(py, deckSize.height - item.length));
         setDragPosition({ x: clampedX, y: clampedY });
       },
-      onPanResponderRelease: (_e, gs) => {
+      onPanResponderRelease: (_e, _gs) => {
         const finalPos = dragPosition ?? item.position;
         setIsDragging(false);
         setDragPosition(null);
@@ -74,7 +75,10 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
         Animated.spring(scale, { toValue: 1, friction: 5, useNativeDriver: true }).start();
       },
     }),
-    [item.position.x, item.position.y, deckOffset.x, deckOffset.y, deckSize.width, deckSize.height, dragPosition]
+    [deckOffset.x, deckOffset.y,
+    deckSize.width, deckSize.height, dragPosition,
+    item.id, item.length, item.position,
+    item.width, onUpdateItemStatus, scale]
   );
 
   const pos = dragPosition ?? item.position;
