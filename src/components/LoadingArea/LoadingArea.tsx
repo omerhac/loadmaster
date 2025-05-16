@@ -58,11 +58,6 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
   );
   const stageItemCount = stageItems.length;
 
-  // Handle dropping an item onto the deck
-  const handleDrop = useCallback((id: string, position: { x: number, y: number }) => {
-    onUpdateItemStatus(id, 'onDeck', position);
-  }, [onUpdateItemStatus]);
-
   // Handle adding an item to the stage
   const handleAddToStage = useCallback((id: string) => {
     onUpdateItemStatus(id, 'onStage');

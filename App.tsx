@@ -175,7 +175,7 @@ function App(): React.JSX.Element {
 
       console.log('newPosition', newPosition, status);
       updateCargoItem({
-        id: parseInt(id),
+        id: parseInt(id, 10),
         status: status as 'onStage' | 'onDeck' | 'inventory',
         x_start_position: newPosition.x,
         y_start_position: newPosition.y,
