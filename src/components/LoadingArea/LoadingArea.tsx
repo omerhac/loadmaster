@@ -103,9 +103,6 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
     }
   }, []);
 
-  // Compute inner deck dimensions (subtract 10px padding each side)
-  const innerDeckWidth = Math.max(0, deckMeasurements.width - 20);
-  const innerDeckHeight = Math.max(0, deckMeasurements.height - 20);
 
   return (
     <View style={containerStyle}>
@@ -116,8 +113,8 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
       >
         <Deck
           items={items}
-          deckSize={{ width: innerDeckWidth, height: innerDeckHeight }}
-          deckOffset={{ x: deckMeasurements.x + 10, y: deckMeasurements.y + 10 }}
+          deckSize={{ width: deckMeasurements.width, height: deckMeasurements.height }}
+          deckOffset={{ x: deckMeasurements.x, y: deckMeasurements.y }}
           onRemoveFromDeck={handleRemoveFromDeck}
           onUpdateItemStatus={onUpdateItemStatus}
         />
