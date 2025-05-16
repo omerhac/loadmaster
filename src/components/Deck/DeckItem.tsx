@@ -4,6 +4,9 @@ import { CargoItem, Position } from '../../types';
 import { styles } from './Deck.styles';
 import DebugCoordinates, { SHOW_DEBUG_COORDS } from './DebugCoordinates';
 
+// the offset of the "start loading from here position" in pixels
+const FS_250_PIXEL_OFFSET = 11;
+
 interface DeckItemProps {
   item: CargoItem;
   // the size of the deck in pixels
@@ -38,7 +41,7 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
       // start dragging callback
       onPanResponderGrant: (_e, gs) => {
         setIsDragging(true);
-        Animated.spring(scale, { toValue: 1.1, friction: 5, useNativeDriver: true }).start();
+        Animated.spring(scale, { toValue: 1, friction: 5, useNativeDriver: true }).start();
         // compute the offset of the finger from the deck top left corner
         // gs.x0 and gs.y0 are the coordinates of the touch start
         const px0 = gs.x0 - deckOffset.x;
@@ -51,7 +54,7 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
         // gs.moveX and gs.moveY are the latest coordinates of the finger
         const px = gs.moveX - deckOffset.x - fingerOffsetRef.current.x;
         const py = gs.moveY - deckOffset.y - fingerOffsetRef.current.y;
-        const clampedX = Math.max(0, Math.min(px, deckSize.width - item.width));
+        const clampedX = Math.max(FS_250_PIXEL_OFFSET, Math.min(px, deckSize.width - item.width));
         const clampedY = Math.max(0, Math.min(py, deckSize.height - item.length));
         setDragPosition({ x: clampedX, y: clampedY });
       },
