@@ -119,6 +119,9 @@ jobs:
         powershell -ExecutionPolicy Bypass -File ".\\node_modules\\react-native-windows\\scripts\\rnw-dependencies.ps1"
       shell: powershell
 
+    - name: Restore Windows NuGet Packages
+      run: nuget restore windows/loadmaster.sln -ConfigFile windows/NuGet.Config
+
     - name: Build Windows
       run: |        
         npx react-native run-windows --no-launch --no-deploy --release
