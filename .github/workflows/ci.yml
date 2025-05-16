@@ -106,7 +106,7 @@ jobs:
         # Verify file exists
         if (Test-Path $projFile) {
           # Update to a newer SDK version that's available in the CI environment
-          (Get-Content $projFile) -replace '18362.0','19041.0' | Set-Content $projFile
+          (Get-Content $projFile) -replace '18362.0','19041.0' -replace '16299.0','19041.0' | Set-Content $projFile
           Write-Host "Updated SQLite Windows SDK version to 10.0.19041.0"
         } else {
           Write-Error "SQLitePlugin.vcxproj not found at expected path"
