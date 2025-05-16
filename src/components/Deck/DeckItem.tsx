@@ -4,8 +4,49 @@ import { CargoItem, Position } from '../../types';
 import { styles } from './Deck.styles';
 import DebugCoordinates, { SHOW_DEBUG_COORDS } from './DebugCoordinates';
 
-// the offset of the "start loading from here position" in pixels
-const FS_250_PIXEL_OFFSET = 11;
+// the offset of the "start loading from here position" relative to 
+// the deck image width (from deck start)
+const FS_250_PIXEL_RELATIVE_OFFSET = 0.0195903829;
+// the offset of the "stop loading here position" relative to 
+// the deck image width (from deck end)
+const FS_849_PIXEL_RELATIVE_OFFSET = 0.04274265361;
+// the offset of the top of the deck
+// relative to the deck image height
+const DECK_Y_TOP_BOUND_RELATIVE_OFFSET = 0.3552311436;
+// the offset of the bottom of the deck
+// relative to the deck image height
+const DECK_Y_BOTTOM_BOUND_RELATIVE_OFFSET = 0.1265206813;
+// the relative width of the deck in the image
+// from fs_250 to fs_849
+const LOADING_AREA_RELATIVE_WIDTH_IN_IMAGE = 0.9376669635;
+// the width of the loading area in inches
+// from fs_250 to fs_849
+const LOADING_AREA_WIDTH_IN_INCHES = 599;
+
+function convertPixelToInchesSize(sizeInPixel: number, deckSize: { width: number; height: number }) {
+  const loadingAreaPixelWidth = deckSize.width * LOADING_AREA_RELATIVE_WIDTH_IN_IMAGE;
+  const relativeSize = sizeInPixel / loadingAreaPixelWidth;
+  return relativeSize * LOADING_AREA_WIDTH_IN_INCHES;
+}
+
+function convertPixelPointToInchesPoint(pointInPixel: { x: number; y: number }, deckSize: { width: number; height: number }) {
+  return {
+    x: convertPixelToInchesSize(pointInPixel.x, deckSize),
+    y: convertPixelToInchesSize(pointInPixel.y, deckSize),
+  };
+}
+
+function convertPixelCornersToInchesCorners(cornersInPixel: { [key: string]: { x: number; y: number } }, deckSize: { width: number; height: number }) {
+  return Object.fromEntries(
+    Object.entries(cornersInPixel).map(([key, value]) => [key, convertPixelPointToInchesPoint(value, deckSize)])
+  );
+}
+
+function convertInchesToPixelSize(inches: number, deckSize: { width: number; height: number }) {
+  const loadingAreaPixelWidth = deckSize.width * LOADING_AREA_RELATIVE_WIDTH_IN_IMAGE;
+  const relativeSize = inches / LOADING_AREA_WIDTH_IN_INCHES;
+  return relativeSize * loadingAreaPixelWidth;
+}
 
 interface DeckItemProps {
   item: CargoItem;
@@ -32,6 +73,10 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
   const scale = useRef(new Animated.Value(1)).current;
   const fingerOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  const itemPixelWidth = convertInchesToPixelSize(item.width, deckSize);
+  const itemPixelHeight = convertInchesToPixelSize(item.length, deckSize);
+  console.log('deckSizeInPixels', deckSize);
+  console.log('loadingAreaPixelWidth', deckSize.width * LOADING_AREA_RELATIVE_WIDTH_IN_IMAGE);
   const panResponder = useMemo(
     () => PanResponder.create({
       // claim all touch events
@@ -54,8 +99,12 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
         // gs.moveX and gs.moveY are the latest coordinates of the finger
         const px = gs.moveX - deckOffset.x - fingerOffsetRef.current.x;
         const py = gs.moveY - deckOffset.y - fingerOffsetRef.current.y;
-        const clampedX = Math.max(FS_250_PIXEL_OFFSET, Math.min(px, deckSize.width - item.width));
-        const clampedY = Math.max(0, Math.min(py, deckSize.height - item.length));
+        const fs_250_pixel_offset = deckSize.width * FS_250_PIXEL_RELATIVE_OFFSET;
+        const fs_849_pixel_offset = deckSize.width * FS_849_PIXEL_RELATIVE_OFFSET;
+        const deck_y_top_bound_pixel_offset = deckSize.height * DECK_Y_TOP_BOUND_RELATIVE_OFFSET;
+        const deck_y_bottom_bound_pixel_offset = deckSize.height * DECK_Y_BOTTOM_BOUND_RELATIVE_OFFSET;
+        const clampedX = Math.max(fs_250_pixel_offset, Math.min(px, deckSize.width - itemPixelWidth - fs_849_pixel_offset));
+        const clampedY = Math.max(deck_y_top_bound_pixel_offset, Math.min(py, deckSize.height - itemPixelHeight - deck_y_bottom_bound_pixel_offset));
         setDragPosition({ x: clampedX, y: clampedY });
       },
       // on drag release callback
@@ -66,15 +115,7 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
         Animated.spring(scale, { toValue: 1, friction: 5, useNativeDriver: true }).start();
         onUpdateItemStatus(item.id, 'onDeck', finalPos);
 
-        // compute the corners of the item in the deck coordinate system
-        // (convert from pixel space to deck space)
-        const corners = {
-          bottomLeft: { x: finalPos.x, y: finalPos.y + item.length },
-          bottomRight: { x: finalPos.x + item.width, y: finalPos.y + item.length },
-          topLeft: { x: finalPos.x, y: finalPos.y },
-          topRight: { x: finalPos.x + item.width, y: finalPos.y },
-        };
-        console.log('Dropped corners:', { corners });
+
       },
       // on pan responder terminate callback
       onPanResponderTerminate: () => {
@@ -84,12 +125,24 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
       },
     }),
     [deckOffset.x, deckOffset.y,
-    deckSize.width, deckSize.height, dragPosition,
-    item.id, item.length, item.position,
-    item.width, onUpdateItemStatus, scale]
+    deckSize.width, deckSize.height,
+      dragPosition, item.position, item.id,
+      onUpdateItemStatus, scale,
+      itemPixelWidth, itemPixelHeight]
   );
 
-  const pos = dragPosition ?? item.position;
+  const currentPosition = dragPosition ?? item.position;
+  // compute the corners of the item in the deck coordinate system
+  // (convert from pixel space to deck space)
+  const pixelCorners = {
+    bottomLeft: { x: currentPosition.x, y: currentPosition.y + itemPixelHeight },
+    bottomRight: { x: currentPosition.x + itemPixelWidth, y: currentPosition.y + itemPixelHeight },
+    topLeft: { x: currentPosition.x, y: currentPosition.y },
+    topRight: { x: currentPosition.x + itemPixelWidth, y: currentPosition.y },
+  };
+  const inchesCorners = convertPixelCornersToInchesCorners(pixelCorners, deckSize);
+  console.log('Dropped pixel corners:', { corners: pixelCorners });
+  console.log('Dropped inches corners:', { corners: inchesCorners });
 
   return (
     <Animated.View
@@ -97,10 +150,10 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
       style={[
         styles.cargoItem,
         {
-          width: item.width,
-          height: item.length,
-          left: pos.x,
-          top: pos.y,
+          width: itemPixelWidth,
+          height: itemPixelHeight,
+          left: currentPosition.x,
+          top: currentPosition.y,
           transform: [{ scale }],
         },
         isSelected && styles.selectedItem,
@@ -126,10 +179,12 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
       </TouchableOpacity>
       {SHOW_DEBUG_COORDS && (
         <DebugCoordinates
-          pos={pos}
-          itemWidth={item.width}
-          itemHeight={item.length}
-          deckSize={deckSize}
+          corners={{
+            topLeft: inchesCorners.topLeft,
+            topRight: inchesCorners.topRight,
+            bottomLeft: inchesCorners.bottomLeft,
+            bottomRight: inchesCorners.bottomRight,
+          }}
         />
       )}
     </Animated.View>

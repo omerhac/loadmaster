@@ -7,54 +7,38 @@ import { styles } from './Deck.styles';
 export const SHOW_DEBUG_COORDS = true;
 
 interface DebugCoordinatesProps {
-  pos: Position;
-  itemWidth: number;
-  itemHeight: number;
-  deckSize: { width: number; height: number };
+  corners: {
+    topLeft: Position;
+    topRight: Position;
+    bottomLeft: Position;
+    bottomRight: Position;
+  };
 }
 
-const DebugCoordinates: React.FC<DebugCoordinatesProps> = ({ pos, itemWidth, itemHeight, deckSize }) => {
-  // Compute pixel-space corners
-  const corners = {
-    topLeft:     { x: pos.x,                   y: pos.y                    },
-    topRight:    { x: pos.x + itemWidth,       y: pos.y                    },
-    bottomLeft:  { x: pos.x,                   y: pos.y + itemHeight       },
-    bottomRight: { x: pos.x + itemWidth,       y: pos.y + itemHeight       },
+const DebugCoordinates: React.FC<DebugCoordinatesProps> = ({ corners }) => {
+  const labelStyles = {
+    topLeft: { top: 0, left: 0 },
+    topRight: { top: 0, right: 0 },
+    bottomLeft: { bottom: 0, left: 0 },
+    bottomRight: { bottom: 0, right: 0 },
   };
 
-  // Normalize into 0–600 space with Y inverted so bottom = 0
-  const scaleFactor = 600 / deckSize.width;
-  const normalizedCorners: Record<keyof typeof corners, Position> = {
-    topLeft:     { x: 0, y: 0 },
-    topRight:    { x: 0, y: 0 },
-    bottomLeft:  { x: 0, y: 0 },
-    bottomRight: { x: 0, y: 0 },
-  };
-  (Object.keys(corners) as Array<keyof typeof corners>).forEach(key => {
-    const { x, y } = corners[key];
-    normalizedCorners[key] = {
-      x: parseFloat((x * scaleFactor).toFixed(2)),
-      y: parseFloat(((y) * scaleFactor).toFixed(2)),
-    };
-  });
-
-  // Label positioning within the item
-  const labelStyles: Record<keyof typeof corners, any> = {
-    topLeft:     { top: 0,    left: 0    },
-    topRight:    { top: 0,    right: 0   },
-    bottomLeft:  { bottom: 0, left: 0    },
-    bottomRight: { bottom: 0, right: 0   },
+  const formatCoordinate = (coord: Position) => {
+    // Round to 2 decimal places
+    const x = Math.round(coord.x * 100) / 100;
+    const y = Math.round(coord.y * 100) / 100;
+    return `(${x}, ${y})`;
   };
 
   return (
     <>
-      {(Object.entries(normalizedCorners) as [keyof typeof corners, Position][]).map(([key, coord]) => (
+      {Object.entries(corners).map(([key, coord]) => (
         <Text
           key={key}
           // eslint-disable-next-line react-native/no-inline-styles
           style={[styles.coordLabel, labelStyles[key], { fontSize: 5 }]}
         >
-          {`(${coord.x}, ${coord.y})`}
+          {formatCoordinate(coord)}
         </Text>
       ))}
     </>
