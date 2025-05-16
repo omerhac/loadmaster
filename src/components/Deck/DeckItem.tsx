@@ -65,7 +65,6 @@ const DeckItem: React.FC<DeckItemProps> = React.memo(({
 
         // compute the corners of the item in the deck coordinate system
         // (convert from pixel space to deck space)
-        const scaleFactor = 600 / deckSize.width;
         const corners = {
           bottomLeft: { x: finalPos.x, y: finalPos.y + item.length },
           bottomRight: { x: finalPos.x + item.width, y: finalPos.y + item.length },
