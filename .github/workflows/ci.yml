@@ -114,6 +114,19 @@ jobs:
         }
       shell: powershell
 
+    - name: Update SQLitePlugin NuGet Package Version
+      shell: powershell
+      run: |
+        $packagesConfig = "node_modules\react-native-sqlite-storage\platforms\windows\SQLitePlugin\packages.config"
+        if (Test-Path $packagesConfig) {
+          # Update CppWinRT version to match what's being restored (2.0.230706.1)
+          (Get-Content $packagesConfig) -replace 'version="2.0.200615.7"', 'version="2.0.230706.1"' | Set-Content $packagesConfig
+          Write-Host "Updated CppWinRT version in packages.config to 2.0.230706.1"
+        } else {
+          Write-Error "packages.config not found at expected path"
+          exit 1
+        }
+
     - name: Restore SQLitePlugin NuGet Packages
       run: nuget restore node_modules/react-native-sqlite-storage/platforms/windows/SQLitePlugin.sln -PackagesDirectory windows/packages
 
