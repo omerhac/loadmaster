@@ -51,6 +51,7 @@ const DebugCoordinates: React.FC<DebugCoordinatesProps> = ({ pos, itemWidth, ite
       {(Object.entries(normalizedCorners) as [keyof typeof corners, Position][]).map(([key, coord]) => (
         <Text
           key={key}
+          // eslint-disable-next-line react-native/no-inline-styles
           style={[styles.coordLabel, labelStyles[key], { fontSize: 5 }]}
         >
           {`(${coord.x}, ${coord.y})`}
@@ -60,4 +61,4 @@ const DebugCoordinates: React.FC<DebugCoordinatesProps> = ({ pos, itemWidth, ite
   );
 };
 
-export default DebugCoordinates; 
+export default DebugCoordinates;
