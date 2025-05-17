@@ -240,14 +240,14 @@ export const styles = StyleSheet.create({
   // Table styles
   tableContainer: {
     borderWidth: 1,
-    borderColor: '#0000FF',
+    borderColor: '#007bff',
     marginTop: 5,
     marginBottom: 10,
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#0000FF',
+    borderBottomColor: '#007bff',
   },
   tableCell: {
     flex: 1,
@@ -255,7 +255,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRightWidth: 1,
-    borderRightColor: '#0000FF',
+    borderRightColor: '#007bff',
   },
   tableHeaderText: {
     fontWeight: 'bold',
