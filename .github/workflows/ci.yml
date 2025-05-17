@@ -7,9 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  debug-windows-sqlite:
-    runs-on: windows-latest
-    if: github.event_name == 'pull_request'
+  build-and-test-ios:
+    runs-on: macos-latest
     
     steps:
     - uses: actions/checkout@v4
@@ -20,21 +19,99 @@ jobs:
         node-version: '18'
         cache: 'npm'
         
-    - name: Install minimal dependencies
-      run: npm ci --ignore-scripts
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Cache CocoaPods
+      uses: actions/cache@v3
+      with:
+        path: ios/Pods
+        key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pods-
+      
+    - name: Cache Xcode build
+      uses: actions/cache@v3
+      with:
+        path: ios/build
+        key: ${{ runner.os }}-xcode-build-${{ hashFiles('ios/**/*.pbxproj') }}-${{ hashFiles('ios/**/*.swift') }}-${{ hashFiles('ios/**/*.m') }}
+        restore-keys: |
+          ${{ runner.os }}-xcode-build-
+          ${{ runner.os }}-xcode-build-${{ hashFiles('ios/**/*.pbxproj') }}-${{ hashFiles('ios/**/*.swift') }}
+      
+    - name: Run linter
+      run: npm run lint
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Install Pod dependencies
+      run: |
+        cd ios
+        pod install
+  
+    # Build for iPad with landscape orientation
+    - name: Build iOS for iPad
+      run: |
+        xcodebuild -workspace ios/loadmaster.xcworkspace -scheme loadmaster -configuration Release -destination 'platform=iOS Simulator,name=iPad (10th generation)' -derivedDataPath ios/build
+    
+    - name: Upload iOS build artifact
+      uses: actions/upload-artifact@main
+      with:
+        name: ios-ipad-build
+        path: ios/build/Build/Products/Release-iphonesimulator/*.app
+        
+  build-and-test-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install RNW Windows Build Dependencies
+      shell: powershell
+      run: |
+        Set-ExecutionPolicy Unrestricted -Scope Process -Force
+        Invoke-WebRequest -UseBasicParsing -Uri 'https://aka.ms/rnw-vs2022-deps.ps1' -OutFile rnw-deps.ps1
+        .\\rnw-deps.ps1 -Install -NoPrompt
+
+    - name: Cache Windows build
+      uses: actions/cache@v3
+      with:
+        path: windows/build
+        key: ${{ runner.os }}-windows-build-${{ hashFiles('windows/**/*.sln') }}-${{ hashFiles('windows/**/*.cs') }}-${{ hashFiles('windows/**/*.cpp') }}
+        restore-keys: |
+          ${{ runner.os }}-windows-build-
+      
+    - name: Run linter
+      run: npm run lint
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Install react-native-windows
+      run: npm install --save-dev react-native-windows@latest
       
     - name: Install CppWinRT NuGet Package Globally
       shell: powershell
       run: |
-        nuget install Microsoft.Windows.CppWinRT -Version 2.0.230706.1 -OutputDirectory C:\NuGetPackages
-        Write-Host "Installed CppWinRT 2.0.230706.1 to C:\NuGetPackages"
-        Write-Host "Contents of C:\NuGetPackages:"
-        Get-ChildItem -Path "C:\NuGetPackages" -Recurse | Where-Object { $_.FullName -like "*CppWinRT*" } | ForEach-Object { Write-Host $_.FullName }
+        nuget install Microsoft.Windows.CppWinRT -Version 2.0.230706.1 -OutputDirectory C:\\NuGetPackages
+        Write-Host "Installed CppWinRT 2.0.230706.1 to C:\\NuGetPackages"
+        Write-Host "Contents of C:\\NuGetPackages:"
+        Get-ChildItem -Path "C:\\NuGetPackages" -Recurse | Where-Object { $_.FullName -like "*CppWinRT*" } | ForEach-Object { Write-Host $_.FullName }
 
     - name: Update SQLitePlugin packages.config
       shell: powershell
       run: |
-        $packagesConfig = "node_modules\react-native-sqlite-storage\platforms\windows\SQLitePlugin\packages.config"
+        $packagesConfig = "node_modules\\react-native-sqlite-storage\\platforms\\windows\\SQLitePlugin\\packages.config"
         if (Test-Path $packagesConfig) {
           # Update CppWinRT version to match what's being installed
           (Get-Content $packagesConfig) -replace 'version="2.0.200615.7"', 'version="2.0.230706.1"' | Set-Content $packagesConfig
@@ -49,7 +126,7 @@ jobs:
     - name: Fix SQLitePlugin Project To Use Global Packages
       shell: powershell
       run: |
-        $projFile = "node_modules\react-native-sqlite-storage\platforms\windows\SQLitePlugin\SQLitePlugin.vcxproj"
+        $projFile = "node_modules\\react-native-sqlite-storage\\platforms\\windows\\SQLitePlugin\\SQLitePlugin.vcxproj"
         if (Test-Path $projFile) {
           # Update the package reference to use the global path with forward slashes
           $content = Get-Content $projFile
@@ -76,169 +153,12 @@ jobs:
           exit 1
         }
 
-    - name: Verify SQLitePlugin Build with MSBuild
-      shell: powershell
-      run: |
-        $projFile = "node_modules\react-native-sqlite-storage\platforms\windows\SQLitePlugin\SQLitePlugin.vcxproj"
-        Write-Host "Running MSBuild project evaluation on SQLitePlugin.vcxproj"
-        & "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe" $projFile -t:Restore -p:RestorePackagesConfig=true -p:Configuration=Release -p:Platform=x64 -noLogo -v:detailed
-
-  # build-and-test-ios:
-  #   runs-on: macos-latest
-    
-  #   steps:
-  #   - uses: actions/checkout@v4
-    
-  #   - name: Setup Node.js
-  #     uses: actions/setup-node@v4
-  #     with:
-  #       node-version: '18'
-  #       cache: 'npm'
+    - name: Build Windows
+      run: |        
+        npx react-native run-windows --no-launch --no-deploy --release
         
-  #   - name: Install dependencies
-  #     run: npm ci
-      
-  #   - name: Cache CocoaPods
-  #     uses: actions/cache@v3
-  #     with:
-  #       path: ios/Pods
-  #       key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
-  #       restore-keys: |
-  #         ${{ runner.os }}-pods-
-      
-  #   - name: Cache Xcode build
-  #     uses: actions/cache@v3
-  #     with:
-  #       path: ios/build
-  #       key: ${{ runner.os }}-xcode-build-${{ hashFiles('ios/**/*.pbxproj') }}-${{ hashFiles('ios/**/*.swift') }}-${{ hashFiles('ios/**/*.m') }}
-  #       restore-keys: |
-  #         ${{ runner.os }}-xcode-build-
-  #         ${{ runner.os }}-xcode-build-${{ hashFiles('ios/**/*.pbxproj') }}-${{ hashFiles('ios/**/*.swift') }}
-      
-  #   - name: Run linter
-  #     run: npm run lint
-      
-  #   - name: Run tests
-  #     run: npm test
-      
-  #   - name: Install Pod dependencies
-  #     run: |
-  #       cd ios
-  #       pod install
-  
-  #   # Build for iPad with landscape orientation
-  #   - name: Build iOS for iPad
-  #     run: |
-  #       xcodebuild -workspace ios/loadmaster.xcworkspace -scheme loadmaster -configuration Release -destination 'platform=iOS Simulator,name=iPad (10th generation)' -derivedDataPath ios/build
-    
-  #   - name: Upload iOS build artifact
-  #     uses: actions/upload-artifact@main
-  #     with:
-  #       name: ios-ipad-build
-  #       path: ios/build/Build/Products/Release-iphonesimulator/*.app
-        
-  # build-and-test-windows:
-  #   runs-on: windows-latest
-    
-  #   steps:
-  #   - uses: actions/checkout@v4
-    
-  #   - name: Setup Node.js
-  #     uses: actions/setup-node@v4
-  #     with:
-  #       node-version: '18'
-  #       cache: 'npm'
-        
-  #   - name: Install dependencies
-  #     run: npm ci
-      
-  #   - name: Install RNW Windows Build Dependencies
-  #     shell: powershell
-  #     run: |
-  #       Set-ExecutionPolicy Unrestricted -Scope Process -Force
-  #       Invoke-WebRequest -UseBasicParsing -Uri 'https://aka.ms/rnw-vs2022-deps.ps1' -OutFile rnw-deps.ps1
-  #       .\rnw-deps.ps1 -Install -NoPrompt
-
-  #   - name: Cache Windows build
-  #     uses: actions/cache@v3
-  #     with:
-  #       path: windows/build
-  #       key: ${{ runner.os }}-windows-build-${{ hashFiles('windows/**/*.sln') }}-${{ hashFiles('windows/**/*.cs') }}-${{ hashFiles('windows/**/*.cpp') }}
-  #       restore-keys: |
-  #         ${{ runner.os }}-windows-build-
-      
-  #   - name: Run linter
-  #     run: npm run lint
-      
-  #   - name: Run tests
-  #     run: npm test
-      
-  #   - name: Install react-native-windows
-  #     run: npm install --save-dev react-native-windows@latest
-      
-  #   - name: Update SQLite Windows SDK Version
-  #     run: |
-  #       $projFile = "node_modules\react-native-sqlite-storage\platforms\windows\SQLitePlugin\SQLitePlugin.vcxproj"
-  #       # Verify file exists
-  #       if (Test-Path $projFile) {
-  #         # Update to a newer SDK version that's available in the CI environment
-  #         (Get-Content $projFile) -replace '18362.0','19041.0' -replace '16299.0','19041.0' | Set-Content $projFile
-  #         Write-Host "Updated SQLite Windows SDK version to 10.0.19041.0"
-  #       } else {
-  #         Write-Error "SQLitePlugin.vcxproj not found at expected path"
-  #         exit 1
-  #       }
-  #     shell: powershell
-
-  #   - name: Install CppWinRT NuGet Package Globally
-  #     shell: powershell
-  #     run: |
-  #       nuget install Microsoft.Windows.CppWinRT -Version 2.0.230706.1 -OutputDirectory C:\NuGetPackages
-  #       Write-Host "Installed CppWinRT 2.0.230706.1 to C:\NuGetPackages"
-
-  #   - name: Fix SQLitePlugin Project To Use Global Packages
-  #     shell: powershell
-  #     run: |
-  #       $projFile = "node_modules\react-native-sqlite-storage\platforms\windows\SQLitePlugin\SQLitePlugin.vcxproj"
-  #       if (Test-Path $projFile) {
-  #         # Update the package reference to use the global path with single backslashes
-  #         $content = Get-Content $projFile
-  #         # 1. Update the props import
-  #         $content = $content -replace '<Import Project="\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.props"', '<Import Project="C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props"'
-  #         # 2. Update the targets import
-  #         $content = $content -replace '<Import Project="\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.targets"', '<Import Project="C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.targets"'
-  #         # 3. Update the error conditions
-  #         $content = $content -replace '!Exists\(''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.props''\)', '!Exists(''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props'')'
-  #         $content = $content -replace '!Exists\(''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.targets''\)', '!Exists(''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.targets'')'
-  #         # 4. Update error messages
-  #         $content = $content -replace '\$\(\[System\.String\]::Format\(''\$\(ErrorText\)'', ''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.props''\)\)', '$([System.String]::Format(''$(ErrorText)'', ''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props''))'
-  #         $content = $content -replace '\$\(\[System\.String\]::Format\(''\$\(ErrorText\)'', ''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.targets''\)\)', '$([System.String]::Format(''$(ErrorText)'', ''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.targets''))'
-  #         Set-Content $projFile $content
-  #         Write-Host "Updated SQLitePlugin.vcxproj to use global CppWinRT package path"
-  #       } else {
-  #         Write-Error "SQLitePlugin.vcxproj not found at expected path"
-  #         exit 1
-  #       }
-
-  #   - name: Update SQLitePlugin packages.config
-  #     shell: powershell
-  #     run: |
-  #       $packagesConfig = "node_modules\react-native-sqlite-storage\platforms\windows\SQLitePlugin\packages.config"
-  #       if (Test-Path $packagesConfig) {
-  #         # Update CppWinRT version to match what's being installed
-  #         (Get-Content $packagesConfig) -replace 'version="2.0.200615.7"', 'version="2.0.230706.1"' | Set-Content $packagesConfig
-  #         Write-Host "Updated CppWinRT version in packages.config to 2.0.230706.1"
-  #       } else {
-  #         Write-Error "packages.config not found at expected path"
-  #         exit 1
-  #       }
-
-  #   - name: Build Windows
-  #     run: |        
-  #       npx react-native run-windows --no-launch --no-deploy --release
-        
-  #   - name: Upload Windows build artifact
-  #     uses: actions/upload-artifact@main
-  #     with:
-  #       name: windows-tablet-build
-  #       path: windows/loadmaster/AppPackages/**/*
+    - name: Upload Windows build artifact
+      uses: actions/upload-artifact@main
+      with:
+        name: windows-tablet-build
+        path: windows/loadmaster/AppPackages/**/*
