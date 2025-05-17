@@ -6,6 +6,17 @@ export type Position = {
     y: number;
 };
 
+export type ManualCargoItem = {
+    id: string;
+    cell: string;
+    fs: number;
+    name: string;
+    weight: number;
+    width: number;
+    length: number;
+    height: number;
+};
+
 export type CargoItem = {
     id: string;
     cargo_type_id: number;
@@ -47,5 +58,6 @@ export type MissionSettings = {
     safetyGearWeight: number;
     fuelPods: boolean;
     fuelDistribution: FuelDistribution;
+    cargoItems: ManualCargoItem[];
     notes?: string;
 }

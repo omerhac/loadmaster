@@ -5,10 +5,11 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { MissionSettings, FuelDistribution } from '../../types';
+import { MissionSettings, FuelDistribution, ManualCargoItem } from '../../types';
 import { styles } from './MissionSettings.styles';
 import BasicInfoSection from './BasicInfoSection';
 import AircraftConfigSection from './AircraftConfigSection';
+import ManualCargoInsertion from './ManualCargoInsertion';
 import NotesSection from './NotesSection';
 
 // Helper function to generate a simple ID without relying on crypto
@@ -46,10 +47,11 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
       aux: 0,
       ext: 0,
     },
+    cargoItems: [],
     notes: '',
   });
 
-  const handleChange = useCallback((name: string, value: string | number | boolean) => {
+  const handleChange = useCallback((name: string, value: string | number | boolean | ManualCargoItem[]) => {
     if (name.startsWith('fuelDistribution.')) {
       const fuelField = name.split('.')[1] as keyof FuelDistribution;
       setFormData(prev => ({
@@ -100,6 +102,11 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
           safetyGearWeight={formData.safetyGearWeight}
           fuelPods={formData.fuelPods}
           fuelDistribution={formData.fuelDistribution}
+          onChange={handleChange}
+        />
+
+        <ManualCargoInsertion
+          cargoItems={formData.cargoItems}
           onChange={handleChange}
         />
 
