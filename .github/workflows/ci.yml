@@ -99,7 +99,20 @@ jobs:
       
     - name: Install react-native-windows
       run: npm install --save-dev react-native-windows@latest
-    
+
+    # Update the Platform Toolset for SQLitePlugin to v143 (Visual Studio 2022)
+    - name: Update SQLitePlugin Platform Toolset
+      shell: powershell
+      run: |
+        $projFile = "node_modules\\react-native-sqlite-storage\\platforms\\windows\\SQLitePlugin\\SQLitePlugin.vcxproj"
+        if (Test-Path $projFile) {
+          (Get-Content $projFile) -replace '<PlatformToolset>v140</PlatformToolset>','<PlatformToolset>v143</PlatformToolset>' -replace '<PlatformToolset>v141</PlatformToolset>','<PlatformToolset>v143</PlatformToolset>' | Set-Content $projFile
+          Write-Host "Updated Platform Toolset in SQLitePlugin.vcxproj to v143"
+        } else {
+          Write-Error "SQLitePlugin.vcxproj not found at expected path"
+          exit 1
+        }
+
     # Update the Windows SDK version for SQLitePlugin to one available in the CI environment
     - name: Update SQLite Windows SDK Version
       shell: powershell
