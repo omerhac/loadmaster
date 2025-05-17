@@ -99,7 +99,27 @@ jobs:
       
     - name: Install react-native-windows
       run: npm install --save-dev react-native-windows@latest
-      
+    
+    # Update the Windows SDK version for SQLitePlugin to one available in the CI environment
+    - name: Update SQLite Windows SDK Version
+      shell: powershell
+      run: |
+        $projFile = "node_modules\\react-native-sqlite-storage\\platforms\\windows\\SQLitePlugin\\SQLitePlugin.vcxproj"
+        if (Test-Path $projFile) {
+          (Get-Content $projFile) -replace '10.0.18362.0','10.0.19041.0' -replace '10.0.16299.0','10.0.19041.0' | Set-Content $projFile
+          Write-Host "Updated SQLite Windows SDK version in SQLitePlugin.vcxproj to 10.0.19041.0"
+        } else {
+          Write-Error "SQLitePlugin.vcxproj not found at expected path"
+          exit 1
+        }
+
+    # Install CppWinRT NuGet Package Globally
+    # This is a workaround to fix the build error:
+    # The "CppWinRT.props" file cannot be found.
+    # The "CppWinRT.targets" file cannot be found.
+    # The "CppWinRT.props" file cannot be found.
+    # It was caused by react-native-sqlite-storage not being able to find the CppWinRT package.
+    # The fix is to install the CppWinRT NuGet package globally and then update the SQLitePlugin project file to use the global path.
     - name: Install CppWinRT NuGet Package Globally
       shell: powershell
       run: |
