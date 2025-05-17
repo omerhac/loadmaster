@@ -3,7 +3,6 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   deckContainer: {
     flex: 2,
-    padding: 10,
   },
   deck: {
     flex: 1,
@@ -65,5 +64,13 @@ export const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  coordLabel: {
+    position: 'absolute',
+    fontSize: 10,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    color: '#000',
+    padding: 2,
+    zIndex: 1000,
   },
 });

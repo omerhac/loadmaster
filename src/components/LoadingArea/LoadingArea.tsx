@@ -58,11 +58,6 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
   );
   const stageItemCount = stageItems.length;
 
-  // Handle dropping an item onto the deck
-  const handleDrop = useCallback((id: string, position: { x: number, y: number }) => {
-    onUpdateItemStatus(id, 'onDeck', position);
-  }, [onUpdateItemStatus]);
-
   // Handle adding an item to the stage
   const handleAddToStage = useCallback((id: string) => {
     onUpdateItemStatus(id, 'onStage');
@@ -84,18 +79,9 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
     // Subtracting deck's position to get coordinates relative to deck
     // Add padding offset (10px from styles.deckContainer)
     const adjustedPosition = {
-      x: Math.max(0, position.x - deckMeasurements.x - 10),
+      x: Math.max(0, position.x - deckMeasurements.x - 10 + 250),
       y: Math.max(0, position.y - deckMeasurements.y - 10),
     };
-
-    // Make sure the item stays within the deck boundaries
-    if (adjustedPosition.x > deckMeasurements.width - 20) {
-      adjustedPosition.x = deckMeasurements.width - 50;
-    }
-
-    if (adjustedPosition.y > deckMeasurements.height - 20) {
-      adjustedPosition.y = deckMeasurements.height - 50;
-    }
 
     onUpdateItemStatus(id, 'onDeck', adjustedPosition);
   }, [deckMeasurements, onUpdateItemStatus]);
@@ -117,6 +103,7 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
     }
   }, []);
 
+
   return (
     <View style={containerStyle}>
       <View
@@ -126,7 +113,8 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
       >
         <Deck
           items={items}
-          onDrop={handleDrop}
+          deckSize={{ width: deckMeasurements.width, height: deckMeasurements.height }}
+          deckOffset={{ x: deckMeasurements.x, y: deckMeasurements.y }}
           onRemoveFromDeck={handleRemoveFromDeck}
           onUpdateItemStatus={onUpdateItemStatus}
         />
