@@ -190,8 +190,19 @@ jobs:
       run: |        
         npx react-native run-windows --no-launch --no-deploy --release
         
+    # List contents of relevant directories to find build artifacts
+    - name: List build output directories
+      shell: powershell
+      run: |
+        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages:"
+        dir D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages -Recurse
+        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\AppPackages:"
+        dir D:\a\loadmaster\loadmaster\windows\AppPackages -Recurse
+        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster:"
+        dir D:\a\loadmaster\loadmaster\windows\loadmaster -Recurse
+
     - name: Upload Windows build artifact
       uses: actions/upload-artifact@main
       with:
         name: windows-tablet-build
-        path: windows/loadmaster/AppPackages/**/*
+        path: windows/AppPackages/loadmaster/**/*_Test/**/*
