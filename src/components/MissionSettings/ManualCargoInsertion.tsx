@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { styles } from './MissionSettings.styles';
-import { ManualCargoItem } from '../../types';
+import { ManualCargoItem, CargoItem } from '../../types';
 
 type ManualCargoInsertionProps = {
   cargoItems: ManualCargoItem[];
   onChange: (name: string, value: ManualCargoItem[]) => void;
+  onAddCargoItem?: (item: CargoItem, status: 'inventory' | 'onStage' | 'onDeck') => void;
 };
 
 const CELL_OPTIONS = ['C', 'D', 'E', 'F', 'G', 'H'];
 const DEFAULT_DIMENSIONS = {
-  width: 100,
-  length: 100,
-  height: 100,
+  width: 50,
+  length: 50,
+  height: 50,
 };
 
 const calculateChange = (_cell: string, _fs: number, _weight: number): number => {
@@ -25,7 +26,7 @@ const calculateIndex = (_cell: string, _fs: number, _weight: number): number => 
   return 0;
 };
 
-function ManualCargoInsertion({ cargoItems = [], onChange }: ManualCargoInsertionProps) {
+function ManualCargoInsertion({ cargoItems = [], onChange, onAddCargoItem }: ManualCargoInsertionProps) {
   const [cell, setCell] = useState<string>(CELL_OPTIONS[0]);
   const [fs, setFs] = useState<string>('');
   const [name, setName] = useState<string>('');
@@ -35,19 +36,43 @@ function ManualCargoInsertion({ cargoItems = [], onChange }: ManualCargoInsertio
   const handleAddCargoItem = () => {
     if (!fs || !name || !weight) return;
 
+    const id = Date.now().toString();
+    const parsedWeight = parseInt(weight, 10) || 0;
+    const parsedFs = parseInt(fs, 10) || 0;
+
+    // Create the item for the manual cargo insertion table
     const newItem: ManualCargoItem = {
-      id: Date.now().toString(),
+      id,
       cell,
-      fs: parseInt(fs, 10) || 0,
+      fs: parsedFs,
       name,
-      weight: parseInt(weight, 10) || 0,
+      weight: parsedWeight,
       width: DEFAULT_DIMENSIONS.width,
       length: DEFAULT_DIMENSIONS.length,
       height: DEFAULT_DIMENSIONS.height,
     };
 
+    // Add to the mission settings cargo items list
     const updatedCargoItems = [...cargoItems, newItem];
     onChange('cargoItems', updatedCargoItems);
+
+    // If onAddCargoItem is provided, also add to the main cargo items list
+    if (onAddCargoItem) {
+      const cargoItem: CargoItem = {
+        id,
+        cargo_type_id: 1, // Default cargo type
+        name,
+        length: DEFAULT_DIMENSIONS.length,
+        width: DEFAULT_DIMENSIONS.width,
+        height: DEFAULT_DIMENSIONS.height,
+        weight: parsedWeight,
+        cog: parsedFs, // Using FS as COG
+        status: 'onDeck', // Default status as requested
+        position: { x: 0, y: 0 }, // Default position as requested
+      };
+
+      onAddCargoItem(cargoItem, 'onDeck');
+    }
 
     // Reset form fields
     setCell(CELL_OPTIONS[0]);

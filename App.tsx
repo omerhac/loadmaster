@@ -86,9 +86,9 @@ function App(): React.JSX.Element {
     return () => subscription.remove();
   }, []);
 
-  const handleAddItem = useCallback(async (item: CargoItem) => {
+  const handleAddItem = useCallback(async (item: CargoItem, status: 'inventory' | 'onStage' | 'onDeck' = 'inventory') => {
     let newItem: DbCargoItem = {
-      status: 'inventory' as const,
+      status: status,
       x_start_position: -1,
       y_start_position: -1,
       mission_id: DEFAULT_MISSION_ID, // TODO: use current mission
@@ -236,6 +236,7 @@ function App(): React.JSX.Element {
         settings={missionSettings ?? undefined}
         onReturn={() => setCurrentView('planning')}
         onSave={handleMissionSave}
+        onAddToMainCargo={handleAddItem}
       />
     ),
     planning: (

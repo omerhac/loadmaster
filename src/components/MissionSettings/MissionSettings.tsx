@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { MissionSettings, FuelDistribution, ManualCargoItem } from '../../types';
+import { MissionSettings, FuelDistribution, ManualCargoItem, CargoItem } from '../../types';
 import { styles } from './MissionSettings.styles';
 import BasicInfoSection from './BasicInfoSection';
 import AircraftConfigSection from './AircraftConfigSection';
@@ -22,12 +22,14 @@ interface MissionSettingsProps {
   settings?: MissionSettings;
   onReturn: () => void;
   onSave: (settings: MissionSettings) => void;
+  onAddToMainCargo?: (item: CargoItem) => void;
 }
 
 const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   settings,
   onReturn,
   onSave,
+  onAddToMainCargo,
 }) => {
   const [formData, setFormData] = useState<MissionSettings>(() => settings ?? {
     id: generateId(),
@@ -108,6 +110,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
         <ManualCargoInsertion
           cargoItems={formData.cargoItems}
           onChange={handleChange}
+          onAddCargoItem={onAddToMainCargo}
         />
 
         <NotesSection
