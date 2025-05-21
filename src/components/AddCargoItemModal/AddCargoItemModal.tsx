@@ -34,6 +34,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
   const [height, setHeight] = useState<string>('');
   const [weight, setWeight] = useState<string>('');
   const [cog, setCog] = useState<string>('');
+  const [fs, setFs] = useState<string>('');
   const [showPresets, setShowPresets] = useState(false);
 
   // Set initial values if editing an existing item
@@ -45,6 +46,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
       setHeight(initialItem.height.toString());
       setWeight(initialItem.weight.toString());
       setCog(initialItem.cog.toString());
+      setFs(initialItem.fs?.toString() || '0');
     } else {
       setName('');
       setLength('');
@@ -52,6 +54,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
       setHeight('');
       setWeight('');
       setCog('');
+      setFs('0');
     }
   }, [initialItem]);
 
@@ -80,6 +83,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
 
     const cogValue = parseFloat(cog || '0');
     const lengthValue = parseFloat(length);
+    const fsValue = parseFloat(fs || '0');
 
     const itemToSave: CargoItem = {
       id: initialItem?.id || '',
@@ -90,12 +94,13 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
       height: parseFloat(height),
       weight: parseFloat(weight),
       cog: cogValue > 0 ? cogValue : lengthValue / 2, // Default to half length if not set
+      fs: fsValue,
       status: initialItem?.status || 'inventory',
       position: initialItem?.position || { x: -1, y: -1 },
     };
 
     onSave(itemToSave);
-  }, [name, length, width, height, weight, cog, initialItem, isDataValid, onSave]);
+  }, [name, length, width, height, weight, cog, fs, initialItem, isDataValid, onSave]);
 
   // Handle loading a preset
   const handleLoadPreset = useCallback((preset: CargoItem) => {
@@ -105,6 +110,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     setHeight(preset.height.toString());
     setWeight(preset.weight.toString());
     setCog(preset.cog.toString());
+    setFs(preset.fs?.toString() || '0');
     setShowPresets(false);
   }, []);
 
@@ -242,6 +248,17 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
                         onChangeText={setWeight}
                         keyboardType="numeric"
                         placeholder="Weight"
+                      />
+                    </View>
+
+                    <View style={styles.formColumn}>
+                      <Text style={styles.label}>FS</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={fs}
+                        onChangeText={setFs}
+                        keyboardType="numeric"
+                        placeholder="Fuselage Station"
                       />
                     </View>
                   </View>

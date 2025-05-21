@@ -108,21 +108,77 @@ function App(): React.JSX.Element {
         newItem.id = response.results[0].lastInsertId;
         const newItemForState = convertDbCargoItemToCargoItem(newItem);
         setCargoItems(prev => [...prev, newItemForState]);
+
+        // Also add to mission settings if we have active mission settings
+        if (missionSettings) {
+          const manualCargoItem = {
+            id: newItemForState.id,
+            name: newItemForState.name,
+            weight: newItemForState.weight,
+            fs: newItemForState.fs || 0, // Use fs if available or default to 0
+          };
+
+          setMissionSettings(prev => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              cargoItems: [...prev.cargoItems, manualCargoItem]
+            };
+          });
+        }
       } else {
         console.error('Failed to add cargo item: Invalid response from createCargoItem', response);
       }
     } catch (error) {
       console.error('Error adding cargo item:', error);
     }
-  }, []);
+  }, [missionSettings]);
 
   const handleEditItem = useCallback((item: CargoItem) => {
     setCargoItems(prev => prev.map(i => i.id === item.id ? item : i));
-  }, []);
+    
+    // Also update in mission settings if we have active mission settings
+    if (missionSettings) {
+      setMissionSettings(prev => {
+        if (!prev) return null;
+        
+        // Check if the item exists in mission settings cargoItems
+        const itemExists = prev.cargoItems.some(i => i.id === item.id);
+        if (itemExists) {
+          return {
+            ...prev,
+            cargoItems: prev.cargoItems.map(i => {
+              if (i.id === item.id) {
+                return {
+                  ...i,
+                  name: item.name,
+                  weight: item.weight,
+                  fs: item.fs || i.fs
+                };
+              }
+              return i;
+            })
+          };
+        }
+        return prev;
+      });
+    }
+  }, [missionSettings]);
 
   const handleDeleteItem = useCallback((id: string) => {
     setCargoItems(prev => prev.filter(item => item.id !== id));
-  }, []);
+    
+    // Also remove from mission settings if we have active mission settings
+    if (missionSettings) {
+      setMissionSettings(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          cargoItems: prev.cargoItems.filter(item => item.id !== id)
+        };
+      });
+    }
+  }, [missionSettings]);
 
   const handleDuplicateItem = useCallback(async (id: string) => {
     const itemToDuplicate = cargoItems.find(item => item.id === id);
@@ -153,13 +209,31 @@ function App(): React.JSX.Element {
         newDbItem.id = response.results[0].lastInsertId;
         const newItemForState = convertDbCargoItemToCargoItem(newDbItem);
         setCargoItems(prev => [...prev, newItemForState]);
+        
+        // Also add to mission settings if we have active mission settings
+        if (missionSettings) {
+          const manualCargoItem = {
+            id: newItemForState.id,
+            name: newItemForState.name,
+            weight: newItemForState.weight,
+            fs: newItemForState.fs || 0, // Use fs if available or default to 0
+          };
+          
+          setMissionSettings(prev => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              cargoItems: [...prev.cargoItems, manualCargoItem]
+            };
+          });
+        }
       } else {
         console.error('Failed to duplicate item: Invalid response from createCargoItem', response);
       }
     } catch (error) {
       console.error('Error duplicating item:', error);
     }
-  }, [cargoItems]);
+  }, [cargoItems, missionSettings]);
 
   const handleUpdateItemStatus = useCallback((
     id: string,

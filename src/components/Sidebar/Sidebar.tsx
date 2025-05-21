@@ -25,6 +25,7 @@ function convertDbCargoTypeToCargoItem(dbCargoType: DbCargoType): CargoItem {
     cargo_type_id: dbCargoType.id || 1,
     status: 'inventory',
     cog: dbCargoType.default_cog || 0,
+    fs: 0, // Default fuselage station
     position: { x: -1, y: -1 },
   };
 }

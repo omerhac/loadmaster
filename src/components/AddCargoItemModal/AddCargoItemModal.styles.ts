@@ -102,7 +102,7 @@ export const styles = StyleSheet.create({
     width: '100%',
   },
   formColumn: {
-    width: '24%',
+    width: '20%',
     paddingHorizontal: 5,
   },
   formFullWidth: {
