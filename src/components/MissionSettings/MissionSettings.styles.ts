@@ -188,11 +188,12 @@ export const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: '#007bff',
-    padding: 10,
+    padding: 7,
+    height: 32,
     borderRadius: 4,
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 10,
+    marginBottom: -7,
+    alignSelf: 'center',
   },
   addButtonText: {
     color: '#fff',
@@ -235,7 +236,8 @@ export const styles = StyleSheet.create({
   removeButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 12,
+    fontSize: 16,
+    lineHeight: 16,
   },
   // Table styles
   tableContainer: {

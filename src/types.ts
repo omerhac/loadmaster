@@ -8,13 +8,9 @@ export type Position = {
 
 export type ManualCargoItem = {
     id: string;
-    cell: string;
     fs: number;
     name: string;
     weight: number;
-    width: number;
-    length: number;
-    height: number;
 };
 
 export type CargoItem = {
@@ -26,6 +22,7 @@ export type CargoItem = {
     height: number;
     weight: number;
     cog: number;
+    fs: number;
     status: Status;
     position: Position;
 }
