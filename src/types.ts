@@ -22,9 +22,9 @@ export type CargoItem = {
     height: number;
     weight: number;
     cog: number;
-    fs: number;
     status: Status;
     position: Position;
+    fs?: number;
 }
 
 export type Cargo = {

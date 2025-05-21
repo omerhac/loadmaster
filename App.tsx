@@ -20,6 +20,7 @@ import { getCargoItemsByMissionId, createCargoItem } from './src/services/db/ope
 import { createCargoType } from './src/services/db/operations/CargoTypeOperations';
 import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
 import { updateCargoItem } from './src/services/db/operations/CargoItemOperations';
+import { deleteCargoItem } from './src/services/db/operations/CargoItemOperations';
 
 const DEFAULT_MISSION_ID = 1;
 
@@ -166,8 +167,9 @@ function App(): React.JSX.Element {
   }, [missionSettings]);
 
   const handleDeleteItem = useCallback((id: string) => {
+    // Remove from state
     setCargoItems(prev => prev.filter(item => item.id !== id));
-    
+
     // Also remove from mission settings if we have active mission settings
     if (missionSettings) {
       setMissionSettings(prev => {
@@ -177,6 +179,13 @@ function App(): React.JSX.Element {
           cargoItems: prev.cargoItems.filter(item => item.id !== id)
         };
       });
+    }
+
+    // Also delete from the database
+    try {
+      deleteCargoItem(parseInt(id, 10));
+    } catch (error) {
+      console.error('Error deleting cargo item from database:', error);
     }
   }, [missionSettings]);
 
@@ -209,7 +218,7 @@ function App(): React.JSX.Element {
         newDbItem.id = response.results[0].lastInsertId;
         const newItemForState = convertDbCargoItemToCargoItem(newDbItem);
         setCargoItems(prev => [...prev, newItemForState]);
-        
+
         // Also add to mission settings if we have active mission settings
         if (missionSettings) {
           const manualCargoItem = {
@@ -218,7 +227,7 @@ function App(): React.JSX.Element {
             weight: newItemForState.weight,
             fs: newItemForState.fs || 0, // Use fs if available or default to 0
           };
-          
+
           setMissionSettings(prev => {
             if (!prev) return null;
             return {
