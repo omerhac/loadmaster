@@ -274,6 +274,73 @@ function App(): React.JSX.Element {
         cog: i.cog,
       });
 
+      // If status is changing to onDeck, add to mission settings
+      if (status === 'onDeck') {
+        setMissionSettings(prev => {
+          // If we don't have mission settings yet, create default ones
+          if (!prev) {
+            // Create default settings aligned with the default mission in initAppDatabase.ts
+            const defaultSettings: MissionSettings = {
+              id: `mission-${DEFAULT_MISSION_ID}`,
+              name: 'Default Mission',
+              date: new Date().toISOString().split('T')[0],
+              departureLocation: '',
+              arrivalLocation: '',
+              aircraftIndex: '84', // Default aircraft MAC index
+              crewMembersFront: 0,
+              crewMembersBack: 0,
+              cockpit: 1000, // Default crew weight from initAppDatabase
+              safetyGearWeight: 150, // Default safety gear weight from initAppDatabase
+              fuelPods: false,
+              fuelDistribution: {
+                outbd: 0,
+                inbd: 0,
+                aux: 0,
+                ext: 0,
+              },
+              cargoItems: [{
+                id: id,
+                name: i.name,
+                weight: i.weight,
+                fs: 0, // Default to 0 as requested
+              }],
+              notes: '',
+            };
+            return defaultSettings;
+          }
+
+          // Check if this item is already in mission settings
+          const itemInSettings = prev.cargoItems.find(item => item.id === id);
+
+          if (!itemInSettings) {
+            // Add to mission settings if not already there
+            const manualCargoItem = {
+              id: id,
+              name: i.name,
+              weight: i.weight,
+              fs: 0, // Default to 0 as requested
+            };
+
+            return {
+              ...prev,
+              cargoItems: [...prev.cargoItems, manualCargoItem]
+            };
+          }
+          
+          return prev;
+        });
+      } 
+      // If status is changing away from onDeck, remove from mission settings
+      else if (i.status !== 'onDeck') {
+        setMissionSettings(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            cargoItems: prev.cargoItems.filter(item => item.id !== id)
+          };
+        });
+      }
+
       return { ...i, status, position: newPosition };
     }));
   }, []);
@@ -301,10 +368,29 @@ function App(): React.JSX.Element {
     handleUpdateItemStatus(id, 'inventory');
   }, [handleUpdateItemStatus]);
 
+  const handleRemoveFromDeck = useCallback((id: string) => {
+    handleUpdateItemStatus(id, 'inventory');
+  }, [handleUpdateItemStatus]);
+
   const handleMissionSave = useCallback((settings: MissionSettings) => {
-    setMissionSettings(settings);
+    // Ensure we preserve items that are currently on the deck
+    const onDeckItems = cargoItems
+      .filter(item => item.status === 'onDeck')
+      .map(item => ({
+        id: item.id,
+        name: item.name,
+        weight: item.weight,
+        fs: item.fs || 0,
+      }));
+
+    // Set mission settings with preserved deck items
+    setMissionSettings({
+      ...settings,
+      cargoItems: onDeckItems,
+    });
+    
     setCurrentView('planning');
-  }, []);
+  }, [cargoItems]);
 
   const handleSavePreviewItems = useCallback((items: CargoItem[]) => {
     setCargoItems(prev => prev.map(item => {
@@ -316,10 +402,41 @@ function App(): React.JSX.Element {
   const views = {
     settings: (
       <MissionSettingsComponent
-        settings={missionSettings ?? undefined}
+        settings={{
+          ...(missionSettings ?? {
+            id: `mission-${DEFAULT_MISSION_ID}`,
+            name: 'Default Mission',
+            date: new Date().toISOString().split('T')[0],
+            departureLocation: '',
+            arrivalLocation: '',
+            aircraftIndex: '84',
+            crewMembersFront: 0,
+            crewMembersBack: 0,
+            cockpit: 1000,
+            safetyGearWeight: 150,
+            fuelPods: false,
+            fuelDistribution: {
+              outbd: 0,
+              inbd: 0,
+              aux: 0,
+              ext: 0,
+            },
+            notes: '',
+          }),
+          // Always use the current deck items from cargoItems array
+          cargoItems: cargoItems
+            .filter(item => item.status === 'onDeck')
+            .map(item => ({
+              id: item.id,
+              name: item.name,
+              weight: item.weight,
+              fs: item.fs || 0,
+            })),
+        }}
         onReturn={() => setCurrentView('planning')}
         onSave={handleMissionSave}
         onAddToMainCargo={handleAddItem}
+        onRemoveFromDeck={handleRemoveFromDeck}
       />
     ),
     planning: (

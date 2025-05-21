@@ -7,6 +7,7 @@ type ManualCargoInsertionProps = {
   cargoItems: ManualCargoItem[];
   onChange: (name: string, value: ManualCargoItem[]) => void;
   onAddCargoItem?: (item: CargoItem, status: 'inventory' | 'onStage' | 'onDeck') => void;
+  onRemoveItem?: (id: string) => void;
 };
 
 const DEFAULT_DIMENSIONS = {
@@ -27,10 +28,10 @@ const calculateIndex = (_fs: number, _weight: number): number => {
 
 const calculatePosition = (_fs: number): Position => {
   // Will be implemented later, returning {0, 0} for now
-  return { x: 0, y: 0 };
+  return { x: 500, y: 100 };
 };
 
-function ManualCargoInsertion({ cargoItems = [], onChange, onAddCargoItem }: ManualCargoInsertionProps) {
+function ManualCargoInsertion({ cargoItems = [], onChange, onAddCargoItem, onRemoveItem }: ManualCargoInsertionProps) {
   const [fs, setFs] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [weight, setWeight] = useState<string>('');
@@ -80,8 +81,14 @@ function ManualCargoInsertion({ cargoItems = [], onChange, onAddCargoItem }: Man
   };
 
   const handleRemoveItem = (id: string) => {
+    // Remove from the manual cargo insertion table
     const updatedCargoItems = cargoItems.filter(item => item.id !== id);
     onChange('cargoItems', updatedCargoItems);
+
+    // Also remove from the deck if the callback is provided
+    if (onRemoveItem) {
+      onRemoveItem(id);
+    }
   };
 
 
