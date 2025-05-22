@@ -24,8 +24,30 @@ import { deleteCargoItem } from './src/services/db/operations/CargoItemOperation
 
 const DEFAULT_MISSION_ID = 1;
 
-initAppDatabase();
+// Default mission settings
+const DEFAULT_MISSION_SETTINGS: MissionSettings = {
+  id: `mission-${DEFAULT_MISSION_ID}`,
+  name: 'Default Mission',
+  date: new Date().toISOString().split('T')[0],
+  departureLocation: '',
+  arrivalLocation: '',
+  aircraftIndex: '84',
+  crewMembersFront: 0,
+  crewMembersBack: 0,
+  cockpit: 1000,
+  safetyGearWeight: 150,
+  fuelPods: false,
+  fuelDistribution: {
+    outbd: 0,
+    inbd: 0,
+    aux: 0,
+    ext: 0,
+  },
+  cargoItems: [],
+  notes: '',
+};
 
+initAppDatabase();
 
 function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
   if (!item.id) {
@@ -279,34 +301,16 @@ function App(): React.JSX.Element {
         setMissionSettings(prev => {
           // If we don't have mission settings yet, create default ones
           if (!prev) {
-            // Create default settings aligned with the default mission in initAppDatabase.ts
-            const defaultSettings: MissionSettings = {
-              id: `mission-${DEFAULT_MISSION_ID}`,
-              name: 'Default Mission',
-              date: new Date().toISOString().split('T')[0],
-              departureLocation: '',
-              arrivalLocation: '',
-              aircraftIndex: '84', // Default aircraft MAC index
-              crewMembersFront: 0,
-              crewMembersBack: 0,
-              cockpit: 1000, // Default crew weight from initAppDatabase
-              safetyGearWeight: 150, // Default safety gear weight from initAppDatabase
-              fuelPods: false,
-              fuelDistribution: {
-                outbd: 0,
-                inbd: 0,
-                aux: 0,
-                ext: 0,
-              },
+            // Use the DEFAULT_MISSION_SETTINGS but with the current item added
+            return {
+              ...DEFAULT_MISSION_SETTINGS,
               cargoItems: [{
                 id: id,
                 name: i.name,
                 weight: i.weight,
                 fs: 0, // Default to 0 as requested
               }],
-              notes: '',
             };
-            return defaultSettings;
           }
 
           // Check if this item is already in mission settings
@@ -403,26 +407,7 @@ function App(): React.JSX.Element {
     settings: (
       <MissionSettingsComponent
         settings={{
-          ...(missionSettings ?? {
-            id: `mission-${DEFAULT_MISSION_ID}`,
-            name: 'Default Mission',
-            date: new Date().toISOString().split('T')[0],
-            departureLocation: '',
-            arrivalLocation: '',
-            aircraftIndex: '84',
-            crewMembersFront: 0,
-            crewMembersBack: 0,
-            cockpit: 1000,
-            safetyGearWeight: 150,
-            fuelPods: false,
-            fuelDistribution: {
-              outbd: 0,
-              inbd: 0,
-              aux: 0,
-              ext: 0,
-            },
-            notes: '',
-          }),
+          ...(missionSettings ?? DEFAULT_MISSION_SETTINGS),
           // Always use the current deck items from cargoItems array
           cargoItems: cargoItems
             .filter(item => item.status === 'onDeck')
