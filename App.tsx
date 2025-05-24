@@ -9,7 +9,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, View, Platform, Dimensions } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { CargoItem, MissionSettings, Position, View as AppView } from './src/types';
-import { CargoType as DbCargoType } from './src/services/db/operations/types';
+import { Aircraft, CargoType as DbCargoType, Mission } from './src/services/db/operations/types';
 import Header from './src/components/Header/Header';
 import Sidebar from './src/components/Sidebar/Sidebar';
 import LoadingArea from './src/components/LoadingArea/LoadingArea';
@@ -21,6 +21,7 @@ import { createCargoType } from './src/services/db/operations/CargoTypeOperation
 import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
 import { updateCargoItem } from './src/services/db/operations/CargoItemOperations';
 import { deleteCargoItem } from './src/services/db/operations/CargoItemOperations';
+import { getAircraftById } from './src/services/db/operations/AircraftOperations';
 
 const DEFAULT_MISSION_ID = 1;
 
@@ -74,6 +75,39 @@ function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
     cog,
     status,
     position,
+  };
+}
+
+async function convertDbMissionToMissionSettings(mission: Mission): Promise<MissionSettings> {
+  if (!mission.id) {
+    throw new Error('Mission has no id');
+  }
+  // TODO: handle error
+  const aircraftResponse = await getAircraftById(mission.aircraft_id);
+  if (aircraftResponse.results.length === 0) {
+    throw new Error('Aircraft not found');
+  }
+  const aircraft: Aircraft = (aircraftResponse.results[0].data as Aircraft);
+  return {
+    id: mission.id.toString(),
+    name: mission.name,
+    date: mission.created_date,
+    departureLocation: 'Nevatim',
+    arrivalLocation: 'Ramat David',
+    aircraftIndex: aircraft.empty_mac,
+    crewMembersFront: mission.crew_weight, // TODO: separate crew members front and back
+    crewMembersBack: mission.crew_weight,
+    cockpit: 0, // TODO: ?? what about food? etc? configuration_weights?
+    safetyGearWeight: mission.safety_gear_weight,
+    fuelPods: false,
+    fuelDistribution: {
+      outbd: 0,
+      inbd: 0,
+      aux: 0,
+      ext: 0,
+    },
+    cargoItems: [],
+    notes: '',
   };
 }
 
@@ -159,12 +193,12 @@ function App(): React.JSX.Element {
 
   const handleEditItem = useCallback((item: CargoItem) => {
     setCargoItems(prev => prev.map(i => i.id === item.id ? item : i));
-    
+
     // Also update in mission settings if we have active mission settings
     if (missionSettings) {
       setMissionSettings(prev => {
         if (!prev) return null;
-        
+
         // Check if the item exists in mission settings cargoItems
         const itemExists = prev.cargoItems.some(i => i.id === item.id);
         if (itemExists) {
@@ -330,10 +364,10 @@ function App(): React.JSX.Element {
               cargoItems: [...prev.cargoItems, manualCargoItem]
             };
           }
-          
+
           return prev;
         });
-      } 
+      }
       // If status is changing away from onDeck, remove from mission settings
       else if (i.status !== 'onDeck') {
         setMissionSettings(prev => {
@@ -392,7 +426,7 @@ function App(): React.JSX.Element {
       ...settings,
       cargoItems: onDeckItems,
     });
-    
+
     setCurrentView('planning');
   }, [cargoItems]);
 
