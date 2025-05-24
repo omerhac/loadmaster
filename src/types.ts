@@ -50,6 +50,5 @@ export type MissionSettings = {
     safetyGearWeight: number;
     fuelPods: boolean;
     fuelDistribution: FuelDistribution;
-    cargoItems: CargoItem[];
     notes?: string;
 }

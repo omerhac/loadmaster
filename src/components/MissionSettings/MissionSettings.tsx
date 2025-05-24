@@ -15,6 +15,7 @@ import NotesSection from './NotesSection';
 
 interface MissionSettingsProps {
   settings?: MissionSettings;
+  cargoItems: CargoItem[];
   onReturn: () => void;
   onSave: (settings: MissionSettings) => void;
   onAddToMainCargo?: (item: CargoItem, status?: 'inventory' | 'onStage' | 'onDeck') => void;
@@ -23,6 +24,7 @@ interface MissionSettingsProps {
 
 const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   settings,
+  cargoItems,
   onReturn,
   onSave,
   onAddToMainCargo,
@@ -30,7 +32,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
 }) => {
   const [formData, setFormData] = useState<MissionSettings | null>(settings ?? null);
 
-  const handleChange = useCallback((name: string, value: string | number | boolean | CargoItem[]) => {
+  const handleChange = useCallback((name: string, value: string | number | boolean) => {
     if (name.startsWith('fuelDistribution.')) {
       const fuelField = name.split('.')[1] as keyof FuelDistribution;
       setFormData(prev => ({
@@ -85,8 +87,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
         />
 
         <ManualCargoInsertion
-          cargoItems={formData!.cargoItems}
-          onChange={handleChange}
+          cargoItems={cargoItems}
           onAddCargoItem={onAddToMainCargo}
           onRemoveItem={onRemoveFromDeck}
         />

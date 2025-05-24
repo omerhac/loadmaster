@@ -2,10 +2,10 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-nativ
 import React, { useState } from 'react';
 import { styles } from './MissionSettings.styles';
 import { CargoItem, Position } from '../../types';
+import { DEFAULT_CARGO_TYPE_ID, DEFAULT_Y_POS } from '../../constants';
 
 type ManualCargoInsertionProps = {
   cargoItems: CargoItem[];
-  onChange: (name: string, value: CargoItem[]) => void;
   onAddCargoItem?: (item: CargoItem, status: 'inventory' | 'onStage' | 'onDeck') => void;
   onRemoveItem?: (id: string) => void;
 };
@@ -16,8 +16,7 @@ const DEFAULT_DIMENSIONS = {
   height: 50,
 };
 
-const DEFAULT_Y_POS = 100;
-const DEFAULT_CARGO_TYPE_ID = 1;
+
 
 const calculateChange = (_fs: number, _weight: number): number => {
   // Will be implemented later, returning 0 for now
@@ -35,7 +34,7 @@ const calculatePosition = (fs: number, cog: number): Position => {
   return { x: x_pos, y: y_pos };
 };
 
-function ManualCargoInsertion({ cargoItems = [], onChange, onAddCargoItem, onRemoveItem }: ManualCargoInsertionProps) {
+function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }: ManualCargoInsertionProps) {
   const [fs, setFs] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [weight, setWeight] = useState<string>('');
@@ -66,10 +65,6 @@ function ManualCargoInsertion({ cargoItems = [], onChange, onAddCargoItem, onRem
       position: calculatePosition(parsedFs, cog),
     };
 
-    // Add to the mission settings cargo items list
-    const updatedCargoItems = [...cargoItems, newItem];
-    onChange('cargoItems', updatedCargoItems);
-
     onAddCargoItem?.(newItem, 'onDeck');
 
     // Reset form fields
@@ -79,10 +74,6 @@ function ManualCargoInsertion({ cargoItems = [], onChange, onAddCargoItem, onRem
   };
 
   const handleRemoveItem = (id: string) => {
-    // Remove from the manual cargo insertion table
-    const updatedCargoItems = cargoItems.filter(item => item.id !== id);
-    onChange('cargoItems', updatedCargoItems);
-
     // Also remove from the deck if the callback is provided
     if (onRemoveItem) {
       onRemoveItem(id);
@@ -164,9 +155,9 @@ function ManualCargoInsertion({ cargoItems = [], onChange, onAddCargoItem, onRem
 
             {/* Table Body */}
             <ScrollView>
-              {cargoItems.map((item) => {
-                const change = calculateChange(item.fs, item.weight);
-                const index = calculateIndex(item.fs, item.weight);
+              {cargoItems.filter((item) => item.status === 'onDeck').map((item) => {
+                const change = calculateChange(item.fs ?? 0, item.weight ?? 0);
+                const index = calculateIndex(item.fs ?? 0, item.weight ?? 0);
 
                 return (
                   <View key={item.id} style={styles.tableRow}>
