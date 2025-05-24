@@ -21,12 +21,18 @@ export interface Mission {
   name: string;
   created_date: string;
   modified_date: string;
-  crew_weight: number;
+  front_crew_weight: number;
+  back_crew_weight: number;
   configuration_weights: number;
   crew_gear_weight: number;
   food_weight: number;
   safety_gear_weight: number;
   etc_weight: number;
+  outboard_fuel: number;
+  inboard_fuel: number;
+  fuselage_fuel: number;
+  auxiliary_fuel: number;
+  external_fuel: number;
   aircraft_id: number;
 }
 
@@ -61,27 +67,12 @@ export interface CargoItem {
   status?: 'inventory' | 'onStage' | 'onDeck';
 }
 
-export interface FuelState {
-  id?: number;
-  mission_id: number;
-  total_fuel: number;
-  main_tank_1_fuel: number;
-  main_tank_2_fuel: number;
-  main_tank_3_fuel: number;
-  main_tank_4_fuel: number;
-  external_1_fuel: number;
-  external_2_fuel: number;
-  mac_contribution: number;
-}
-
 export interface FuelMacQuant {
-  id?: number;
-  main_tank_1_fuel: number;
-  main_tank_2_fuel: number;
-  main_tank_3_fuel: number;
-  main_tank_4_fuel: number;
-  external_1_fuel: number;
-  external_2_fuel: number;
+  outboard_fuel: number;
+  inboard_fuel: number;
+  fuselage_fuel: number;
+  auxiliary_fuel: number;
+  external_fuel: number;
   mac_contribution: number;
 }
 

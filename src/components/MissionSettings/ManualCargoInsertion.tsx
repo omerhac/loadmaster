@@ -130,8 +130,8 @@ function ManualCargoInsertion({ cargoItems = [], onChange, onAddCargoItem, onRem
             placeholderTextColor="#999"
           />
         </View>
-        <TouchableOpacity 
-          style={styles.addButton} 
+        <TouchableOpacity
+          style={styles.addButton}
           onPress={handleAddCargoItem}
         >
           <Text style={styles.addButtonText}>Add Cargo Item</Text>
@@ -206,4 +206,4 @@ function ManualCargoInsertion({ cargoItems = [], onChange, onAddCargoItem, onRem
   );
 }
 
-export default ManualCargoInsertion; 
+export default ManualCargoInsertion;

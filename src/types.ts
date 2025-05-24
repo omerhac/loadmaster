@@ -6,12 +6,6 @@ export type Position = {
     y: number;
 };
 
-export type ManualCargoItem = {
-    id: string;
-    fs: number;
-    name: string;
-    weight: number;
-};
 
 export type CargoItem = {
     id: string;
@@ -40,6 +34,7 @@ export type FuelDistribution = {
     inbd: number,
     aux: number,
     ext: number,
+    fuselage: number,
 };
 
 export type MissionSettings = {
@@ -55,6 +50,6 @@ export type MissionSettings = {
     safetyGearWeight: number;
     fuelPods: boolean;
     fuelDistribution: FuelDistribution;
-    cargoItems: ManualCargoItem[];
+    cargoItems: CargoItem[];
     notes?: string;
 }

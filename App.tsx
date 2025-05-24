@@ -22,31 +22,9 @@ import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
 import { updateCargoItem } from './src/services/db/operations/CargoItemOperations';
 import { deleteCargoItem } from './src/services/db/operations/CargoItemOperations';
 import { getAircraftById } from './src/services/db/operations/AircraftOperations';
+import { getMissionById } from './src/services/db/operations/MissionOperations';
 
 const DEFAULT_MISSION_ID = 1;
-
-// Default mission settings
-const DEFAULT_MISSION_SETTINGS: MissionSettings = {
-  id: `mission-${DEFAULT_MISSION_ID}`,
-  name: 'Default Mission',
-  date: new Date().toISOString().split('T')[0],
-  departureLocation: '',
-  arrivalLocation: '',
-  aircraftIndex: '84',
-  crewMembersFront: 0,
-  crewMembersBack: 0,
-  cockpit: 1000,
-  safetyGearWeight: 150,
-  fuelPods: false,
-  fuelDistribution: {
-    outbd: 0,
-    inbd: 0,
-    aux: 0,
-    ext: 0,
-  },
-  cargoItems: [],
-  notes: '',
-};
 
 initAppDatabase();
 
@@ -82,12 +60,14 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
   if (!mission.id) {
     throw new Error('Mission has no id');
   }
-  // TODO: handle error
   const aircraftResponse = await getAircraftById(mission.aircraft_id);
   if (aircraftResponse.results.length === 0) {
     throw new Error('Aircraft not found');
   }
   const aircraft: Aircraft = (aircraftResponse.results[0].data as Aircraft);
+  const missionCargoItems = await getCargoItemsByMissionId(mission.id);
+  const cargoItems = missionCargoItems.results.map(item => convertDbCargoItemToCargoItem(item.data as DbCargoItem));
+
   return {
     id: mission.id.toString(),
     name: mission.name,
@@ -95,18 +75,19 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
     departureLocation: 'Nevatim',
     arrivalLocation: 'Ramat David',
     aircraftIndex: aircraft.empty_mac,
-    crewMembersFront: mission.crew_weight, // TODO: separate crew members front and back
-    crewMembersBack: mission.crew_weight,
+    crewMembersFront: mission.front_crew_weight,
+    crewMembersBack: mission.back_crew_weight,
     cockpit: 0, // TODO: ?? what about food? etc? configuration_weights?
     safetyGearWeight: mission.safety_gear_weight,
     fuelPods: false,
     fuelDistribution: {
-      outbd: 0,
-      inbd: 0,
-      aux: 0,
-      ext: 0,
+      outbd: mission.outboard_fuel,
+      inbd: mission.inboard_fuel,
+      aux: mission.fuselage_fuel,
+      ext: mission.auxiliary_fuel,
+      fuselage: mission.fuselage_fuel,
     },
-    cargoItems: [],
+    cargoItems: cargoItems,
     notes: '',
   };
 }
@@ -123,10 +104,22 @@ function App(): React.JSX.Element {
       return defaultCargoItems;
     }
 
+    async function getDefaultMissionSettings() {
+      const mission = await getMissionById(DEFAULT_MISSION_ID);
+      if (mission.results.length === 0) {
+        throw new Error('Mission not found');
+      }
+      return convertDbMissionToMissionSettings(mission.results[0].data as Mission);
+    }
+
     getDefaultCargoItems().then(items => {
       const dbCargoItems: DbCargoItem[] = items.results.map(item => item?.data as DbCargoItem);
       const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
       setCargoItems(convertedItems);
+    });
+
+    getDefaultMissionSettings().then(settings => {
+      setMissionSettings(settings);
     });
   }, []);
 
@@ -168,18 +161,11 @@ function App(): React.JSX.Element {
 
         // Also add to mission settings if we have active mission settings
         if (missionSettings) {
-          const manualCargoItem = {
-            id: newItemForState.id,
-            name: newItemForState.name,
-            weight: newItemForState.weight,
-            fs: newItemForState.fs || 0, // Use fs if available or default to 0
-          };
-
           setMissionSettings(prev => {
-            if (!prev) return null;
+            if (!prev) { return null; }
             return {
               ...prev,
-              cargoItems: [...prev.cargoItems, manualCargoItem]
+              cargoItems: [...prev.cargoItems, newItemForState],
             };
           });
         }
@@ -197,7 +183,7 @@ function App(): React.JSX.Element {
     // Also update in mission settings if we have active mission settings
     if (missionSettings) {
       setMissionSettings(prev => {
-        if (!prev) return null;
+        if (!prev) { return null; }
 
         // Check if the item exists in mission settings cargoItems
         const itemExists = prev.cargoItems.some(i => i.id === item.id);
@@ -210,11 +196,11 @@ function App(): React.JSX.Element {
                   ...i,
                   name: item.name,
                   weight: item.weight,
-                  fs: item.fs || i.fs
+                  fs: item.fs || i.fs,
                 };
               }
               return i;
-            })
+            }),
           };
         }
         return prev;
@@ -229,10 +215,10 @@ function App(): React.JSX.Element {
     // Also remove from mission settings if we have active mission settings
     if (missionSettings) {
       setMissionSettings(prev => {
-        if (!prev) return null;
+        if (!prev) { return null; }
         return {
           ...prev,
-          cargoItems: prev.cargoItems.filter(item => item.id !== id)
+          cargoItems: prev.cargoItems.filter(item => item.id !== id),
         };
       });
     }
@@ -277,18 +263,11 @@ function App(): React.JSX.Element {
 
         // Also add to mission settings if we have active mission settings
         if (missionSettings) {
-          const manualCargoItem = {
-            id: newItemForState.id,
-            name: newItemForState.name,
-            weight: newItemForState.weight,
-            fs: newItemForState.fs || 0, // Use fs if available or default to 0
-          };
-
           setMissionSettings(prev => {
-            if (!prev) return null;
+            if (!prev) { return null; }
             return {
               ...prev,
-              cargoItems: [...prev.cargoItems, manualCargoItem]
+              cargoItems: [...prev.cargoItems, newItemForState],
             };
           });
         }
@@ -318,7 +297,7 @@ function App(): React.JSX.Element {
         status: status as 'onStage' | 'onDeck' | 'inventory',
         x_start_position: newPosition.x,
         y_start_position: newPosition.y,
-        mission_id: DEFAULT_MISSION_ID,
+        mission_id: DEFAULT_MISSION_ID, // TODO: use current mission
         cargo_type_id: i.cargo_type_id,
         name: i.name,
         weight: i.weight,
@@ -335,35 +314,13 @@ function App(): React.JSX.Element {
         setMissionSettings(prev => {
           // If we don't have mission settings yet, create default ones
           if (!prev) {
-            // Use the DEFAULT_MISSION_SETTINGS but with the current item added
-            return {
-              ...DEFAULT_MISSION_SETTINGS,
-              cargoItems: [{
-                id: id,
-                name: i.name,
-                weight: i.weight,
-                fs: 0, // Default to 0 as requested
-              }],
-            };
+            throw new Error('Mission settings not found');
           }
 
-          // Check if this item is already in mission settings
-          const itemInSettings = prev.cargoItems.find(item => item.id === id);
-
-          if (!itemInSettings) {
-            // Add to mission settings if not already there
-            const manualCargoItem = {
-              id: id,
-              name: i.name,
-              weight: i.weight,
-              fs: 0, // Default to 0 as requested
-            };
-
-            return {
-              ...prev,
-              cargoItems: [...prev.cargoItems, manualCargoItem]
-            };
-          }
+          return {
+            ...prev,
+            cargoItems: [...prev.cargoItems, i],
+          };
 
           return prev;
         });
@@ -371,10 +328,10 @@ function App(): React.JSX.Element {
       // If status is changing away from onDeck, remove from mission settings
       else if (i.status !== 'onDeck') {
         setMissionSettings(prev => {
-          if (!prev) return null;
+          if (!prev) { return null; }
           return {
             ...prev,
-            cargoItems: prev.cargoItems.filter(item => item.id !== id)
+            cargoItems: prev.cargoItems.filter(item => item.id !== id),
           };
         });
       }
@@ -412,19 +369,10 @@ function App(): React.JSX.Element {
 
   const handleMissionSave = useCallback((settings: MissionSettings) => {
     // Ensure we preserve items that are currently on the deck
-    const onDeckItems = cargoItems
-      .filter(item => item.status === 'onDeck')
-      .map(item => ({
-        id: item.id,
-        name: item.name,
-        weight: item.weight,
-        fs: item.fs || 0,
-      }));
-
     // Set mission settings with preserved deck items
     setMissionSettings({
       ...settings,
-      cargoItems: onDeckItems,
+      cargoItems: cargoItems,
     });
 
     setCurrentView('planning');
@@ -441,7 +389,7 @@ function App(): React.JSX.Element {
     settings: (
       <MissionSettingsComponent
         settings={{
-          ...(missionSettings ?? DEFAULT_MISSION_SETTINGS),
+          ...(missionSettings ?? {}),
           // Always use the current deck items from cargoItems array
           cargoItems: cargoItems
             .filter(item => item.status === 'onDeck')

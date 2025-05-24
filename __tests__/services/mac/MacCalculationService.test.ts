@@ -14,12 +14,11 @@ import {
   Mission,
   CargoType,
   CargoItem,
-  FuelState,
   createAircraft,
   createMission,
   createCargoType,
   createCargoItem,
-  createFuelState,
+  createFuelMacQuant,
 } from '../../../src/services/db/operations';
 
 describe('MAC Calculation Service', () => {
@@ -59,12 +58,18 @@ describe('MAC Calculation Service', () => {
       name: 'Test Mission',
       created_date: new Date().toISOString(),
       modified_date: new Date().toISOString(),
-      crew_weight: 1000,
+      front_crew_weight: 500,
+      back_crew_weight: 500,
       configuration_weights: 500,
       crew_gear_weight: 300,
       food_weight: 200,
       safety_gear_weight: 150,
       etc_weight: 100,
+      outboard_fuel: 2500,
+      inboard_fuel: 2500,
+      fuselage_fuel: 2500,
+      auxiliary_fuel: 2500,
+      external_fuel: 0,
       aircraft_id: aircraftId,
     };
     const missionResult = await createMission(mission);
@@ -101,19 +106,19 @@ describe('MAC Calculation Service', () => {
     const cargoItemResult = await createCargoItem(cargoItem);
     cargoItemId = cargoItemResult.results[0].lastInsertId as number;
 
-    // Create test fuel state
-    const fuelState: FuelState = {
-      mission_id: missionId,
-      total_fuel: 10000,
-      main_tank_1_fuel: 2500,
-      main_tank_2_fuel: 2500,
-      main_tank_3_fuel: 2500,
-      main_tank_4_fuel: 2500,
-      external_1_fuel: 0,
-      external_2_fuel: 0,
+    // Create fuel MAC configurations for testing
+    // This matches the fuel distribution in our test mission
+    await createFuelMacQuant({
+      outboard_fuel: 2500,
+      inboard_fuel: 2500,
+      fuselage_fuel: 2500,
+      auxiliary_fuel: 2500,
+      external_fuel: 0,
       mac_contribution: 11.5,
-    };
-    await createFuelState(fuelState);
+    });
+
+    // Note: We removed the fuel state creation since fuel_state table no longer exists
+    // Fuel data is now stored directly in the mission table
   });
 
   describe('calculateMACIndex', () => {
@@ -146,7 +151,7 @@ describe('MAC Calculation Service', () => {
       const SAFETY_GEAR_STATION = 510.0;
       const ETC_STATION = 490.0;
 
-      // Crew weight: 1000
+      // Crew weight: front_crew_weight + back_crew_weight = 500 + 500 = 1000
       // Config weights: 500
       // Crew gear weight: 300
       // Food weight: 200
@@ -179,11 +184,11 @@ describe('MAC Calculation Service', () => {
 
       // Expected value: aircraft.empty_weight + all additional weights + cargo weight + fuel weight
       // aircraft.empty_weight = 75000
-      // crew_weight = 1000, configuration_weights = 500, crew_gear_weight = 300,
+      // front_crew_weight = 500, back_crew_weight = 500, configuration_weights = 500, crew_gear_weight = 300,
       // food_weight = 200, safety_gear_weight = 150, etc_weight = 100
       // cargo weight = 2000
-      // fuel weight = 10000
-      // Total = 75000 + 1000 + 500 + 300 + 200 + 150 + 100 + 2000 + 10000 = 89250
+      // fuel weight = 10000 (2500 * 4 fuel tanks)
+      // Total = 75000 + 500 + 500 + 500 + 300 + 200 + 150 + 100 + 2000 + 10000 = 89250
 
       expect(totalWeight).toBeCloseTo(89250, 1);
     });
@@ -197,36 +202,45 @@ describe('MAC Calculation Service', () => {
     it('should calculate the MAC contribution from fuel', async () => {
       const fuelMAC = await calculateFuelMAC(missionId);
 
-      // The test fuel state has these values:
-      // main_tank_1_fuel: 2500
-      // main_tank_2_fuel: 2500
-      // main_tank_3_fuel: 2500
-      // main_tank_4_fuel: 2500
-      // external_1_fuel: 0
-      // external_2_fuel: 0
-      // mac_contribution: 11.5 (provided directly in the test fuel state)
+      // The test mission has fuel values: 2500 each for outboard, inboard, fuselage, auxiliary, 0 for external
+      // We created a fuel MAC configuration with these values and mac_contribution: 11.5
+      // So the expected MAC contribution is 11.5
 
-      // Since we're using the fuel_state.mac_contribution value in our implementation
-      // expect the returned value to match that
       expect(fuelMAC).toBeCloseTo(11.5, 2);
     });
 
     it('should return 0 for mission with no fuel state', async () => {
-      // Create a mission with no fuel state
+      // Create a mission with no fuel
       const mission: Mission = {
         name: 'No Fuel Mission',
         created_date: new Date().toISOString(),
         modified_date: new Date().toISOString(),
-        crew_weight: 1000,
+        front_crew_weight: 500,
+        back_crew_weight: 500,
         configuration_weights: 500,
         crew_gear_weight: 300,
         food_weight: 200,
         safety_gear_weight: 150,
         etc_weight: 100,
+        outboard_fuel: 0,
+        inboard_fuel: 0,
+        fuselage_fuel: 0,
+        auxiliary_fuel: 0,
+        external_fuel: 0,
         aircraft_id: aircraftId,
       };
       const missionResult = await createMission(mission);
       const noFuelMissionId = missionResult.results[0].lastInsertId as number;
+
+      // Create a fuel MAC configuration for zero fuel
+      await createFuelMacQuant({
+        outboard_fuel: 0,
+        inboard_fuel: 0,
+        fuselage_fuel: 0,
+        auxiliary_fuel: 0,
+        external_fuel: 0,
+        mac_contribution: 0,
+      });
 
       const fuelMAC = await calculateFuelMAC(noFuelMissionId);
       expect(fuelMAC).toBe(0);
@@ -298,7 +312,7 @@ describe('MAC Calculation Service', () => {
       // Total Additional Weights MAC = -2.4557
 
       // Step 3: Calculate fuel MAC contribution
-      // Using the fuel state's mac_contribution value directly: 11.5
+      // Using the mission's fuel values (2500 each for 4 tanks) with our fuel MAC configuration: 11.5
 
       // Step 4: Get empty aircraft MAC index
       // Empty aircraft MAC from test aircraft data: 84
@@ -309,16 +323,16 @@ describe('MAC Calculation Service', () => {
 
       // Step 6: Calculate aircraft CG
       // Total Weight = aircraft.empty_weight + all weights + cargo + fuel
-      //               = 75000 + 1000 + 500 + 300 + 200 + 150 + 100 + 2000 + 10000 = 89250
+      //               = 75000 + 500 + 500 + 500 + 300 + 200 + 150 + 100 + 2000 + 10000 = 89250
       // CG = (totalIndex - 100) * 50000 / totalWeight + 533.46
-      // CG = (91.8059 - 100) * 50000 / 89250 + 533.46 = 528.95
+      // CG = (91.8059 - 100) * 50000 / 89250 + 533.46 = 528.87
 
       // Step 7: Calculate MAC percentage
       // MAC percent = (CG - 487.4) * 100 / 164.5
-      // MAC percent = (528.95 - 487.4) * 100 / 164.5 = 25.2
+      // MAC percent = (528.87 - 487.4) * 100 / 164.5 = 25.21
 
       // Verify the result is close to the calculated value
-      expect(macPercent).toBeCloseTo(25.2, 1);
+      expect(macPercent).toBeCloseTo(25.21, 1);
 
       // Also verify it's a valid number
       expect(macPercent).toBeDefined();
