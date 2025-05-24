@@ -15,6 +15,7 @@ import Sidebar from './src/components/Sidebar/Sidebar';
 import LoadingArea from './src/components/LoadingArea/LoadingArea';
 import MissionSettingsComponent from './src/components/MissionSettings/MissionSettings';
 import Preview from './src/components/Preview/Preview';
+import NewMissionModal from './src/components/NewMissionModal/NewMissionModal';
 import initAppDatabase from './src/initAppDatabase';
 import { getCargoItemsByMissionId, createCargoItem } from './src/services/db/operations/CargoItemOperations';
 import { createCargoType } from './src/services/db/operations/CargoTypeOperations';
@@ -22,8 +23,8 @@ import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
 import { updateCargoItem } from './src/services/db/operations/CargoItemOperations';
 import { deleteCargoItem } from './src/services/db/operations/CargoItemOperations';
 import { getAircraftById } from './src/services/db/operations/AircraftOperations';
-import { getMissionById } from './src/services/db/operations/MissionOperations';
-import { DEFAULT_MISSION_ID, DEFAULT_Y_POS } from './src/constants';
+import { getMissionById, createMission } from './src/services/db/operations/MissionOperations';
+import { DEFAULT_MISSION_ID, DEFAULT_NEW_MISSION, DEFAULT_Y_POS } from './src/constants';
 import { updateMission } from './src/services/db/operations/MissionOperations';
 
 initAppDatabase();
@@ -100,15 +101,17 @@ function App(): React.JSX.Element {
   const [missionSettings, setMissionSettings] = useState<MissionSettings | null>(null);
   const [cargoItems, setCargoItems] = useState<CargoItem[]>([]);
   const [isLandscape, setIsLandscape] = useState(true);
+  const [showNewMissionModal, setShowNewMissionModal] = useState(false);
+  const [currentMissionId, setCurrentMissionId] = useState<number>(DEFAULT_MISSION_ID);
 
   useEffect(() => {
     async function getDefaultCargoItems() {
-      const defaultCargoItems = await getCargoItemsByMissionId(DEFAULT_MISSION_ID);
+      const defaultCargoItems = await getCargoItemsByMissionId(currentMissionId);
       return defaultCargoItems;
     }
 
     async function getDefaultMissionSettings() {
-      const mission = await getMissionById(DEFAULT_MISSION_ID);
+      const mission = await getMissionById(currentMissionId);
       if (mission.results.length === 0) {
         throw new Error('Mission not found');
       }
@@ -124,7 +127,7 @@ function App(): React.JSX.Element {
     getDefaultMissionSettings().then(settings => {
       setMissionSettings(settings);
     });
-  }, []);
+  }, [currentMissionId]);
 
   useEffect(() => {
     const updateOrientation = () => {
@@ -152,7 +155,7 @@ function App(): React.JSX.Element {
       status: status,
       x_start_position: x_start_position,
       y_start_position: y_start_position,
-      mission_id: DEFAULT_MISSION_ID, // TODO: use current mission
+      mission_id: currentMissionId,
       cargo_type_id: item.cargo_type_id,
       name: item.name,
       length: item.length,
@@ -175,7 +178,7 @@ function App(): React.JSX.Element {
     } catch (error) {
       console.error('Error adding cargo item:', error);
     }
-  }, []);
+  }, [currentMissionId]);
 
   const handleEditItem = useCallback((item: CargoItem) => {
     setCargoItems(prev => prev.map(i => i.id === item.id ? item : i));
@@ -205,7 +208,7 @@ function App(): React.JSX.Element {
       status: 'inventory' as const,
       x_start_position: -1,
       y_start_position: -1,
-      mission_id: DEFAULT_MISSION_ID,
+      mission_id: currentMissionId,
       cargo_type_id: itemToDuplicate.cargo_type_id,
       length: itemToDuplicate.length,
       width: itemToDuplicate.width,
@@ -228,7 +231,7 @@ function App(): React.JSX.Element {
     } catch (error) {
       console.error('Error duplicating item:', error);
     }
-  }, [cargoItems]);
+  }, [cargoItems, currentMissionId]);
 
   const handleUpdateItemStatus = useCallback((
     id: string,
@@ -248,7 +251,7 @@ function App(): React.JSX.Element {
         status: status as 'onStage' | 'onDeck' | 'inventory',
         x_start_position: newPosition.x,
         y_start_position: newPosition.y,
-        mission_id: DEFAULT_MISSION_ID, // TODO: use current mission
+        mission_id: currentMissionId,
         cargo_type_id: i.cargo_type_id,
         name: i.name,
         weight: i.weight,
@@ -262,7 +265,7 @@ function App(): React.JSX.Element {
 
       return { ...i, status, position: newPosition };
     }));
-  }, []);
+  }, [currentMissionId]);
 
   const handleSaveAsPreset = useCallback((item: CargoItem) => {
     const cargoType: DbCargoType = {
@@ -325,6 +328,35 @@ function App(): React.JSX.Element {
     }));
   }, []);
 
+  const handleNewMission = useCallback(async (missionName: string) => {
+    try {
+      let newMission: Mission = DEFAULT_NEW_MISSION;
+      newMission.name = missionName;
+
+      const missionResponse = await createMission(newMission);
+      const newMissionId = missionResponse.results[0].lastInsertId as number;
+
+      setCurrentMissionId(newMissionId);
+      setCargoItems([]);
+      newMission.id = newMissionId;
+      const newMissionSettings = await convertDbMissionToMissionSettings(newMission);
+      setMissionSettings(newMissionSettings);
+
+      setShowNewMissionModal(false);
+      console.log('New mission created:', missionName, 'with ID:', newMissionId);
+    } catch (error) {
+      console.error('Error creating new mission:', error);
+    }
+  }, []);
+
+  const handleNewMissionClick = useCallback(() => {
+    setShowNewMissionModal(true);
+  }, []);
+
+  const handleCancelNewMission = useCallback(() => {
+    setShowNewMissionModal(false);
+  }, []);
+
   const views = {
     settings: (
       <MissionSettingsComponent
@@ -341,6 +373,7 @@ function App(): React.JSX.Element {
         <Header
           onSettingsClick={() => setCurrentView('settings')}
           onPreviewClick={() => setCurrentView('preview')}
+          onNewMissionClick={handleNewMissionClick}
         />
         <View style={styles.contentContainer}>
           <Sidebar
@@ -374,6 +407,11 @@ function App(): React.JSX.Element {
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaView style={styles.safeArea}>
         {views[currentView]}
+        <NewMissionModal
+          visible={showNewMissionModal}
+          onSave={handleNewMission}
+          onCancel={handleCancelNewMission}
+        />
       </SafeAreaView>
     </GestureHandlerRootView>
   );

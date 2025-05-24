@@ -14,16 +14,20 @@ import { styles } from './Header.styles';
 interface HeaderProps {
   onSettingsClick: () => void;
   onPreviewClick: () => void;
+  onNewMissionClick: () => void;
 }
 
-const Header = ({ onSettingsClick, onPreviewClick }: HeaderProps) => {
+const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const menuItems = [
     {
       label: 'New Plan',
       icon: <NewIcon />,
-      onClick: () => console.log('New Plan clicked'),
+      onClick: () => {
+        setIsMenuOpen(false);
+        onNewMissionClick();
+      },
     },
     {
       label: 'Save Plan',
