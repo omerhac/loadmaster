@@ -16,6 +16,7 @@ import LoadingArea from './src/components/LoadingArea/LoadingArea';
 import MissionSettingsComponent from './src/components/MissionSettings/MissionSettings';
 import Preview from './src/components/Preview/Preview';
 import NewMissionModal from './src/components/NewMissionModal/NewMissionModal';
+import LoadMissionModal from './src/components/LoadMissionModal/LoadMissionModal';
 import initAppDatabase from './src/initAppDatabase';
 import { getCargoItemsByMissionId, createCargoItem } from './src/services/db/operations/CargoItemOperations';
 import { createCargoType } from './src/services/db/operations/CargoTypeOperations';
@@ -102,6 +103,7 @@ function App(): React.JSX.Element {
   const [cargoItems, setCargoItems] = useState<CargoItem[]>([]);
   const [isLandscape, setIsLandscape] = useState(true);
   const [showNewMissionModal, setShowNewMissionModal] = useState(false);
+  const [showLoadMissionModal, setShowLoadMissionModal] = useState(false);
   const [currentMissionId, setCurrentMissionId] = useState<number>(DEFAULT_MISSION_ID);
 
   useEffect(() => {
@@ -182,7 +184,23 @@ function App(): React.JSX.Element {
 
   const handleEditItem = useCallback((item: CargoItem) => {
     setCargoItems(prev => prev.map(i => i.id === item.id ? item : i));
-  }, []);
+    updateCargoItem({
+      id: parseInt(item.id, 10),
+      status: item.status,
+      x_start_position: item.position.x,
+      y_start_position: item.position.y,
+      mission_id: currentMissionId,
+      cargo_type_id: item.cargo_type_id,
+      name: item.name,
+      weight: item.weight,
+      length: item.length,
+      width: item.width,
+      height: item.height,
+      forward_overhang: 0, // TODO: Add forward overhang
+      back_overhang: 0, // TODO: Add back overhang
+      cog: item.cog,
+    });
+  }, [currentMissionId]);
 
   const handleDeleteItem = useCallback((id: string) => {
     // Remove from state
@@ -357,6 +375,34 @@ function App(): React.JSX.Element {
     setShowNewMissionModal(false);
   }, []);
 
+  const handleLoadMission = useCallback(async (mission: Mission) => {
+    try {
+      setCurrentMissionId(mission.id as number);
+
+      const loadedMissionSettings = await convertDbMissionToMissionSettings(mission);
+      setMissionSettings(loadedMissionSettings);
+
+      const cargoResponse = await getCargoItemsByMissionId(mission.id as number);
+      const dbCargoItems: DbCargoItem[] = cargoResponse.results.map(item => item?.data as DbCargoItem);
+      const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
+      setCargoItems(convertedItems);
+
+      setShowLoadMissionModal(false);
+
+      console.log('Mission loaded:', mission.name, 'with ID:', mission.id);
+    } catch (error) {
+      console.error('Error loading mission:', error);
+    }
+  }, []);
+
+  const handleLoadMissionClick = useCallback(() => {
+    setShowLoadMissionModal(true);
+  }, []);
+
+  const handleCancelLoadMission = useCallback(() => {
+    setShowLoadMissionModal(false);
+  }, []);
+
   const views = {
     settings: (
       <MissionSettingsComponent
@@ -374,6 +420,7 @@ function App(): React.JSX.Element {
           onSettingsClick={() => setCurrentView('settings')}
           onPreviewClick={() => setCurrentView('preview')}
           onNewMissionClick={handleNewMissionClick}
+          onLoadMissionClick={handleLoadMissionClick}
         />
         <View style={styles.contentContainer}>
           <Sidebar
@@ -411,6 +458,11 @@ function App(): React.JSX.Element {
           visible={showNewMissionModal}
           onSave={handleNewMission}
           onCancel={handleCancelNewMission}
+        />
+        <LoadMissionModal
+          visible={showLoadMissionModal}
+          onLoad={handleLoadMission}
+          onCancel={handleCancelLoadMission}
         />
       </SafeAreaView>
     </GestureHandlerRootView>

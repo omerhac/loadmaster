@@ -15,9 +15,10 @@ interface HeaderProps {
   onSettingsClick: () => void;
   onPreviewClick: () => void;
   onNewMissionClick: () => void;
+  onLoadMissionClick: () => void;
 }
 
-const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick }: HeaderProps) => {
+const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const menuItems = [
@@ -37,7 +38,10 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick }: HeaderPr
     {
       label: 'Load Plan',
       icon: <LoadIcon />,
-      onClick: () => console.log('Load Plan clicked'),
+      onClick: () => {
+        setIsMenuOpen(false);
+        onLoadMissionClick();
+      },
     },
     {
       label: 'Mission Settings',
