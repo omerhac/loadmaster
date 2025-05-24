@@ -83,8 +83,8 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
     fuelDistribution: {
       outbd: mission.outboard_fuel,
       inbd: mission.inboard_fuel,
-      aux: mission.fuselage_fuel,
-      ext: mission.auxiliary_fuel,
+      aux: mission.auxiliary_fuel,
+      ext: mission.external_fuel,
       fuselage: mission.fuselage_fuel,
     },
     cargoItems: cargoItems,
@@ -368,12 +368,7 @@ function App(): React.JSX.Element {
   }, [handleUpdateItemStatus]);
 
   const handleMissionSave = useCallback((settings: MissionSettings) => {
-    // Ensure we preserve items that are currently on the deck
-    // Set mission settings with preserved deck items
-    setMissionSettings({
-      ...settings,
-      cargoItems: cargoItems,
-    });
+    setMissionSettings(settings);
 
     setCurrentView('planning');
   }, [cargoItems]);
@@ -388,18 +383,7 @@ function App(): React.JSX.Element {
   const views = {
     settings: (
       <MissionSettingsComponent
-        settings={{
-          ...(missionSettings ?? {}),
-          // Always use the current deck items from cargoItems array
-          cargoItems: cargoItems
-            .filter(item => item.status === 'onDeck')
-            .map(item => ({
-              id: item.id,
-              name: item.name,
-              weight: item.weight,
-              fs: item.fs || 0,
-            })),
-        }}
+        settings={missionSettings ?? undefined}
         onReturn={() => setCurrentView('planning')}
         onSave={handleMissionSave}
         onAddToMainCargo={handleAddItem}

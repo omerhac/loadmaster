@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
 import { styles } from './MissionSettings.styles';
-import { CargoItem, ManualCargoItem, Position } from '../../types';
+import { CargoItem, Position } from '../../types';
 
 type ManualCargoInsertionProps = {
-  cargoItems: ManualCargoItem[];
-  onChange: (name: string, value: ManualCargoItem[]) => void;
+  cargoItems: CargoItem[];
+  onChange: (name: string, value: CargoItem[]) => void;
   onAddCargoItem?: (item: CargoItem, status: 'inventory' | 'onStage' | 'onDeck') => void;
   onRemoveItem?: (id: string) => void;
 };
@@ -15,6 +15,9 @@ const DEFAULT_DIMENSIONS = {
   length: 50,
   height: 50,
 };
+
+const DEFAULT_Y_POS = 100;
+const DEFAULT_CARGO_TYPE_ID = 1;
 
 const calculateChange = (_fs: number, _weight: number): number => {
   // Will be implemented later, returning 0 for now
@@ -26,9 +29,10 @@ const calculateIndex = (_fs: number, _weight: number): number => {
   return 0;
 };
 
-const calculatePosition = (_fs: number): Position => {
-  // Will be implemented later, returning {0, 0} for now
-  return { x: 500, y: 100 };
+const calculatePosition = (fs: number, cog: number): Position => {
+  const x_pos = fs - cog;
+  const y_pos = DEFAULT_Y_POS;
+  return { x: x_pos, y: y_pos };
 };
 
 function ManualCargoInsertion({ cargoItems = [], onChange, onAddCargoItem, onRemoveItem }: ManualCargoInsertionProps) {
@@ -39,40 +43,34 @@ function ManualCargoInsertion({ cargoItems = [], onChange, onAddCargoItem, onRem
   const handleAddCargoItem = () => {
     if (!fs || !name || !weight) { return; }
 
-    const id = Date.now().toString();
+    const tempId = Date.now().toString();
     const parsedWeight = parseInt(weight, 10) || 0;
     const parsedFs = parseInt(fs, 10) || 0;
 
     // Create the item for the manual cargo insertion table
-    const newItem: ManualCargoItem = {
-      id,
+    const cog = DEFAULT_DIMENSIONS.length / 2;
+    const length = DEFAULT_DIMENSIONS.length;
+
+    const newItem: CargoItem = {
+      // this is a temporary id, it will be replaced with the actual id when the item is saved
+      id: tempId,
       fs: parsedFs,
       name,
       weight: parsedWeight,
+      cargo_type_id: DEFAULT_CARGO_TYPE_ID,
+      length: length,
+      width: DEFAULT_DIMENSIONS.width,
+      height: DEFAULT_DIMENSIONS.height,
+      cog,
+      status: 'onDeck',
+      position: calculatePosition(parsedFs, cog),
     };
 
     // Add to the mission settings cargo items list
     const updatedCargoItems = [...cargoItems, newItem];
     onChange('cargoItems', updatedCargoItems);
 
-    // If onAddCargoItem is provided, also add to the main cargo items list
-    if (onAddCargoItem) {
-      const cargoItem: CargoItem = {
-        id,
-        cargo_type_id: 1, // Default cargo type
-        name,
-        fs: parsedFs,
-        length: DEFAULT_DIMENSIONS.length,
-        width: DEFAULT_DIMENSIONS.width,
-        height: DEFAULT_DIMENSIONS.height,
-        cog: DEFAULT_DIMENSIONS.length / 2,
-        weight: parsedWeight,
-        status: 'onDeck', // Default status as requested
-        position: calculatePosition(parsedFs),
-      };
-
-      onAddCargoItem(cargoItem, 'onDeck');
-    }
+    onAddCargoItem?.(newItem, 'onDeck');
 
     // Reset form fields
     setFs('');

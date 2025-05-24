@@ -5,18 +5,13 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { MissionSettings, FuelDistribution, ManualCargoItem, CargoItem } from '../../types';
+import { MissionSettings, FuelDistribution, CargoItem } from '../../types';
 import { styles } from './MissionSettings.styles';
 import BasicInfoSection from './BasicInfoSection';
 import AircraftConfigSection from './AircraftConfigSection';
 import ManualCargoInsertion from './ManualCargoInsertion';
 import NotesSection from './NotesSection';
 
-// Helper function to generate a simple ID without relying on crypto
-const generateId = () => {
-  return Math.random().toString(36).substring(2, 15) +
-         Math.random().toString(36).substring(2, 15);
-};
 
 interface MissionSettingsProps {
   settings?: MissionSettings;
@@ -33,48 +28,28 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   onAddToMainCargo,
   onRemoveFromDeck,
 }) => {
-  const [formData, setFormData] = useState<MissionSettings>(() => settings ?? {
-    id: generateId(),
-    name: '',
-    date: new Date().toISOString().split('T')[0],
-    departureLocation: '',
-    arrivalLocation: '',
-    aircraftIndex: '',
-    crewMembersFront: 0,
-    crewMembersBack: 0,
-    cockpit: 0,
-    safetyGearWeight: 250,
-    fuelPods: false,
-    fuelDistribution: {
-      outbd: 0,
-      inbd: 0,
-      aux: 0,
-      ext: 0,
-    },
-    cargoItems: [],
-    notes: '',
-  });
+  const [formData, setFormData] = useState<MissionSettings | null>(settings ?? null);
 
-  const handleChange = useCallback((name: string, value: string | number | boolean | ManualCargoItem[]) => {
+  const handleChange = useCallback((name: string, value: string | number | boolean | CargoItem[]) => {
     if (name.startsWith('fuelDistribution.')) {
       const fuelField = name.split('.')[1] as keyof FuelDistribution;
       setFormData(prev => ({
-        ...prev,
+        ...prev!,
         fuelDistribution: {
-          ...prev.fuelDistribution,
+          ...prev!.fuelDistribution,
           [fuelField]: typeof value === 'number' ? value : 0,
         },
       }));
     } else {
       setFormData(prev => ({
-        ...prev,
+        ...prev!,
         [name]: value,
       }));
     }
   }, []);
 
   const handleSubmit = useCallback(() => {
-    onSave(formData);
+    onSave(formData!);
   }, [formData, onSave]);
 
   return (
@@ -91,33 +66,33 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
 
       <ScrollView style={styles.scrollContainer}>
         <BasicInfoSection
-          name={formData.name}
-          date={formData.date}
-          departureLocation={formData.departureLocation}
-          arrivalLocation={formData.arrivalLocation}
+          name={formData!.name}
+          date={formData!.date}
+          departureLocation={formData!.departureLocation}
+          arrivalLocation={formData!.arrivalLocation}
           onChange={handleChange}
         />
 
         <AircraftConfigSection
-          aircraftIndex={formData.aircraftIndex}
-          crewMembersFront={formData.crewMembersFront}
-          crewMembersBack={formData.crewMembersBack}
-          cockpit={formData.cockpit}
-          safetyGearWeight={formData.safetyGearWeight}
-          fuelPods={formData.fuelPods}
-          fuelDistribution={formData.fuelDistribution}
+          aircraftIndex={formData!.aircraftIndex.toString()}
+          crewMembersFront={formData!.crewMembersFront}
+          crewMembersBack={formData!.crewMembersBack}
+          cockpit={formData!.cockpit}
+          safetyGearWeight={formData!.safetyGearWeight}
+          fuelPods={formData!.fuelPods}
+          fuelDistribution={formData!.fuelDistribution}
           onChange={handleChange}
         />
 
         <ManualCargoInsertion
-          cargoItems={formData.cargoItems}
+          cargoItems={formData!.cargoItems}
           onChange={handleChange}
           onAddCargoItem={onAddToMainCargo}
           onRemoveItem={onRemoveFromDeck}
         />
 
         <NotesSection
-          notes={formData.notes}
+          notes={formData!.notes}
           onChange={handleChange}
         />
       </ScrollView>
