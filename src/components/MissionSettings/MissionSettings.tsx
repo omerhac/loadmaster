@@ -5,10 +5,11 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { MissionSettings, FuelDistribution } from '../../types';
+import { MissionSettings, FuelDistribution, ManualCargoItem, CargoItem } from '../../types';
 import { styles } from './MissionSettings.styles';
 import BasicInfoSection from './BasicInfoSection';
 import AircraftConfigSection from './AircraftConfigSection';
+import ManualCargoInsertion from './ManualCargoInsertion';
 import NotesSection from './NotesSection';
 
 // Helper function to generate a simple ID without relying on crypto
@@ -21,12 +22,16 @@ interface MissionSettingsProps {
   settings?: MissionSettings;
   onReturn: () => void;
   onSave: (settings: MissionSettings) => void;
+  onAddToMainCargo?: (item: CargoItem, status?: 'inventory' | 'onStage' | 'onDeck') => void;
+  onRemoveFromDeck?: (id: string) => void;
 }
 
 const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   settings,
   onReturn,
   onSave,
+  onAddToMainCargo,
+  onRemoveFromDeck,
 }) => {
   const [formData, setFormData] = useState<MissionSettings>(() => settings ?? {
     id: generateId(),
@@ -35,7 +40,8 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
     departureLocation: '',
     arrivalLocation: '',
     aircraftIndex: '',
-    crewMembers: 0,
+    crewMembersFront: 0,
+    crewMembersBack: 0,
     cockpit: 0,
     safetyGearWeight: 250,
     fuelPods: false,
@@ -45,10 +51,11 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
       aux: 0,
       ext: 0,
     },
+    cargoItems: [],
     notes: '',
   });
 
-  const handleChange = useCallback((name: string, value: string | number | boolean) => {
+  const handleChange = useCallback((name: string, value: string | number | boolean | ManualCargoItem[]) => {
     if (name.startsWith('fuelDistribution.')) {
       const fuelField = name.split('.')[1] as keyof FuelDistribution;
       setFormData(prev => ({
@@ -93,12 +100,20 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
 
         <AircraftConfigSection
           aircraftIndex={formData.aircraftIndex}
-          crewMembers={formData.crewMembers}
+          crewMembersFront={formData.crewMembersFront}
+          crewMembersBack={formData.crewMembersBack}
           cockpit={formData.cockpit}
           safetyGearWeight={formData.safetyGearWeight}
           fuelPods={formData.fuelPods}
           fuelDistribution={formData.fuelDistribution}
           onChange={handleChange}
+        />
+
+        <ManualCargoInsertion
+          cargoItems={formData.cargoItems}
+          onChange={handleChange}
+          onAddCargoItem={onAddToMainCargo}
+          onRemoveItem={onRemoveFromDeck}
         />
 
         <NotesSection

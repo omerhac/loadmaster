@@ -20,11 +20,34 @@ import { getCargoItemsByMissionId, createCargoItem } from './src/services/db/ope
 import { createCargoType } from './src/services/db/operations/CargoTypeOperations';
 import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
 import { updateCargoItem } from './src/services/db/operations/CargoItemOperations';
+import { deleteCargoItem } from './src/services/db/operations/CargoItemOperations';
 
 const DEFAULT_MISSION_ID = 1;
 
-initAppDatabase();
+// Default mission settings
+const DEFAULT_MISSION_SETTINGS: MissionSettings = {
+  id: `mission-${DEFAULT_MISSION_ID}`,
+  name: 'Default Mission',
+  date: new Date().toISOString().split('T')[0],
+  departureLocation: '',
+  arrivalLocation: '',
+  aircraftIndex: '84',
+  crewMembersFront: 0,
+  crewMembersBack: 0,
+  cockpit: 1000,
+  safetyGearWeight: 150,
+  fuelPods: false,
+  fuelDistribution: {
+    outbd: 0,
+    inbd: 0,
+    aux: 0,
+    ext: 0,
+  },
+  cargoItems: [],
+  notes: '',
+};
 
+initAppDatabase();
 
 function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
   if (!item.id) {
@@ -86,9 +109,9 @@ function App(): React.JSX.Element {
     return () => subscription.remove();
   }, []);
 
-  const handleAddItem = useCallback(async (item: CargoItem) => {
+  const handleAddItem = useCallback(async (item: CargoItem, status: 'inventory' | 'onStage' | 'onDeck' = 'inventory') => {
     let newItem: DbCargoItem = {
-      status: 'inventory' as const,
+      status: status,
       x_start_position: -1,
       y_start_position: -1,
       mission_id: DEFAULT_MISSION_ID, // TODO: use current mission
@@ -108,21 +131,85 @@ function App(): React.JSX.Element {
         newItem.id = response.results[0].lastInsertId;
         const newItemForState = convertDbCargoItemToCargoItem(newItem);
         setCargoItems(prev => [...prev, newItemForState]);
+
+        // Also add to mission settings if we have active mission settings
+        if (missionSettings) {
+          const manualCargoItem = {
+            id: newItemForState.id,
+            name: newItemForState.name,
+            weight: newItemForState.weight,
+            fs: newItemForState.fs || 0, // Use fs if available or default to 0
+          };
+
+          setMissionSettings(prev => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              cargoItems: [...prev.cargoItems, manualCargoItem]
+            };
+          });
+        }
       } else {
         console.error('Failed to add cargo item: Invalid response from createCargoItem', response);
       }
     } catch (error) {
       console.error('Error adding cargo item:', error);
     }
-  }, []);
+  }, [missionSettings]);
 
   const handleEditItem = useCallback((item: CargoItem) => {
     setCargoItems(prev => prev.map(i => i.id === item.id ? item : i));
-  }, []);
+    
+    // Also update in mission settings if we have active mission settings
+    if (missionSettings) {
+      setMissionSettings(prev => {
+        if (!prev) return null;
+        
+        // Check if the item exists in mission settings cargoItems
+        const itemExists = prev.cargoItems.some(i => i.id === item.id);
+        if (itemExists) {
+          return {
+            ...prev,
+            cargoItems: prev.cargoItems.map(i => {
+              if (i.id === item.id) {
+                return {
+                  ...i,
+                  name: item.name,
+                  weight: item.weight,
+                  fs: item.fs || i.fs
+                };
+              }
+              return i;
+            })
+          };
+        }
+        return prev;
+      });
+    }
+  }, [missionSettings]);
 
   const handleDeleteItem = useCallback((id: string) => {
+    // Remove from state
     setCargoItems(prev => prev.filter(item => item.id !== id));
-  }, []);
+
+    // Also remove from mission settings if we have active mission settings
+    if (missionSettings) {
+      setMissionSettings(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          cargoItems: prev.cargoItems.filter(item => item.id !== id)
+        };
+      });
+    }
+
+    // Also delete from the database
+    try {
+      deleteCargoItem(parseInt(id, 10));
+    } catch (error) {
+      console.error('Error deleting cargo item from database:', error);
+    }
+  }, [missionSettings]);
 
   const handleDuplicateItem = useCallback(async (id: string) => {
     const itemToDuplicate = cargoItems.find(item => item.id === id);
@@ -153,13 +240,31 @@ function App(): React.JSX.Element {
         newDbItem.id = response.results[0].lastInsertId;
         const newItemForState = convertDbCargoItemToCargoItem(newDbItem);
         setCargoItems(prev => [...prev, newItemForState]);
+
+        // Also add to mission settings if we have active mission settings
+        if (missionSettings) {
+          const manualCargoItem = {
+            id: newItemForState.id,
+            name: newItemForState.name,
+            weight: newItemForState.weight,
+            fs: newItemForState.fs || 0, // Use fs if available or default to 0
+          };
+
+          setMissionSettings(prev => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              cargoItems: [...prev.cargoItems, manualCargoItem]
+            };
+          });
+        }
       } else {
         console.error('Failed to duplicate item: Invalid response from createCargoItem', response);
       }
     } catch (error) {
       console.error('Error duplicating item:', error);
     }
-  }, [cargoItems]);
+  }, [cargoItems, missionSettings]);
 
   const handleUpdateItemStatus = useCallback((
     id: string,
@@ -191,6 +296,55 @@ function App(): React.JSX.Element {
         cog: i.cog,
       });
 
+      // If status is changing to onDeck, add to mission settings
+      if (status === 'onDeck') {
+        setMissionSettings(prev => {
+          // If we don't have mission settings yet, create default ones
+          if (!prev) {
+            // Use the DEFAULT_MISSION_SETTINGS but with the current item added
+            return {
+              ...DEFAULT_MISSION_SETTINGS,
+              cargoItems: [{
+                id: id,
+                name: i.name,
+                weight: i.weight,
+                fs: 0, // Default to 0 as requested
+              }],
+            };
+          }
+
+          // Check if this item is already in mission settings
+          const itemInSettings = prev.cargoItems.find(item => item.id === id);
+
+          if (!itemInSettings) {
+            // Add to mission settings if not already there
+            const manualCargoItem = {
+              id: id,
+              name: i.name,
+              weight: i.weight,
+              fs: 0, // Default to 0 as requested
+            };
+
+            return {
+              ...prev,
+              cargoItems: [...prev.cargoItems, manualCargoItem]
+            };
+          }
+          
+          return prev;
+        });
+      } 
+      // If status is changing away from onDeck, remove from mission settings
+      else if (i.status !== 'onDeck') {
+        setMissionSettings(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            cargoItems: prev.cargoItems.filter(item => item.id !== id)
+          };
+        });
+      }
+
       return { ...i, status, position: newPosition };
     }));
   }, []);
@@ -218,10 +372,29 @@ function App(): React.JSX.Element {
     handleUpdateItemStatus(id, 'inventory');
   }, [handleUpdateItemStatus]);
 
+  const handleRemoveFromDeck = useCallback((id: string) => {
+    handleUpdateItemStatus(id, 'inventory');
+  }, [handleUpdateItemStatus]);
+
   const handleMissionSave = useCallback((settings: MissionSettings) => {
-    setMissionSettings(settings);
+    // Ensure we preserve items that are currently on the deck
+    const onDeckItems = cargoItems
+      .filter(item => item.status === 'onDeck')
+      .map(item => ({
+        id: item.id,
+        name: item.name,
+        weight: item.weight,
+        fs: item.fs || 0,
+      }));
+
+    // Set mission settings with preserved deck items
+    setMissionSettings({
+      ...settings,
+      cargoItems: onDeckItems,
+    });
+    
     setCurrentView('planning');
-  }, []);
+  }, [cargoItems]);
 
   const handleSavePreviewItems = useCallback((items: CargoItem[]) => {
     setCargoItems(prev => prev.map(item => {
@@ -233,9 +406,22 @@ function App(): React.JSX.Element {
   const views = {
     settings: (
       <MissionSettingsComponent
-        settings={missionSettings ?? undefined}
+        settings={{
+          ...(missionSettings ?? DEFAULT_MISSION_SETTINGS),
+          // Always use the current deck items from cargoItems array
+          cargoItems: cargoItems
+            .filter(item => item.status === 'onDeck')
+            .map(item => ({
+              id: item.id,
+              name: item.name,
+              weight: item.weight,
+              fs: item.fs || 0,
+            })),
+        }}
         onReturn={() => setCurrentView('planning')}
         onSave={handleMissionSave}
+        onAddToMainCargo={handleAddItem}
+        onRemoveFromDeck={handleRemoveFromDeck}
       />
     ),
     planning: (

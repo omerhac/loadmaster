@@ -6,7 +6,8 @@ import { FuelDistribution } from '../../types';
 
 interface AircraftConfigSectionProps {
   aircraftIndex: string;
-  crewMembers: number;
+  crewMembersFront: number;
+  crewMembersBack: number;
   cockpit: number;
   safetyGearWeight: number;
   fuelPods: boolean;
@@ -14,15 +15,16 @@ interface AircraftConfigSectionProps {
   onChange: (name: string, value: string | number | boolean) => void;
 }
 
-const AircraftConfigSection: React.FC<AircraftConfigSectionProps> = React.memo(({
+const AircraftConfigSection = ({
   aircraftIndex,
-  crewMembers,
+  crewMembersFront,
+  crewMembersBack,
   cockpit,
   safetyGearWeight,
   fuelPods,
   fuelDistribution,
   onChange,
-}) => {
+}: AircraftConfigSectionProps) => {
   const handleTextChange = useCallback((name: string, value: string) => {
     onChange(name, value);
   }, [onChange]);
@@ -48,17 +50,31 @@ const AircraftConfigSection: React.FC<AircraftConfigSectionProps> = React.memo((
 
       <View style={styles.inputRow}>
         <View style={styles.inputGroup}>
-          <Text style={styles.labelSmall}>Crew:</Text>
+          <Text style={styles.labelSmall}>Crew Front:</Text>
           <TextInput
             style={styles.numberInput}
-            value={crewMembers.toString()}
-            onChangeText={(value) => handleNumericChange('crewMembers', value)}
+            value={crewMembersFront.toString()}
+            onChangeText={(value) => handleNumericChange('crewMembersFront', value)}
             keyboardType="numeric"
             placeholder="0"
             placeholderTextColor="#999"
           />
         </View>
 
+        <View style={styles.inputGroup}>
+          <Text style={styles.labelSmall}>Crew Back:</Text>
+          <TextInput
+            style={styles.numberInput}
+            value={crewMembersBack.toString()}
+            onChangeText={(value) => handleNumericChange('crewMembersBack', value)}
+            keyboardType="numeric"
+            placeholder="0"
+            placeholderTextColor="#999"
+          />
+        </View>
+      </View>
+
+      <View style={styles.inputRow}>
         <View style={styles.inputGroup}>
           <Text style={styles.labelSmall}>Cockpit:</Text>
           <TextInput
@@ -70,9 +86,7 @@ const AircraftConfigSection: React.FC<AircraftConfigSectionProps> = React.memo((
             placeholderTextColor="#999"
           />
         </View>
-      </View>
 
-      <View style={styles.inputRow}>
         <View style={styles.inputGroup}>
           <Text style={styles.labelSmall}>Safety Gear (lbs):</Text>
           <TextInput
@@ -84,7 +98,9 @@ const AircraftConfigSection: React.FC<AircraftConfigSectionProps> = React.memo((
             placeholderTextColor="#999"
           />
         </View>
+      </View>
 
+      <View style={styles.inputRow}>
         <View style={styles.switchContainer}>
           <Text style={styles.labelSmall}>Fuel Pods:</Text>
           <Switch
@@ -102,7 +118,7 @@ const AircraftConfigSection: React.FC<AircraftConfigSectionProps> = React.memo((
       />
     </View>
   );
-});
+};
 
 AircraftConfigSection.displayName = 'AircraftConfigSection';
 
