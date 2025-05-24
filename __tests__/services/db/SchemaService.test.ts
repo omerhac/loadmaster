@@ -35,7 +35,6 @@ describe('SchemaService Integration Tests', () => {
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS mission');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS cargo_type');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS cargo_item');
-    expect(schema).toContain('CREATE TABLE IF NOT EXISTS fuel_state');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS fuel_mac_quants');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS compartment');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS load_constraints');
@@ -46,7 +45,7 @@ describe('SchemaService Integration Tests', () => {
     const schemas = getSchemaDefinitions();
 
     // Check if all expected schemas are returned
-    expect(schemas.length).toBe(10);
+    expect(schemas.length).toBe(9);
 
     // Check for specific table names
     const tableNames = schemas.map(schema => schema.tableName);
@@ -55,7 +54,6 @@ describe('SchemaService Integration Tests', () => {
     expect(tableNames).toContain('mission');
     expect(tableNames).toContain('cargo_type');
     expect(tableNames).toContain('cargo_item');
-    expect(tableNames).toContain('fuel_state');
     expect(tableNames).toContain('fuel_mac_quants');
     expect(tableNames).toContain('compartment');
     expect(tableNames).toContain('load_constraints');
@@ -82,7 +80,6 @@ describe('SchemaService Integration Tests', () => {
     expect(tableNames).toContain('mission');
     expect(tableNames).toContain('cargo_type');
     expect(tableNames).toContain('cargo_item');
-    expect(tableNames).toContain('fuel_state');
     expect(tableNames).toContain('fuel_mac_quants');
     expect(tableNames).toContain('compartment');
     expect(tableNames).toContain('load_constraints');
@@ -110,11 +107,11 @@ describe('SchemaService Integration Tests', () => {
 
       // Insert test mission
       await testDb.executeQuery(`
-        INSERT INTO mission (id, name, created_date, modified_date, crew_weight, configuration_weights,
+        INSERT INTO mission (id, name, created_date, modified_date, front_crew_weight, back_crew_weight, configuration_weights,
                            crew_gear_weight, food_weight, safety_gear_weight,
-                           etc_weight, aircraft_id)
+                           etc_weight, outboard_fuel, inboard_fuel, fuselage_fuel, auxiliary_fuel, external_fuel, aircraft_id)
         VALUES (1, 'Test Mission', '2023-01-01T00:00:00.000Z', '2023-01-01T00:00:00.000Z', 
-              800, 150, 200, 100, 50, 75, 1)
+              400, 400, 150, 200, 100, 50, 75, 1000, 2000, 1500, 500, 800, 1)
       `);
 
       // Insert test cargo type
@@ -130,14 +127,6 @@ describe('SchemaService Integration Tests', () => {
         INSERT INTO cargo_item (id, mission_id, cargo_type_id, name, weight, length, width, height, 
                               forward_overhang, back_overhang, cog, x_start_position, y_start_position, status)
         VALUES (1, 1, 1, 'Cargo Item 1', 1000, 5, 2, 2, 0.5, 0.5, 2.5, 10, 5, 'inventory')
-      `);
-
-      // Insert test fuel state
-      await testDb.executeQuery(`
-        INSERT INTO fuel_state (id, mission_id, total_fuel, main_tank_1_fuel, main_tank_2_fuel, 
-                              main_tank_3_fuel, main_tank_4_fuel, external_1_fuel, 
-                              external_2_fuel, mac_contribution)
-        VALUES (1, 1, 5000, 1000, 1000, 1000, 1000, 500, 500, 2.5)
       `);
 
       // Insert test compartment
@@ -217,21 +206,6 @@ describe('SchemaService Integration Tests', () => {
       const row = result.results[0].data;
       expect(row?.type_name).toBe('Test Cargo');
       expect(row?.username).toBe('testuser');
-    });
-
-    it('should verify mission to fuel state relationship', async () => {
-      const result = await testDb.executeQuery(`
-        SELECT m.id as mission_id, m.name as mission_name,
-               fs.id as fuel_state_id, fs.total_fuel
-        FROM mission m
-        JOIN fuel_state fs ON m.id = fs.mission_id
-        WHERE m.id = 1
-      `);
-
-      expect(result.count).toBe(1);
-      const row = result.results[0].data;
-      expect(row?.mission_name).toBe('Test Mission');
-      expect(row?.total_fuel).toBe(5000);
     });
 
     it('should verify aircraft to compartment to load constraints relationships', async () => {

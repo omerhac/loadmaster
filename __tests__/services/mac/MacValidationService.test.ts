@@ -14,7 +14,7 @@ import {
 } from '../../../src/services/db/operations/AllowedMacConstraintOperations';
 import { createAircraft } from '../../../src/services/db/operations/AircraftOperations';
 import { createMission } from '../../../src/services/db/operations/MissionOperations';
-import { createFuelState, createFuelMacQuant } from '../../../src/services/db/operations/FuelOperations';
+import { createFuelMacQuant } from '../../../src/services/db/operations/FuelOperations';
 
 describe('MAC Validation Service', () => {
   beforeEach(async () => {
@@ -51,6 +51,17 @@ describe('MAC Validation Service', () => {
         ramp_max_incline: 30,
         ramp_min_incline: 15,
       });
+
+      // Create fuel MAC quantities using createFuelMacQuant operation
+      await createFuelMacQuant({
+        outboard_fuel: 0,
+        inboard_fuel: 0,
+        fuselage_fuel: 0,
+        auxiliary_fuel: 0,
+        external_fuel: 0,
+        mac_contribution: 0,
+      });
+
     } catch (error) {
       console.error('Error in test setup:', error);
       throw error;
@@ -125,27 +136,19 @@ describe('MAC Validation Service', () => {
           name: 'Valid Mission',
           created_date: '2023-01-01',
           modified_date: '2023-01-01',
-          crew_weight: 0,
+          front_crew_weight: 0,
+          back_crew_weight: 0,
           configuration_weights: 0,
           crew_gear_weight: 0,
           food_weight: 0,
           safety_gear_weight: 0,
           etc_weight: 0,
+          outboard_fuel: 1000,
+          inboard_fuel: 1000,
+          fuselage_fuel: 1000,
+          auxiliary_fuel: 1000,
+          external_fuel: 0,
           aircraft_id: 1,
-        });
-
-        // Create a fuel state for the valid mission
-        await createFuelState({
-          id: 1,
-          mission_id: 1,
-          total_fuel: 20000,
-          main_tank_1_fuel: 5000,
-          main_tank_2_fuel: 5000,
-          main_tank_3_fuel: 5000,
-          main_tank_4_fuel: 5000,
-          external_1_fuel: 0,
-          external_2_fuel: 0,
-          mac_contribution: 0,
         });
 
         // Invalid mission with MAC outside range (> 35)
@@ -154,39 +157,38 @@ describe('MAC Validation Service', () => {
           name: 'Invalid Mission',
           created_date: '2023-01-01',
           modified_date: '2023-01-01',
-          crew_weight: 0,
+          front_crew_weight: 0,
+          back_crew_weight: 0,
           configuration_weights: 0,
           crew_gear_weight: 0,
           food_weight: 0,
           safety_gear_weight: 0,
           etc_weight: 0,
+          outboard_fuel: 2000,
+          inboard_fuel: 2000,
+          fuselage_fuel: 2000,
+          auxiliary_fuel: 2000,
+          external_fuel: 0,
           aircraft_id: 1,
         });
 
-        // Create a fuel state for the invalid mission
-        await createFuelState({
-          id: 2,
-          mission_id: 2,
-          total_fuel: 20000,
-          main_tank_1_fuel: 5000,
-          main_tank_2_fuel: 5000,
-          main_tank_3_fuel: 5000,
-          main_tank_4_fuel: 5000,
-          external_1_fuel: 0,
-          external_2_fuel: 0,
-          mac_contribution: 0,
+        // Create fuel MAC quantities for the different fuel distributions
+        await createFuelMacQuant({
+          outboard_fuel: 1000,
+          inboard_fuel: 1000,
+          fuselage_fuel: 1000,
+          auxiliary_fuel: 1000,
+          external_fuel: 0,
+          mac_contribution: 5.0,
         });
 
-        // Create fuel MAC quantities using createFuelMacQuant operation
         await createFuelMacQuant({
-          id: 1,
-          main_tank_1_fuel: 5000,
-          main_tank_2_fuel: 5000,
-          main_tank_3_fuel: 5000,
-          main_tank_4_fuel: 5000,
-          external_1_fuel: 0,
-          external_2_fuel: 0,
-          mac_contribution: 0,
+          outboard_fuel: 2000,
+          inboard_fuel: 2000,
+          fuselage_fuel: 2000,
+          auxiliary_fuel: 2000,
+          external_fuel: 0,
+          mac_contribution: 8.0,
         });
 
       } catch (error) {

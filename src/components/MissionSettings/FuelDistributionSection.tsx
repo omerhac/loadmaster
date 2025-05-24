@@ -85,6 +85,22 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
           />
           <Text style={styles.sliderValue}>{fuelDistribution.ext}</Text>
         </View>
+
+        <View style={styles.sliderRow}>
+          <Text style={styles.sliderLabel}>Fuselage:</Text>
+          <Slider
+            style={styles.slider}
+            minimumValue={0}
+            maximumValue={20000}
+            step={100}
+            value={fuelDistribution.fuselage}
+            onValueChange={(value) => handleFuelChange('fuselage', value)}
+            minimumTrackTintColor="#007bff"
+            maximumTrackTintColor="#ddd"
+            thumbTintColor="#007bff"
+          />
+          <Text style={styles.sliderValue}>{fuelDistribution.ext}</Text>
+        </View>
       </View>
     </View>
   );

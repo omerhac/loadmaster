@@ -11,7 +11,6 @@ import {
   getCargoItemsByMissionId,
   getCargoItemById,
   getAircraftById,
-  getFuelStateByMissionId,
   findClosestFuelMacConfiguration,
 } from '../db/operations';
 
@@ -142,7 +141,9 @@ export async function calculateAdditionalWeightsMACIndex(missionId: number): Pro
   let totalAdditionalMAC = 0;
 
   // Crew weight
-  totalAdditionalMAC += (CREW_STATION - 533.46) * mission.crew_weight / 50000;
+  // TODO: split front and back crew weight into two different stations
+  totalAdditionalMAC += (CREW_STATION - 533.46) * mission.front_crew_weight / 50000;
+  totalAdditionalMAC += (CREW_STATION - 533.46) * mission.back_crew_weight / 50000;
 
   // Configuration weights
   totalAdditionalMAC += (CONFIG_STATION - 533.46) * mission.configuration_weights / 50000;
@@ -202,14 +203,15 @@ export async function calculateTotalAircraftWeight(missionId: number): Promise<n
     }
   }
 
-  // 5. Get fuel data
-  const fuelStateResult = await getFuelStateByMissionId(missionId);
-  const fuelState = fuelStateResult.count > 0 ? fuelStateResult.results[0].data : null;
-  const totalFuelWeight = fuelState ? fuelState.total_fuel : 0;
+  // 5. Calculate total fuel weight from mission fuel fields
+  const totalFuelWeight = mission.outboard_fuel + mission.inboard_fuel +
+                         mission.fuselage_fuel + mission.auxiliary_fuel +
+                         mission.external_fuel;
 
   // 6. Sum all weights to get gross weight
   const grossWeight = aircraft.empty_weight +
-                      mission.crew_weight +
+                      mission.front_crew_weight +
+                      mission.back_crew_weight +
                       mission.configuration_weights +
                       mission.crew_gear_weight +
                       mission.food_weight +
@@ -227,36 +229,34 @@ export async function calculateTotalAircraftWeight(missionId: number): Promise<n
  * @returns The MAC index contribution from fuel
  */
 export async function calculateFuelMAC(missionId: number): Promise<number> {
-  // 1. Get fuel state for the mission
-  const fuelStateResult = await getFuelStateByMissionId(missionId);
-  if (fuelStateResult.count === 0) {
-    // If no fuel state exists, return 0 as the MAC contribution
+  // 1. Get mission data to access fuel fields
+  const missionResult = await getMissionById(missionId);
+  if (missionResult.count === 0) {
+    throw new Error(`Mission with ID ${missionId} not found`);
+  }
+
+  const mission = missionResult.results[0].data;
+  if (!mission) {
+    throw new Error(`Mission data is undefined for mission ID ${missionId}`);
+  }
+
+  // 2. Use the fuel fields from the mission to find MAC configuration
+  try {
+    const fuelMacQuantResult = await findClosestFuelMacConfiguration(
+      mission.outboard_fuel,
+      mission.inboard_fuel,
+      mission.fuselage_fuel,
+      mission.auxiliary_fuel,
+      mission.external_fuel
+    );
+
+    // 3. Return the MAC contribution from the reference table
+    return fuelMacQuantResult.mac_contribution;
+  } catch (error) {
+    // If no matching fuel configuration found, return 0
+    console.warn(`No matching fuel configuration found for mission ${missionId}:`, error);
     return 0;
   }
-
-  const fuelState = fuelStateResult.results[0].data;
-  if (!fuelState) {
-    return 0;
-  }
-
-  // If mac_contribution is directly provided in the fuel state, use it
-  if (fuelState.mac_contribution !== undefined) {
-    return fuelState.mac_contribution;
-  }
-
-  // Otherwise use the lookup method from FuelOperations
-  // 2. Find the most closely matching fuel configuration in the reference table
-  const fuelMacQuantResult = await findClosestFuelMacConfiguration(
-    fuelState.main_tank_1_fuel,
-    fuelState.main_tank_2_fuel,
-    fuelState.main_tank_3_fuel,
-    fuelState.main_tank_4_fuel,
-    fuelState.external_1_fuel,
-    fuelState.external_2_fuel
-  );
-
-  // 3. Return the MAC contribution from the reference table
-  return fuelMacQuantResult.mac_contribution;
 }
 
 /**
