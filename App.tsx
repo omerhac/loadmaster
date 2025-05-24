@@ -24,6 +24,7 @@ import { deleteCargoItem } from './src/services/db/operations/CargoItemOperation
 import { getAircraftById } from './src/services/db/operations/AircraftOperations';
 import { getMissionById } from './src/services/db/operations/MissionOperations';
 import { DEFAULT_MISSION_ID, DEFAULT_Y_POS } from './src/constants';
+import { updateMission } from './src/services/db/operations/MissionOperations';
 
 initAppDatabase();
 
@@ -76,8 +77,11 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
     aircraftIndex: aircraft.empty_mac,
     crewMembersFront: mission.front_crew_weight,
     crewMembersBack: mission.back_crew_weight,
-    cockpit: 0, // TODO: ?? what about food? etc? configuration_weights?
+    cockpit: 0, // TODO: ??
     safetyGearWeight: mission.safety_gear_weight,
+    foodWeight: mission.food_weight,
+    etcWeight: mission.etc_weight,
+    configurationWeights: mission.configuration_weights,
     fuelPods: false,
     fuelDistribution: {
       outbd: mission.outboard_fuel,
@@ -86,6 +90,7 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
       ext: mission.external_fuel,
       fuselage: mission.fuselage_fuel,
     },
+    aircraftId: mission.aircraft_id,
     notes: '',
   };
 }
@@ -289,6 +294,27 @@ function App(): React.JSX.Element {
   const handleMissionSave = useCallback((settings: MissionSettings) => {
     setMissionSettings(settings);
 
+    const mission: Mission = {
+      id: parseInt(settings.id, 10),
+      name: settings.name,
+      created_date: settings.date,
+      modified_date: new Date().toISOString(),
+      front_crew_weight: settings.crewMembersFront,
+      back_crew_weight: settings.crewMembersBack,
+      configuration_weights: settings.cockpit,
+      crew_gear_weight: settings.safetyGearWeight,
+      food_weight: settings.foodWeight,
+      safety_gear_weight: settings.safetyGearWeight,
+      etc_weight: settings.etcWeight,
+      outboard_fuel: settings.fuelDistribution.outbd,
+      inboard_fuel: settings.fuelDistribution.inbd,
+      fuselage_fuel: settings.fuelDistribution.fuselage,
+      auxiliary_fuel: settings.fuelDistribution.aux,
+      external_fuel: settings.fuelDistribution.ext,
+      aircraft_id: settings.aircraftId,
+    };
+    updateMission(mission);
+    // TODO: support updating aircraft empty MAC%
     setCurrentView('planning');
   }, []);
 
