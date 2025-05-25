@@ -35,7 +35,6 @@ export function getSchemaDefinitions(): SchemaDefinition[] {
     getMissionTableSchema(),
     getCargoTypeTableSchema(),
     getCargoItemTableSchema(),
-    getFuelStateTableSchema(),
     getFuelMacQuantsTableSchema(),
     getCompartmentTableSchema(),
     getLoadConstraintsTableSchema(),
@@ -95,12 +94,18 @@ export function getMissionTableSchema(): SchemaDefinition {
         name TEXT NOT NULL,
         created_date TEXT NOT NULL,
         modified_date TEXT NOT NULL,
-        crew_weight REAL NOT NULL DEFAULT 0,
+        front_crew_weight REAL NOT NULL DEFAULT 0,
+        back_crew_weight REAL NOT NULL DEFAULT 0,
         configuration_weights REAL NOT NULL DEFAULT 0,
         crew_gear_weight REAL NOT NULL DEFAULT 0,
         food_weight REAL NOT NULL DEFAULT 0,
         safety_gear_weight REAL NOT NULL DEFAULT 0,
         etc_weight REAL NOT NULL DEFAULT 0,
+        outboard_fuel REAL NOT NULL DEFAULT 0,
+        inboard_fuel REAL NOT NULL DEFAULT 0,
+        fuselage_fuel REAL NOT NULL DEFAULT 0,
+        auxiliary_fuel REAL NOT NULL DEFAULT 0,
+        external_fuel REAL NOT NULL DEFAULT 0,
         aircraft_id INTEGER NOT NULL,
         FOREIGN KEY (aircraft_id) REFERENCES aircraft (id)
       );
@@ -163,30 +168,6 @@ export function getCargoItemTableSchema(): SchemaDefinition {
 }
 
 /**
- * Fuel state table schema definition
- */
-export function getFuelStateTableSchema(): SchemaDefinition {
-  return {
-    tableName: 'fuel_state',
-    createStatement: `
-      CREATE TABLE IF NOT EXISTS fuel_state (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        mission_id INTEGER NOT NULL UNIQUE,
-        total_fuel REAL NOT NULL,
-        main_tank_1_fuel REAL NOT NULL,
-        main_tank_2_fuel REAL NOT NULL,
-        main_tank_3_fuel REAL NOT NULL,
-        main_tank_4_fuel REAL NOT NULL,
-        external_1_fuel REAL NOT NULL,
-        external_2_fuel REAL NOT NULL,
-        mac_contribution REAL NOT NULL,
-        FOREIGN KEY (mission_id) REFERENCES mission (id)
-      );
-    `,
-  };
-}
-
-/**
  * Fuel MAC quantities table schema definition
  */
 export function getFuelMacQuantsTableSchema(): SchemaDefinition {
@@ -194,13 +175,11 @@ export function getFuelMacQuantsTableSchema(): SchemaDefinition {
     tableName: 'fuel_mac_quants',
     createStatement: `
       CREATE TABLE IF NOT EXISTS fuel_mac_quants (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        main_tank_1_fuel REAL NOT NULL,
-        main_tank_2_fuel REAL NOT NULL,
-        main_tank_3_fuel REAL NOT NULL,
-        main_tank_4_fuel REAL NOT NULL,
-        external_1_fuel REAL NOT NULL,
-        external_2_fuel REAL NOT NULL,
+        outboard_fuel REAL NOT NULL,
+        inboard_fuel REAL NOT NULL,
+        fuselage_fuel REAL NOT NULL,
+        auxiliary_fuel REAL NOT NULL,
+        external_fuel REAL NOT NULL,
         mac_contribution REAL NOT NULL
       );
     `,

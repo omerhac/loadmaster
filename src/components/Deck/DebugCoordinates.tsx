@@ -35,7 +35,7 @@ const DebugCoordinates: React.FC<DebugCoordinatesProps> = ({ corners }) => {
       {Object.entries(corners).map(([key, coord]) => (
         <Text
           key={key}
-          // eslint-disable-next-line react-native/no-inline-styles
+
           style={[styles.coordLabel, labelStyles[key], { fontSize: 5 }]}
         >
           {formatCoordinate(coord)}
