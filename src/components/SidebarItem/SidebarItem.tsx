@@ -73,12 +73,9 @@ const SidebarItem = ({
 
         <View style={styles.itemInfo}>
           <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
-
-          {!isExpanded ? (
-            <View style={styles.compactInfo}>
-              <Text style={styles.itemDimensions}>{dimensions}</Text>
-            </View>
-          ) : null}
+          <View style={styles.compactInfo}>
+            <Text style={styles.itemDimensions}>{dimensions}</Text>
+          </View>
         </View>
 
         <TouchableOpacity
@@ -97,8 +94,8 @@ const SidebarItem = ({
       {isExpanded && (
         <View style={styles.itemDetails}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Dim:</Text>
-            <Text style={styles.detailValue}>{dimensions}</Text>
+            <Text style={styles.detailLabel}>FS:</Text>
+            <Text style={styles.detailValue}>{item.fs > 0 ? item.fs : 'not set'}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Weight:</Text>
