@@ -355,12 +355,7 @@ function App(): React.JSX.Element {
     setCurrentView('planning');
   }, []);
 
-  const handleSavePreviewItems = useCallback((items: CargoItem[]) => {
-    setCargoItems(prev => prev.map(item => {
-      const editedItem = items.find(i => i.id === item.id);
-      return editedItem || item;
-    }));
-  }, []);
+
 
   const handleNewMission = useCallback(async (missionName: string) => {
     try {
@@ -460,7 +455,8 @@ function App(): React.JSX.Element {
     preview: (
       <Preview
         items={cargoItems}
-        onSave={handleSavePreviewItems}
+        missionSettings={missionSettings ?? null}
+        missionId={currentMissionId}
         onReturn={() => setCurrentView('planning')}
       />
     ),
