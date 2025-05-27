@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,45 @@ import BasicInfoSection from './BasicInfoSection';
 import AircraftConfigSection from './AircraftConfigSection';
 import ManualCargoInsertion from './ManualCargoInsertion';
 import NotesSection from './NotesSection';
+import {
+  DEFAULT_FRONT_CREW_WEIGHT,
+  DEFAULT_BACK_CREW_WEIGHT,
+  DEFAULT_SAFETY_GEAR_WEIGHT,
+  DEFAULT_FOOD_WEIGHT,
+  DEFAULT_ETC_WEIGHT,
+  DEFAULT_OUTBOARD_FUEL,
+  DEFAULT_INBOARD_FUEL,
+  DEFAULT_FUSELAGE_FUEL,
+  DEFAULT_AUXILIARY_FUEL,
+  DEFAULT_EXTERNAL_FUEL,
+  DEFAULT_AIRCRAFT_ID,
+} from '../../constants';
 
+const DEFAULT_MISSION_SETTINGS: MissionSettings = {
+  id: '1',
+  name: 'New Mission',
+  date: new Date().toISOString().split('T')[0],
+  departureLocation: 'Nevatim',
+  arrivalLocation: 'Ramat David',
+  aircraftIndex: 0,
+  crewMembersFront: DEFAULT_FRONT_CREW_WEIGHT,
+  crewMembersBack: DEFAULT_BACK_CREW_WEIGHT,
+  cockpit: 0,
+  safetyGearWeight: DEFAULT_SAFETY_GEAR_WEIGHT,
+  foodWeight: DEFAULT_FOOD_WEIGHT,
+  etcWeight: DEFAULT_ETC_WEIGHT,
+  configurationWeights: 0,
+  fuelPods: false,
+  fuelDistribution: {
+    outbd: DEFAULT_OUTBOARD_FUEL,
+    inbd: DEFAULT_INBOARD_FUEL,
+    aux: DEFAULT_AUXILIARY_FUEL,
+    ext: DEFAULT_EXTERNAL_FUEL,
+    fuselage: DEFAULT_FUSELAGE_FUEL,
+  },
+  aircraftId: DEFAULT_AIRCRAFT_ID,
+  notes: '',
+};
 
 interface MissionSettingsProps {
   settings?: MissionSettings;
@@ -30,28 +68,42 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   onAddToMainCargo,
   onRemoveFromDeck,
 }) => {
-  const [formData, setFormData] = useState<MissionSettings | null>(settings ?? null);
+  const [formData, setFormData] = useState<MissionSettings>(settings || DEFAULT_MISSION_SETTINGS);
+
+  useEffect(() => {
+    if (settings) {
+      const mergedData = {
+        ...DEFAULT_MISSION_SETTINGS,
+        ...settings,
+        fuelDistribution: {
+          ...DEFAULT_MISSION_SETTINGS.fuelDistribution,
+          ...settings.fuelDistribution,
+        },
+      };
+      setFormData(() => mergedData);
+    }
+  }, [settings]);
 
   const handleChange = useCallback((name: string, value: string | number | boolean) => {
     if (name.startsWith('fuelDistribution.')) {
       const fuelField = name.split('.')[1] as keyof FuelDistribution;
       setFormData(prev => ({
-        ...prev!,
+        ...prev,
         fuelDistribution: {
-          ...prev!.fuelDistribution,
+          ...prev.fuelDistribution,
           [fuelField]: typeof value === 'number' ? value : 0,
         },
       }));
     } else {
       setFormData(prev => ({
-        ...prev!,
+        ...prev,
         [name]: value,
       }));
     }
   }, []);
 
   const handleSubmit = useCallback(() => {
-    onSave(formData!);
+    onSave(formData);
   }, [formData, onSave]);
 
   return (
@@ -68,21 +120,21 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
 
       <ScrollView style={styles.scrollContainer}>
         <BasicInfoSection
-          name={formData!.name}
-          date={formData!.date}
-          departureLocation={formData!.departureLocation}
-          arrivalLocation={formData!.arrivalLocation}
+          name={formData.name}
+          date={formData.date}
+          departureLocation={formData.departureLocation}
+          arrivalLocation={formData.arrivalLocation}
           onChange={handleChange}
         />
 
         <AircraftConfigSection
-          aircraftIndex={formData!.aircraftIndex.toString()}
-          crewMembersFront={formData!.crewMembersFront}
-          crewMembersBack={formData!.crewMembersBack}
-          cockpit={formData!.cockpit}
-          safetyGearWeight={formData!.safetyGearWeight}
-          fuelPods={formData!.fuelPods}
-          fuelDistribution={formData!.fuelDistribution}
+          aircraftIndex={formData.aircraftIndex.toString()}
+          crewMembersFront={formData.crewMembersFront}
+          crewMembersBack={formData.crewMembersBack}
+          cockpit={formData.cockpit}
+          safetyGearWeight={formData.safetyGearWeight}
+          fuelPods={formData.fuelPods}
+          fuelDistribution={formData.fuelDistribution}
           onChange={handleChange}
         />
 
@@ -93,7 +145,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
         />
 
         <NotesSection
-          notes={formData!.notes}
+          notes={formData.notes}
           onChange={handleChange}
         />
       </ScrollView>

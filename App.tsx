@@ -70,31 +70,41 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
   }
   const aircraft: Aircraft = (aircraftResponse.results[0].data as Aircraft);
 
-  return {
+  // Helper function to safely convert to number
+  const toNumber = (value: any): number => {
+    if (value === null || value === undefined) {
+      return 0;
+    }
+    const num = Number(value);
+    return isNaN(num) ? 0 : num;
+  };
+
+  const result = {
     id: mission.id.toString(),
-    name: mission.name,
-    date: mission.created_date,
+    name: mission.name || '',
+    date: mission.created_date || new Date().toISOString().split('T')[0],
     departureLocation: 'Nevatim',
     arrivalLocation: 'Ramat David',
-    aircraftIndex: aircraft.empty_mac,
-    crewMembersFront: mission.front_crew_weight,
-    crewMembersBack: mission.back_crew_weight,
+    aircraftIndex: toNumber(aircraft.empty_mac),
+    crewMembersFront: toNumber(mission.front_crew_weight),
+    crewMembersBack: toNumber(mission.back_crew_weight),
     cockpit: 0, // TODO: ??
-    safetyGearWeight: mission.safety_gear_weight,
-    foodWeight: mission.food_weight,
-    etcWeight: mission.etc_weight,
-    configurationWeights: mission.configuration_weights,
+    safetyGearWeight: toNumber(mission.safety_gear_weight),
+    foodWeight: toNumber(mission.food_weight),
+    etcWeight: toNumber(mission.etc_weight),
+    configurationWeights: toNumber(mission.configuration_weights),
     fuelPods: false,
     fuelDistribution: {
-      outbd: mission.outboard_fuel,
-      inbd: mission.inboard_fuel,
-      aux: mission.auxiliary_fuel,
-      ext: mission.external_fuel,
-      fuselage: mission.fuselage_fuel,
+      outbd: toNumber(mission.outboard_fuel),
+      inbd: toNumber(mission.inboard_fuel),
+      aux: toNumber(mission.auxiliary_fuel),
+      ext: toNumber(mission.external_fuel),
+      fuselage: toNumber(mission.fuselage_fuel),
     },
     aircraftId: mission.aircraft_id,
     notes: '',
   };
+  return result;
 }
 
 function App(): React.JSX.Element {
