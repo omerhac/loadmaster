@@ -15,7 +15,7 @@ export const styles = StyleSheet.create({
   },
   onStage: {
     borderLeftWidth: 3,
-    borderLeftColor: '#4fc08d',
+    borderLeftColor: '#d9d9e9',
   },
   itemHeader: {
     flexDirection: 'row',
@@ -31,13 +31,15 @@ export const styles = StyleSheet.create({
     marginRight: 4,
   },
   menuButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#555',
     textAlign: 'center',
+    marginTop: 2,
   },
   itemInfo: {
     flex: 1,
+    height: 26,
     marginRight: 4,
   },
   compactInfo: {
@@ -50,7 +52,7 @@ export const styles = StyleSheet.create({
     color: '#333',
   },
   itemDimensions: {
-    fontSize: 10,
+    fontSize: 8,
     color: '#666',
   },
   itemWeight: {
@@ -66,17 +68,23 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  actionButtonRemove: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#d9d9e9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   actionButtonText: {
-    fontSize: 12,
+    fontSize: 14,
     color: 'white',
-    fontWeight: 'bold',
     textAlign: 'center',
     lineHeight: 14,
   },
   actionButtonRemoveText: {
     fontSize: 14,
     color: 'white',
-    fontWeight: 'bold',
     textAlign: 'center',
     lineHeight: 14,
   },
@@ -88,11 +96,11 @@ export const styles = StyleSheet.create({
   },
   detailRow: {
     flexDirection: 'row',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   detailLabel: {
     fontWeight: '600',
-    fontSize: 10,
+    fontSize: 8,
     color: '#555',
     width: 45,
   },

@@ -1,8 +1,9 @@
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { styles } from './MissionSettings.styles';
 import { CargoItem, Position } from '../../types';
 import { DEFAULT_CARGO_TYPE_ID, DEFAULT_Y_POS } from '../../constants';
+import { fsToXPosition } from '../../utils/cargoUtils';
 
 type ManualCargoInsertionProps = {
   cargoItems: CargoItem[];
@@ -29,7 +30,7 @@ const calculateIndex = (_fs: number, _weight: number): number => {
 };
 
 const calculatePosition = (fs: number, cog: number): Position => {
-  const x_pos = fs - cog;
+  const x_pos = fsToXPosition(fs, cog);
   const y_pos = DEFAULT_Y_POS;
   return { x: x_pos, y: y_pos };
 };
@@ -45,6 +46,12 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
     const tempId = Date.now().toString();
     const parsedWeight = parseInt(weight, 10) || 0;
     const parsedFs = parseInt(fs, 10) || 0;
+
+    // Validate that FS is greater than 0 for onDeck items
+    if (parsedFs <= 0) {
+      Alert.alert('Invalid FS', 'FS must be greater than 0 for deck items');
+      return;
+    }
 
     // Create the item for the manual cargo insertion table
     const cog = DEFAULT_DIMENSIONS.length / 2;
@@ -156,8 +163,8 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
             {/* Table Body */}
             <ScrollView>
               {cargoItems.filter((item) => item.status === 'onDeck').map((item) => {
-                const change = calculateChange(item.fs ?? 0, item.weight ?? 0);
-                const index = calculateIndex(item.fs ?? 0, item.weight ?? 0);
+                const change = calculateChange(item.fs, item.weight);
+                const index = calculateIndex(item.fs, item.weight);
 
                 return (
                   <View key={item.id} style={styles.tableRow}>

@@ -15,6 +15,7 @@ const generateId = () => {
 };
 
 function convertDbCargoTypeToCargoItem(dbCargoType: DbCargoType): CargoItem {
+  const cog = dbCargoType.default_cog || 0;
   return {
     id: generateId(),
     name: dbCargoType.name,
@@ -24,8 +25,8 @@ function convertDbCargoTypeToCargoItem(dbCargoType: DbCargoType): CargoItem {
     height: dbCargoType.default_height,
     cargo_type_id: dbCargoType.id || 1,
     status: 'inventory',
-    cog: dbCargoType.default_cog || 0,
-    fs: 0, // Default fuselage station
+    cog,
+    fs: 0, // Default to 0 for inventory items
     position: { x: -1, y: -1 },
   };
 }

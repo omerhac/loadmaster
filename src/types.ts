@@ -18,7 +18,7 @@ export type CargoItem = {
     cog: number;
     status: Status;
     position: Position;
-    fs?: number;
+    fs: number;
 }
 
 export type Cargo = {

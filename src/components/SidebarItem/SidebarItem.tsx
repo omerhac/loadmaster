@@ -53,9 +53,6 @@ const SidebarItem = ({
   // Format dimensions for display
   const dimensions = `${item.length}"×${item.width}"×${item.height}"`;
 
-  // Format weight for display
-  const weight = `${item.weight}lb`;
-
   // Determine if item is in inventory
   const isInInventory = item.status === 'inventory';
 
@@ -76,17 +73,13 @@ const SidebarItem = ({
 
         <View style={styles.itemInfo}>
           <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
-
-          {!isExpanded ? (
-            <View style={styles.compactInfo}>
-              <Text style={styles.itemDimensions}>{dimensions}</Text>
-              <Text style={styles.itemWeight}>{weight}</Text>
-            </View>
-          ) : null}
+          <View style={styles.compactInfo}>
+            <Text style={styles.itemDimensions}>{dimensions}</Text>
+          </View>
         </View>
 
         <TouchableOpacity
-          style={styles.actionButton}
+          style={isInInventory ? styles.actionButton : styles.actionButtonRemove}
           onPress={handleAddToStage}
           hitSlop={{top: 5, bottom: 5, left: 5, right: 5}}
         >
@@ -101,8 +94,8 @@ const SidebarItem = ({
       {isExpanded && (
         <View style={styles.itemDetails}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Dim:</Text>
-            <Text style={styles.detailValue}>{dimensions}</Text>
+            <Text style={styles.detailLabel}>FS:</Text>
+            <Text style={styles.detailValue}>{item.fs > 0 ? item.fs : 'not set'}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Weight:</Text>
