@@ -14,13 +14,13 @@
   <mp:PhoneIdentity PhoneProductId="bd48e466-7160-4456-afa1-03e765bfeb51" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>loadmaster</DisplayName>
+    <DisplayName>LoadMaster</DisplayName>
     <PublisherDisplayName>omerhacohen</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
   <Dependencies>
-    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.18362.0" MaxVersionTested="10.0.22621.0" />
   </Dependencies>
 
   <Resources>
@@ -33,10 +33,10 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="loadmaster.App">
       <uap:VisualElements
-        DisplayName="loadmaster"
+        DisplayName="LoadMaster"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="loadmaster"
+        Description="LoadMaster - Offline Load Management Application"
         BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
@@ -45,6 +45,6 @@
   </Applications>
 
   <Capabilities>
-    <Capability Name="internetClient" />
+    <!-- Removed internetClient capability since app will run offline -->
   </Capabilities>
 </Package>
