@@ -7,6 +7,7 @@
     "ios": "react-native run-ios",
     "ipad": "react-native run-ios --simulator=\"iPad Pro (11-inch) (4th generation)\"",
     "tablet-windows": "npx react-native run-windows --release",
+    "build-windows-package": "echo '⚠️  Windows builds require a Windows machine. Use GitHub Actions instead:' && echo '1. Go to: https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/build-tablet-package.yml' && echo '2. Click \"Run workflow\"' && echo '3. Select platform (x64 for most tablets)' && echo '4. Download the artifact when complete' && echo '' && echo 'Or use a Windows machine with: powershell -ExecutionPolicy Bypass -File scripts/build-windows-package.ps1'",
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
