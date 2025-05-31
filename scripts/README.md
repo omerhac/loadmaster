@@ -20,12 +20,25 @@ That's it! The script will:
 
 ## 📦 How It Works
 
-React Native Windows apps build to **MSIX packages** (not raw exe files). The script intelligently handles this by:
+React Native Windows apps build to **MSIX packages** (not raw exe files). The script intelligently handles this with a comprehensive approach:
 
-1. **First**: Looking for pre-extracted exe files from CI
-2. **Fallback**: Extracting the exe from MSIX packages automatically
-3. **Smart Setup**: Copying all DLLs and dependencies to the right location
-4. **One-Click Run**: Launching the app from the correct directory
+1. **Multiple Extraction Methods**: 
+   - Checks for pre-extracted exe from MSIX (CI does this)
+   - Checks for exe from the actual build location
+   - Falls back to extracting from MSIX locally
+
+2. **Smart Dependency Collection**:
+   - Copies DLLs from the exe's directory
+   - Searches `deps` folder for additional dependencies
+   - Checks multiple build output folders (`x64/Release`, `Release`, etc.)
+   - Combines dependencies from all sources
+
+3. **Intelligent Selection**:
+   - Compares multiple exe versions if available
+   - Chooses the one with the most DLL dependencies
+   - Prefers the "alternative" build (from actual build location) over MSIX extraction
+
+4. **One-Click Run**: Launches the best available version with all dependencies
 
 ## 🔧 Configuration
 
@@ -87,6 +100,7 @@ The CI workflow has been updated to handle React Native Windows MSIX packages:
     name: windows-dev-exe
     path: |
       windows/dev_release/**/*
+      windows/dev_release_alt/**/*
       windows/loadmaster/Bundle/**/*
       windows/AppPackages/**/*.msix
 ```
@@ -94,15 +108,18 @@ The CI workflow has been updated to handle React Native Windows MSIX packages:
 **What the CI does:**
 
 1. **Builds the MSIX package** (standard React Native Windows output)
-2. **Extracts the exe from MSIX** during CI build
-3. **Creates a dev_release folder** with:
-   - The main `loadmaster.exe`
-   - All required DLL dependencies  
-   - Resources.pri and other runtime files
-4. **Uploads both** the extracted files AND the original MSIX
+2. **Extracts exe from MSIX** and creates `dev_release/` folder
+3. **Finds exe from build location** and creates `dev_release_alt/` folder  
+4. **Comprehensive dependency collection** from multiple sources:
+   - DLLs from exe directories
+   - Dependencies from `deps/` folder
+   - Files from build output folders
+5. **Uploads everything**: Both extracted folders, Bundle, and original MSIX
 
-**The script handles both scenarios:**
-- ✅ **Best case**: Downloads pre-extracted exe (fast startup)
-- 🔄 **Fallback**: Downloads MSIX and extracts locally (still works!)
+**The script intelligently chooses the best option:**
+- ✅ **Prefers**: `dev_release_alt` (from actual build location)
+- 🔄 **Alternative**: `dev_release` (from MSIX extraction)
+- 📊 **Decision criteria**: Most DLL dependencies + build source preference
+- 🚨 **Fallback**: Extract from MSIX locally if needed
 
-This gives you the fastest possible dev experience while maintaining compatibility with the standard React Native Windows build process. 
+This comprehensive approach ensures maximum compatibility and the fastest possible dev experience. 

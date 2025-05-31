@@ -110,13 +110,39 @@ try {
     Write-Host "📂 Extracting artifact..." -ForegroundColor Yellow
     Expand-Archive -Path $ZipPath -DestinationPath $TempDir -Force
     
-    # Find the exe - check for extracted dev release first, then look in MSIX
+    # Find the exe - check for extracted dev release folders first, then look in MSIX
     $ExePath = $null
-    $DevReleaseExe = Get-ChildItem -Path $TempDir -Recurse -Filter $ExeName | Where-Object { $_.DirectoryName -like "*dev_release*" } | Select-Object -First 1
+    $DevReleasePaths = @()
+    
+    # Check for both dev_release folders
+    $DevReleaseExe = Get-ChildItem -Path $TempDir -Recurse -Filter $ExeName | Where-Object { $_.DirectoryName -like "*dev_release*" }
     
     if ($DevReleaseExe) {
-        $ExePath = $DevReleaseExe
-        Write-Host "✅ Found extracted exe from dev_release" -ForegroundColor Green
+        foreach ($ExeFile in $DevReleaseExe) {
+            $DllCount = (Get-ChildItem -Path $ExeFile.DirectoryName -Filter "*.dll" -ErrorAction SilentlyContinue).Count
+            $DevReleasePaths += @{
+                Path = $ExeFile
+                Directory = $ExeFile.DirectoryName
+                DllCount = $DllCount
+                Type = if ($ExeFile.DirectoryName -like "*dev_release_alt*") { "Alternative (from found exe)" } else { "MSIX extraction" }
+            }
+        }
+        
+        # Sort by DLL count (descending) and prefer alt version if tie
+        $BestDevRelease = $DevReleasePaths | Sort-Object DllCount -Descending | Sort-Object { $_.Type -eq "Alternative (from found exe)" ? 0 : 1 } | Select-Object -First 1
+        
+        $ExePath = $BestDevRelease.Path
+        Write-Host "✅ Found extracted exe from $($BestDevRelease.Type)" -ForegroundColor Green
+        Write-Host "   Location: $($BestDevRelease.Directory)" -ForegroundColor Gray
+        Write-Host "   DLL Dependencies: $($BestDevRelease.DllCount)" -ForegroundColor Gray
+        
+        # Show other options if available
+        if ($DevReleasePaths.Count -gt 1) {
+            Write-Host "   Other options available:" -ForegroundColor Gray
+            $DevReleasePaths | Where-Object { $_.Path -ne $ExePath } | ForEach-Object {
+                Write-Host "     - $($_.Type): $($_.DllCount) DLLs" -ForegroundColor Gray
+            }
+        }
     } else {
         # Look for MSIX package and extract exe from it
         $MSIXPackage = Get-ChildItem -Path $TempDir -Recurse -Filter "*.msix" | Select-Object -First 1

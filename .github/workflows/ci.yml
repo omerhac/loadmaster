@@ -426,14 +426,50 @@ jobs:
               # Copy the exe
               Copy-Item -Path $ExtractedExe.FullName -Destination "$DevReleaseDir\loadmaster.exe"
               
-              # Copy all DLLs from the same directory
+              # Copy all DLLs from the same directory as the exe
               $ExeDir = $ExtractedExe.DirectoryName
               Get-ChildItem -Path $ExeDir -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
                 Copy-Item -Path $_.FullName -Destination $DevReleaseDir -ErrorAction SilentlyContinue
               }
               
+              # Also check if there's an exe at the found location and copy its DLLs
+              $FoundExeLocation = "windows\x64\Release\loadmaster"
+              if (Test-Path $FoundExeLocation) {
+                Write-Host "Found additional exe location: $FoundExeLocation" -ForegroundColor Yellow
+                Get-ChildItem -Path $FoundExeLocation -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
+                  $DestPath = Join-Path $DevReleaseDir $_.Name
+                  if (-not (Test-Path $DestPath)) {
+                    Copy-Item -Path $_.FullName -Destination $DevReleaseDir -ErrorAction SilentlyContinue
+                    Write-Host "  Copied additional DLL: $($_.Name)" -ForegroundColor Gray
+                  }
+                }
+              }
+              
+              # Search for and copy DLLs from deps folder and other common locations
+              $DepsLocations = @(
+                "windows\deps",
+                "windows\loadmaster\deps",
+                "windows\x64\Release",
+                "windows\x64\Debug",
+                "windows\Release",
+                "windows\Debug"
+              )
+              
+              foreach ($DepsLocation in $DepsLocations) {
+                if (Test-Path $DepsLocation) {
+                  Write-Host "Checking for dependencies in: $DepsLocation" -ForegroundColor Gray
+                  Get-ChildItem -Path $DepsLocation -Recurse -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
+                    $DestPath = Join-Path $DevReleaseDir $_.Name
+                    if (-not (Test-Path $DestPath)) {
+                      Copy-Item -Path $_.FullName -Destination $DevReleaseDir -ErrorAction SilentlyContinue
+                      Write-Host "  Copied from deps: $($_.Name)" -ForegroundColor Gray
+                    }
+                  }
+                }
+              }
+              
               # Copy any other important files
-              $FileTypes = @("*.pri", "*.config", "*.manifest")
+              $FileTypes = @("*.pri", "*.config", "*.manifest", "*.winmd")
               foreach ($FileType in $FileTypes) {
                 Get-ChildItem -Path $ExeDir -Filter $FileType -ErrorAction SilentlyContinue | ForEach-Object {
                   Copy-Item -Path $_.FullName -Destination $DevReleaseDir -ErrorAction SilentlyContinue
@@ -445,11 +481,16 @@ jobs:
               
               try {
                 $DllCount = (Get-ChildItem -Path $DevReleaseDir -Filter "*.dll" -ErrorAction SilentlyContinue).Count
-                Write-Host "   Dependencies: $DllCount DLLs" -ForegroundColor Gray
+                Write-Host "   Total Dependencies: $DllCount DLLs" -ForegroundColor Gray
+                
+                # List the DLLs we found
+                Write-Host "   DLL List:" -ForegroundColor Gray
+                Get-ChildItem -Path $DevReleaseDir -Filter "*.dll" -ErrorAction SilentlyContinue | Sort-Object Name | ForEach-Object {
+                  Write-Host "     - $($_.Name)" -ForegroundColor Gray
+                }
               } catch {
                 Write-Host "   Could not count DLLs" -ForegroundColor Gray
               }
-              
             } else {
               Write-Host "No exe found in MSIX package" -ForegroundColor Red
               Write-Host "Contents of MSIX:" -ForegroundColor Yellow
@@ -467,6 +508,56 @@ jobs:
           }
         } catch {
           Write-Host "Error processing MSIX packages: $_" -ForegroundColor Red
+        }
+        
+        # Also try to create dev_release from the found exe location
+        Write-Host "Checking for exe at found location..." -ForegroundColor Cyan
+        $FoundExeLocation = "windows\x64\Release\loadmaster\loadmaster.exe"
+        if (Test-Path $FoundExeLocation) {
+          Write-Host "Found exe at: $FoundExeLocation" -ForegroundColor Green
+          
+          $DevReleaseAltDir = "windows\dev_release_alt"
+          if (Test-Path $DevReleaseAltDir) {
+            Remove-Item -Path $DevReleaseAltDir -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          New-Item -ItemType Directory -Path $DevReleaseAltDir -Force | Out-Null
+          
+          # Copy the exe
+          Copy-Item -Path $FoundExeLocation -Destination "$DevReleaseAltDir\loadmaster.exe"
+          
+          # Copy all files from the same directory
+          $FoundExeDir = Split-Path -Parent $FoundExeLocation
+          Get-ChildItem -Path $FoundExeDir -Filter "*.*" -ErrorAction SilentlyContinue | ForEach-Object {
+            if ($_.Name -ne "loadmaster.exe") {
+              Copy-Item -Path $_.FullName -Destination $DevReleaseAltDir -ErrorAction SilentlyContinue
+            }
+          }
+          
+          # Search for additional dependencies
+          $DepsLocations = @(
+            "windows\deps",
+            "windows\loadmaster\deps", 
+            "windows\x64\Release",
+            "windows\x64\Debug"
+          )
+          
+          foreach ($DepsLocation in $DepsLocations) {
+            if (Test-Path $DepsLocation) {
+              Get-ChildItem -Path $DepsLocation -Recurse -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
+                $DestPath = Join-Path $DevReleaseAltDir $_.Name
+                if (-not (Test-Path $DestPath)) {
+                  Copy-Item -Path $_.FullName -Destination $DevReleaseAltDir -ErrorAction SilentlyContinue
+                }
+              }
+            }
+          }
+          
+          try {
+            $AltDllCount = (Get-ChildItem -Path $DevReleaseAltDir -Filter "*.dll" -ErrorAction SilentlyContinue).Count
+            Write-Host "Alternative build created with $AltDllCount DLLs" -ForegroundColor Green
+          } catch {
+            Write-Host "Alternative build created" -ForegroundColor Green
+          }
         }
         
         # Don't fail the build if extraction had issues
@@ -500,24 +591,44 @@ jobs:
         Write-Host "Extracted Dev Files:" -ForegroundColor Yellow
         try {
           if (Test-Path "windows\dev_release") {
+            Write-Host "  From MSIX extraction:" -ForegroundColor Gray
             $DevFiles = Get-ChildItem -Path "windows\dev_release" -ErrorAction SilentlyContinue
             if ($DevFiles) {
               $DevFiles | ForEach-Object {
                 try {
                   $size = [Math]::Round($_.Length / 1KB, 2)
-                  Write-Host "  - $($_.Name) ($size KB)" -ForegroundColor Green
+                  Write-Host "    - $($_.Name) ($size KB)" -ForegroundColor Green
                 } catch {
-                  Write-Host "  - $($_.Name) (size unknown)" -ForegroundColor Green
+                  Write-Host "    - $($_.Name) (size unknown)" -ForegroundColor Green
                 }
               }
             } else {
-              Write-Host "  - Dev release folder is empty" -ForegroundColor Gray
+              Write-Host "    - Dev release folder is empty" -ForegroundColor Gray
             }
           } else {
-            Write-Host "  - No dev release folder found" -ForegroundColor Gray
+            Write-Host "  - No MSIX dev release folder found" -ForegroundColor Gray
+          }
+          
+          if (Test-Path "windows\dev_release_alt") {
+            Write-Host "  From found exe location:" -ForegroundColor Gray
+            $DevAltFiles = Get-ChildItem -Path "windows\dev_release_alt" -ErrorAction SilentlyContinue
+            if ($DevAltFiles) {
+              $DevAltFiles | ForEach-Object {
+                try {
+                  $size = [Math]::Round($_.Length / 1KB, 2)
+                  Write-Host "    - $($_.Name) ($size KB)" -ForegroundColor Green
+                } catch {
+                  Write-Host "    - $($_.Name) (size unknown)" -ForegroundColor Green
+                }
+              }
+            } else {
+              Write-Host "    - Alternative dev release folder is empty" -ForegroundColor Gray
+            }
+          } else {
+            Write-Host "  - No alternative dev release folder found" -ForegroundColor Gray
           }
         } catch {
-          Write-Host "  - Error checking dev release folder: $_" -ForegroundColor Red
+          Write-Host "  - Error checking dev release folders: $_" -ForegroundColor Red
         }
         
         Write-Host "Bundle Files:" -ForegroundColor Yellow
@@ -545,6 +656,7 @@ jobs:
         name: windows-dev-exe
         path: |
           windows/dev_release/**/*
+          windows/dev_release_alt/**/*
           windows/loadmaster/Bundle/**/*
           windows/AppPackages/**/*.msix
 
