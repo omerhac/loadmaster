@@ -125,171 +125,236 @@ jobs:
           Write-Error "SQLitePlugin.vcxproj not found at expected path"
           exit 1
         }
-
-    # Install CppWinRT NuGet Package Globally
-    # This is a workaround to fix the build error:
-    # The "CppWinRT.props" file cannot be found.
-    # The "CppWinRT.targets" file cannot be found.
-    # The "CppWinRT.props" file cannot be found.
-    # It was caused by react-native-sqlite-storage not being able to find the CppWinRT package.
-    # The fix is to install the CppWinRT NuGet package globally and then update the SQLitePlugin project file to use the global path.
-    - name: Install CppWinRT NuGet Package Globally
+    # Comprehensive Windows SDK Version Fix - Update all project files to use available SDK
+    - name: Fix All Windows SDK Versions
       shell: powershell
       run: |
-        nuget install Microsoft.Windows.CppWinRT -Version 2.0.230706.1 -OutputDirectory C:\\NuGetPackages
-        Write-Host "Installed CppWinRT 2.0.230706.1 to C:\\NuGetPackages"
-        Write-Host "Contents of C:\\NuGetPackages:"
-        Get-ChildItem -Path "C:\\NuGetPackages" -Recurse | Where-Object { $_.FullName -like "*CppWinRT*" } | ForEach-Object { Write-Host $_.FullName }
-
-    - name: Update SQLitePlugin packages.config
-      shell: powershell
-      run: |
-        $packagesConfig = "node_modules\\react-native-sqlite-storage\\platforms\\windows\\SQLitePlugin\\packages.config"
-        if (Test-Path $packagesConfig) {
-          # Update CppWinRT version to match what's being installed
-          (Get-Content $packagesConfig) -replace 'version="2.0.200615.7"', 'version="2.0.230706.1"' | Set-Content $packagesConfig
-          Write-Host "Updated CppWinRT version in packages.config to 2.0.230706.1"
-          Write-Host "Contents of packages.config:"
-          Get-Content $packagesConfig
-        } else {
-          Write-Error "packages.config not found at expected path"
-          exit 1
-        }
-
-    - name: Fix SQLitePlugin Project To Use Global Packages
-      shell: powershell
-      run: |
-        $projFile = "node_modules\\react-native-sqlite-storage\\platforms\\windows\\SQLitePlugin\\SQLitePlugin.vcxproj"
-        if (Test-Path $projFile) {
-          # Update the package reference to use the global path with forward slashes
-          $content = Get-Content $projFile
-          # 1. Update the props import
-          $content = $content -replace '<Import Project="\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.props"', '<Import Project="C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props"'
-          # 2. Update the targets import
-          $content = $content -replace '<Import Project="\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.targets"', '<Import Project="C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.targets"'
-          # 3. Update the error conditions
-          $content = $content -replace '!Exists\(''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.props''\)', '!Exists(''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props'')'
-          $content = $content -replace '!Exists\(''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.targets''\)', '!Exists(''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.targets'')'
-          # 4. Update error messages
-          $content = $content -replace '\$\(\[System\.String\]::Format\(''\$\(ErrorText\)'', ''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.props''\)\)', '$([System.String]::Format(''$(ErrorText)'', ''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props''))'
-          $content = $content -replace '\$\(\[System\.String\]::Format\(''\$\(ErrorText\)'', ''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.targets''\)\)', '$([System.String]::Format(''$(ErrorText)'', ''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.targets''))'
-          Set-Content $projFile $content
-          Write-Host "Updated SQLitePlugin.vcxproj to use global CppWinRT package path"
-          Write-Host "Checking for C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props"
-          if (Test-Path "C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props") {
-            Write-Host "FOUND: CppWinRT.props exists"
-          } else {
-            Write-Host "MISSING: CppWinRT.props not found"
-          }
-        } else {
-          Write-Error "SQLitePlugin.vcxproj not found at expected path"
-          exit 1
-        }
-
-
-    # Create self-signed certificate for development/internal use
-    - name: Create Self-Signed Certificate
-      shell: powershell
-      run: |
-        $cert = New-SelfSignedCertificate -Subject "CN=YourCompany" -Type CodeSigning -KeyUsage DigitalSignature -FriendlyName "YourApp Code Signing" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
-        $password = ConvertTo-SecureString -String "TempPassword123!" -Force -AsPlainText
-        $path = "windows\codesign.pfx"
-        Export-PfxCertificate -Cert "Cert:\CurrentUser\My\$($cert.Thumbprint)" -FilePath $path -Password $password
-        Write-Host "Certificate created and exported to $path"
-
-    # Build Windows MSIX Package
-    - name: Build Windows MSIX Package
-      shell: powershell
-      run: |
-        # First build the solution normally
-        Write-Host "Building React Native Windows solution..."
-        npx react-native run-windows --no-launch --no-deploy --release
+        Write-Host "Updating Windows SDK versions in all project files..."
         
-        # Now create the MSIX package using MSBuild
-        Write-Host "Creating MSIX package..."
-        $msbuildPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe"
-        if (-not (Test-Path $msbuildPath)) {
-          $msbuildPath = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe"
-        }
-        if (-not (Test-Path $msbuildPath)) {
-          Write-Error "MSBuild not found at expected paths"
-          exit 1
-        }
+        # Find all .vcxproj files that might have old SDK versions
+        $projectFiles = Get-ChildItem -Path "node_modules" -Filter "*.vcxproj" -Recurse -ErrorAction SilentlyContinue
+        $projectFiles += Get-ChildItem -Path "windows" -Filter "*.vcxproj" -Recurse -ErrorAction SilentlyContinue
         
-        # Build with package creation enabled
-        & $msbuildPath windows\loadmaster.sln /p:Configuration=Release /p:Platform=x64 /p:AppxBundle=Always /p:AppxBundlePlatforms=x64 /p:PackageCertificateKeyFile=..\codesign.pfx /p:PackageCertificatePassword=TempPassword123! /p:UapAppxPackageBuildMode=StoreUpload
-
-    # Sign the package (if not already signed during build)
-    - name: Sign Windows Package
-      shell: powershell
-      run: |
-        # Look for MSIX files in various possible locations
-        $searchPaths = @(
-          "windows\AppPackages\*\*",
-          "windows\loadmaster\AppPackages\*\*", 
-          "windows\loadmaster\bin\x64\Release\*",
-          "windows\bin\x64\Release\*"
-        )
-        
-        $packagePath = $null
-        foreach ($searchPath in $searchPaths) {
-          Write-Host "Searching in: $searchPath"
-          $found = Get-ChildItem -Path $searchPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-          if ($found) {
-            $packagePath = $found
-            break
+        foreach ($projFile in $projectFiles) {
+          Write-Host "Checking project file: $($projFile.FullName)"
+          
+          # Read the content
+          $content = Get-Content $projFile.FullName -Raw
+          $originalContent = $content
+          
+          # Replace various old Windows SDK versions with 10.0.19041.0
+          $content = $content -replace '<WindowsTargetPlatformVersion>10\.0\.18362\.0</WindowsTargetPlatformVersion>', '<WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>'
+          $content = $content -replace '<WindowsTargetPlatformVersion>10\.0\.17763\.0</WindowsTargetPlatformVersion>', '<WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>'
+          $content = $content -replace '<WindowsTargetPlatformVersion>10\.0\.16299\.0</WindowsTargetPlatformVersion>', '<WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>'
+          $content = $content -replace '<WindowsTargetPlatformVersion>10\.0\.15063\.0</WindowsTargetPlatformVersion>', '<WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>'
+          
+          # Also replace in plain text SDK version references
+          $content = $content -replace '10\.0\.18362\.0', '10.0.19041.0'
+          $content = $content -replace '10\.0\.17763\.0', '10.0.19041.0'
+          $content = $content -replace '10\.0\.16299\.0', '10.0.19041.0'
+          $content = $content -replace '10\.0\.15063\.0', '10.0.19041.0'
+          
+          # Write back if changed
+          if ($content -ne $originalContent) {
+            Set-Content -Path $projFile.FullName -Value $content
+            Write-Host "Updated SDK version in: $($projFile.FullName)"
           }
         }
         
-        if ($packagePath) {
-          Write-Host "Found package to sign: $($packagePath.FullName)"
-          # Check if already signed
-          $signResult = & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe" verify /pa $packagePath.FullName 2>&1
-          if ($LASTEXITCODE -eq 0) {
-            Write-Host "Package is already signed"
-          } else {
-            Write-Host "Signing package..."
-            & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe" sign /f "windows\codesign.pfx" /p "TempPassword123!" /tr http://timestamp.digicert.com /td sha256 /fd sha256 $packagePath.FullName
-            Write-Host "Package signed successfully"
+        Write-Host "Completed Windows SDK version updates." 
+    # Comprehensive Platform Toolset Fix - Update all project files to use v143 (VS2022)
+    - name: Fix All Platform Toolsets
+      shell: powershell
+      run: |
+        Write-Host "Updating Platform Toolsets in all project files..."
+        
+        # Find all .vcxproj files that might have old toolset versions
+        $projectFiles = Get-ChildItem -Path "node_modules" -Filter "*.vcxproj" -Recurse -ErrorAction SilentlyContinue
+        $projectFiles += Get-ChildItem -Path "windows" -Filter "*.vcxproj" -Recurse -ErrorAction SilentlyContinue
+        
+        foreach ($projFile in $projectFiles) {
+          Write-Host "Checking project file: $($projFile.FullName)"
+          
+          # Read the content
+          $content = Get-Content $projFile.FullName -Raw
+          $originalContent = $content
+          
+          # Replace various old Platform Toolset versions with v143 (Visual Studio 2022)
+          $content = $content -replace '<PlatformToolset>v140</PlatformToolset>', '<PlatformToolset>v143</PlatformToolset>'
+          $content = $content -replace '<PlatformToolset>v141</PlatformToolset>', '<PlatformToolset>v143</PlatformToolset>'
+          $content = $content -replace '<PlatformToolset>v142</PlatformToolset>', '<PlatformToolset>v143</PlatformToolset>'
+          
+          # Write back if changed
+          if ($content -ne $originalContent) {
+            Set-Content -Path $projFile.FullName -Value $content
+            Write-Host "Updated Platform Toolset in: $($projFile.FullName)"
           }
-        } else {
-          Write-Host "No .msix package found. Listing all build outputs:"
-          foreach ($searchPath in $searchPaths) {
-            if (Test-Path $searchPath) {
-              Write-Host "Contents of $searchPath :"
-              Get-ChildItem -Path $searchPath -Recurse -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $($_.FullName)" }
+        }
+        
+        Write-Host "Completed Platform Toolset updates."     # Install CppWinRT NuGet Package Globally
+        # This is a workaround to fix the build error:
+        # The "CppWinRT.props" file cannot be found.
+        # The "CppWinRT.targets" file cannot be found.
+        # The "CppWinRT.props" file cannot be found.
+        # It was caused by react-native-sqlite-storage not being able to find the CppWinRT package.
+        # The fix is to install the CppWinRT NuGet package globally and then update the SQLitePlugin project file to use the global path.
+        - name: Install CppWinRT NuGet Package Globally
+          shell: powershell
+          run: |
+            nuget install Microsoft.Windows.CppWinRT -Version 2.0.230706.1 -OutputDirectory C:\\NuGetPackages
+            Write-Host "Installed CppWinRT 2.0.230706.1 to C:\\NuGetPackages"
+            Write-Host "Contents of C:\\NuGetPackages:"
+            Get-ChildItem -Path "C:\\NuGetPackages" -Recurse | Where-Object { $_.FullName -like "*CppWinRT*" } | ForEach-Object { Write-Host $_.FullName }
+
+        - name: Update SQLitePlugin packages.config
+          shell: powershell
+          run: |
+            $packagesConfig = "node_modules\\react-native-sqlite-storage\\platforms\\windows\\SQLitePlugin\\packages.config"
+            if (Test-Path $packagesConfig) {
+              # Update CppWinRT version to match what's being installed
+              (Get-Content $packagesConfig) -replace 'version="2.0.200615.7"', 'version="2.0.230706.1"' | Set-Content $packagesConfig
+              Write-Host "Updated CppWinRT version in packages.config to 2.0.230706.1"
+              Write-Host "Contents of packages.config:"
+              Get-Content $packagesConfig
+            } else {
+              Write-Error "packages.config not found at expected path"
+              exit 1
             }
-          }
-        }
 
-    # Alternative: Sign with production certificate (uncomment and use with real certificate)
-    # - name: Sign Windows Package (Production)
-    #   shell: powershell
-    #   run: |
-    #     # Decode certificate from base64 secret
-    #     $certBytes = [System.Convert]::FromBase64String("${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}")
-    #     $certPath = "windows\production-cert.pfx"
-    #     [System.IO.File]::WriteAllBytes($certPath, $certBytes)
-    #     
-    #     $packagePath = Get-ChildItem -Path "windows\AppPackages\*\*" -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-    #     if ($packagePath) {
-    #       Write-Host "Signing package with production certificate: $($packagePath.FullName)"
-    #       & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe" sign /f $certPath /p "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}" /tr http://timestamp.digicert.com /td sha256 /fd sha256 $packagePath.FullName
-    #       Write-Host "Package signed with production certificate"
-    #     }     # List contents of relevant directories to find build artifacts
-    - name: List build output directories
-      shell: powershell
-      run: |
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages:"
-        dir D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages -Recurse
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\AppPackages:"
-        dir D:\a\loadmaster\loadmaster\windows\AppPackages -Recurse
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster:"
-        dir D:\a\loadmaster\loadmaster\windows\loadmaster -Recurse
+        - name: Fix SQLitePlugin Project To Use Global Packages
+          shell: powershell
+          run: |
+            $projFile = "node_modules\\react-native-sqlite-storage\\platforms\\windows\\SQLitePlugin\\SQLitePlugin.vcxproj"
+            if (Test-Path $projFile) {
+              # Update the package reference to use the global path with forward slashes
+              $content = Get-Content $projFile
+              # 1. Update the props import
+              $content = $content -replace '<Import Project="\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.props"', '<Import Project="C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props"'
+              # 2. Update the targets import
+              $content = $content -replace '<Import Project="\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.targets"', '<Import Project="C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.targets"'
+              # 3. Update the error conditions
+              $content = $content -replace '!Exists\(''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.props''\)', '!Exists(''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props'')'
+              $content = $content -replace '!Exists\(''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.targets''\)', '!Exists(''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.targets'')'
+              # 4. Update error messages
+              $content = $content -replace '\$\(\[System\.String\]::Format\(''\$\(ErrorText\)'', ''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.props''\)\)', '$([System.String]::Format(''$(ErrorText)'', ''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props''))'
+              $content = $content -replace '\$\(\[System\.String\]::Format\(''\$\(ErrorText\)'', ''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.targets''\)\)', '$([System.String]::Format(''$(ErrorText)'', ''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.targets''))'
+              Set-Content $projFile $content
+              Write-Host "Updated SQLitePlugin.vcxproj to use global CppWinRT package path"
+              Write-Host "Checking for C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props"
+              if (Test-Path "C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props") {
+                Write-Host "FOUND: CppWinRT.props exists"
+              } else {
+                Write-Host "MISSING: CppWinRT.props not found"
+              }
+            } else {
+              Write-Error "SQLitePlugin.vcxproj not found at expected path"
+              exit 1
+            }
 
-    - name: Upload Windows build artifact
-      uses: actions/upload-artifact@main
-      with:
-        name: windows-tablet-build
-        path: windows/AppPackages/loadmaster/**/*_Test/**/*
+
+        # Create self-signed certificate for development/internal use
+        - name: Create Self-Signed Certificate
+          shell: powershell
+          run: |
+            $cert = New-SelfSignedCertificate -Subject "CN=YourCompany" -Type CodeSigning -KeyUsage DigitalSignature -FriendlyName "YourApp Code Signing" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+            $password = ConvertTo-SecureString -String "TempPassword123!" -Force -AsPlainText
+            $path = "windows\codesign.pfx"
+            Export-PfxCertificate -Cert "Cert:\CurrentUser\My\$($cert.Thumbprint)" -FilePath $path -Password $password
+            Write-Host "Certificate created and exported to $path"
+
+        # Build Windows MSIX Package
+        - name: Build Windows MSIX Package
+          shell: powershell
+          run: |
+            # First build the solution normally
+            Write-Host "Building React Native Windows solution..."
+            npx react-native run-windows --no-launch --no-deploy --release
+            
+            # Now create the MSIX package using MSBuild
+            Write-Host "Creating MSIX package..."
+            $msbuildPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe"
+            if (-not (Test-Path $msbuildPath)) {
+              $msbuildPath = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe"
+            }
+            if (-not (Test-Path $msbuildPath)) {
+              Write-Error "MSBuild not found at expected paths"
+              exit 1
+            }
+            
+            # Build with package creation enabled
+            & $msbuildPath windows\loadmaster.sln /p:Configuration=Release /p:Platform=x64 /p:AppxBundle=Always /p:AppxBundlePlatforms=x64 /p:PackageCertificateKeyFile=..\codesign.pfx /p:PackageCertificatePassword=TempPassword123! /p:UapAppxPackageBuildMode=StoreUpload
+
+        # Sign the package (if not already signed during build)
+        - name: Sign Windows Package
+          shell: powershell
+          run: |
+            # Look for MSIX files in various possible locations
+            $searchPaths = @(
+              "windows\AppPackages\*\*",
+              "windows\loadmaster\AppPackages\*\*", 
+              "windows\loadmaster\bin\x64\Release\*",
+              "windows\bin\x64\Release\*"
+            )
+            
+            $packagePath = $null
+            foreach ($searchPath in $searchPaths) {
+              Write-Host "Searching in: $searchPath"
+              $found = Get-ChildItem -Path $searchPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($found) {
+                $packagePath = $found
+                break
+              }
+            }
+            
+            if ($packagePath) {
+              Write-Host "Found package to sign: $($packagePath.FullName)"
+              # Check if already signed
+              $signResult = & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe" verify /pa $packagePath.FullName 2>&1
+              if ($LASTEXITCODE -eq 0) {
+                Write-Host "Package is already signed"
+              } else {
+                Write-Host "Signing package..."
+                & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe" sign /f "windows\codesign.pfx" /p "TempPassword123!" /tr http://timestamp.digicert.com /td sha256 /fd sha256 $packagePath.FullName
+                Write-Host "Package signed successfully"
+              }
+            } else {
+              Write-Host "No .msix package found. Listing all build outputs:"
+              foreach ($searchPath in $searchPaths) {
+                if (Test-Path $searchPath) {
+                  Write-Host "Contents of $searchPath :"
+                  Get-ChildItem -Path $searchPath -Recurse -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $($_.FullName)" }
+                }
+              }
+            }
+
+        # Alternative: Sign with production certificate (uncomment and use with real certificate)
+        # - name: Sign Windows Package (Production)
+        #   shell: powershell
+        #   run: |
+        #     # Decode certificate from base64 secret
+        #     $certBytes = [System.Convert]::FromBase64String("${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}")
+        #     $certPath = "windows\production-cert.pfx"
+        #     [System.IO.File]::WriteAllBytes($certPath, $certBytes)
+        #     
+        #     $packagePath = Get-ChildItem -Path "windows\AppPackages\*\*" -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        #     if ($packagePath) {
+        #       Write-Host "Signing package with production certificate: $($packagePath.FullName)"
+        #       & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe" sign /f $certPath /p "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}" /tr http://timestamp.digicert.com /td sha256 /fd sha256 $packagePath.FullName
+        #       Write-Host "Package signed with production certificate"
+        #     }     # List contents of relevant directories to find build artifacts
+        - name: List build output directories
+          shell: powershell
+          run: |
+            Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages:"
+            dir D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages -Recurse
+            Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\AppPackages:"
+            dir D:\a\loadmaster\loadmaster\windows\AppPackages -Recurse
+            Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster:"
+            dir D:\a\loadmaster\loadmaster\windows\loadmaster -Recurse
+
+        - name: Upload Windows build artifact
+          uses: actions/upload-artifact@main
+          with:
+            name: windows-tablet-build
+            path: windows/AppPackages/loadmaster/**/*_Test/**/*
 

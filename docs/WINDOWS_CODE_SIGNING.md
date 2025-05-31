@@ -154,6 +154,25 @@ To switch to production signing:
 | SignPath | $348/year | 1 hour | Medium-High |
 | Microsoft Store | $19 one-time | 1-2 weeks | High |
 
+## Windows Build Issues Fixed
+
+**Recent improvements to the CI pipeline:**
+
+### ✅ Comprehensive Windows SDK Version Fix
+- **Problem:** Projects using outdated Windows SDK versions (10.0.18362.0, etc.)
+- **Solution:** CI now automatically updates ALL project files to use 10.0.19041.0
+- **Affected:** SQLitePlugin, RNSVG, and other native dependencies
+
+### ✅ Comprehensive Platform Toolset Fix  
+- **Problem:** Projects using outdated Visual Studio toolsets (v140, v141, v142)
+- **Solution:** CI now automatically updates ALL project files to use v143 (VS2022)
+- **Affected:** All native Windows projects and dependencies
+
+### ✅ MSIX Package Creation Fix
+- **Problem:** CI wasn't creating actual MSIX packages, just building apps
+- **Solution:** Added proper MSBuild commands to create signed MSIX packages
+- **Result:** Windows recognizes packages as proper installation files
+
 ## Troubleshooting
 
 ### "Package is not in a supported format" Error
@@ -168,6 +187,14 @@ If the CI can't find your package:
 2. Verify the `windows/loadmaster.sln` file exists
 3. Ensure React Native Windows is properly configured
 4. The CI will list all build outputs to help locate files
+
+### Build Errors (Windows SDK/Toolset Issues)  
+**These are automatically fixed by the comprehensive CI fixes above:**
+- `error MSB8036: The Windows SDK version X.X.X was not found`
+- `error MSB8020: The build tools for vXXX cannot be found`
+- `RNSVG.vcxproj` or other native module build failures
+
+If you still see these errors, the comprehensive fixes may need updates for newer dependencies.
 
 ### Certificate Trust Issues
 **Self-signed certificates will show warnings** - this is expected:
