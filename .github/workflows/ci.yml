@@ -194,18 +194,33 @@ jobs:
     - name: List build output directories
       shell: powershell
       run: |
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages:"
-        dir D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages -Recurse
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\AppPackages:"
-        dir D:\a\loadmaster\loadmaster\windows\AppPackages -Recurse
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster:"
-        dir D:\a\loadmaster\loadmaster\windows\loadmaster -Recurse
+        Write-Host "=== Listing Release folder ===" -ForegroundColor Cyan
+        Write-Host "Contents of windows\loadmaster\x64\Release:"
+        Get-ChildItem -Path "windows\loadmaster\x64\Release" -ErrorAction SilentlyContinue | ForEach-Object {
+          Write-Host "  - $($_.Name)" -ForegroundColor Yellow
+        }
+        
+        Write-Host "`n=== Listing Bundle folder ===" -ForegroundColor Cyan
+        Write-Host "Contents of windows\loadmaster\Bundle:"
+        Get-ChildItem -Path "windows\loadmaster\Bundle" -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
+          $relativePath = $_.FullName.Replace("$PWD\windows\loadmaster\Bundle\", "")
+          Write-Host "  - $relativePath" -ForegroundColor Yellow
+        }
+        
+        Write-Host "`n=== Listing AppPackages ===" -ForegroundColor Cyan
+        Write-Host "Contents of windows\AppPackages:"
+        Get-ChildItem -Path "windows\AppPackages" -Recurse -ErrorAction SilentlyContinue | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
+          $relativePath = $_.FullName.Replace("$PWD\windows\AppPackages\", "")
+          Write-Host "  - $relativePath" -ForegroundColor Yellow
+        }
 
     - name: Upload Windows exe for development
       uses: actions/upload-artifact@main
       with:
         name: windows-dev-exe
-        path: windows/loadmaster/x64/Release/**/*
+        path: |
+          windows/loadmaster/x64/Release/**/*
+          windows/loadmaster/Bundle/**/*
 
     - name: Upload Windows build artifact
       uses: actions/upload-artifact@main
