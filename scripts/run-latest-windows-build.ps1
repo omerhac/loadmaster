@@ -219,7 +219,65 @@ try {
     
     # Check for Resources.pri
     $ResourcesPri = Get-ChildItem -Path $TempDir -Recurse -Filter "Resources.pri" | Select-Object -First 1
-
+    
+    # Check for and install runtime dependencies
+    Write-Host ""
+    Write-Host "🔍 Checking for runtime dependencies..." -ForegroundColor Yellow
+    $RuntimeDepsDir = Get-ChildItem -Path $TempDir -Recurse -Directory -Filter "*runtime_deps*" | Select-Object -First 1
+    
+    if ($RuntimeDepsDir) {
+        Write-Host "📦 Found runtime dependencies folder" -ForegroundColor Green
+        
+        $AppxFiles = Get-ChildItem -Path $RuntimeDepsDir.FullName -Filter "*.appx" -ErrorAction SilentlyContinue
+        if ($AppxFiles) {
+            Write-Host "   Found $($AppxFiles.Count) APPX dependencies" -ForegroundColor Gray
+            
+            # Extract DLLs from APPX files to the exe directory
+            foreach ($AppxFile in $AppxFiles) {
+                Write-Host "   Processing: $($AppxFile.Name)" -ForegroundColor Gray
+                
+                try {
+                    $AppxExtractDir = Join-Path $TempDir "appx_extract_$($AppxFile.BaseName)"
+                    
+                    # Extract APPX (it's a ZIP file)
+                    Add-Type -AssemblyName System.IO.Compression.FileSystem
+                    [System.IO.Compression.ZipFile]::ExtractToDirectory($AppxFile.FullName, $AppxExtractDir)
+                    
+                    # Copy DLLs to exe directory
+                    Get-ChildItem -Path $AppxExtractDir -Recurse -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
+                        $DestPath = Join-Path $ExeDir $_.Name
+                        if (-not (Test-Path $DestPath)) {
+                            Copy-Item -Path $_.FullName -Destination $DestPath -ErrorAction SilentlyContinue
+                            Write-Host "     ✓ Added runtime DLL: $($_.Name)" -ForegroundColor Green
+                        }
+                    }
+                    
+                    # Also copy .winmd and .pri files
+                    @("*.winmd", "*.pri") | ForEach-Object {
+                        Get-ChildItem -Path $AppxExtractDir -Recurse -Filter $_ -ErrorAction SilentlyContinue | ForEach-Object {
+                            $DestPath = Join-Path $ExeDir $_.Name
+                            if (-not (Test-Path $DestPath)) {
+                                Copy-Item -Path $_.FullName -Destination $DestPath -ErrorAction SilentlyContinue
+                                Write-Host "     ✓ Added runtime file: $($_.Name)" -ForegroundColor Green
+                            }
+                        }
+                    }
+                    
+                    # Cleanup
+                    Remove-Item -Path $AppxExtractDir -Recurse -Force -ErrorAction SilentlyContinue
+                    
+                } catch {
+                    Write-Host "     ❌ Failed to process $($AppxFile.Name): $_" -ForegroundColor Red
+                }
+            }
+        } else {
+            Write-Host "   No APPX files found in runtime dependencies" -ForegroundColor Gray
+        }
+    } else {
+        Write-Host "⚠ No runtime dependencies found in artifact" -ForegroundColor Yellow
+        Write-Host "   If app fails to start, you may need to install Windows Runtime dependencies manually" -ForegroundColor Gray
+    }
+    
     Write-Host ""
     Write-Host "🎯 Starting LoadMaster..." -ForegroundColor Green
     Write-Host "   Path: $ExeFullPath" -ForegroundColor Gray
@@ -229,6 +287,21 @@ try {
     $DllCount = (Get-ChildItem -Path $ExeDir -Filter "*.dll" -ErrorAction SilentlyContinue).Count
     if ($DllCount -gt 0) {
         Write-Host "   Found $DllCount DLL dependencies" -ForegroundColor Gray
+        
+        # Show breakdown of DLL types
+        $RuntimeDlls = Get-ChildItem -Path $ExeDir -Filter "*vclibs*" -ErrorAction SilentlyContinue
+        $UiDlls = Get-ChildItem -Path $ExeDir -Filter "*ui.xaml*" -ErrorAction SilentlyContinue
+        $OtherDlls = Get-ChildItem -Path $ExeDir -Filter "*.dll" -ErrorAction SilentlyContinue | Where-Object { $_.Name -notlike "*vclibs*" -and $_.Name -notlike "*ui.xaml*" }
+        
+        if ($RuntimeDlls.Count -gt 0) {
+            Write-Host "     ✓ Runtime DLLs: $($RuntimeDlls.Count)" -ForegroundColor Green
+        }
+        if ($UiDlls.Count -gt 0) {
+            Write-Host "     ✓ UI Framework DLLs: $($UiDlls.Count)" -ForegroundColor Green
+        }
+        if ($OtherDlls.Count -gt 0) {
+            Write-Host "     ✓ Other DLLs: $($OtherDlls.Count)" -ForegroundColor Green
+        }
     }
     
     if (Test-Path $BundleDir) {

@@ -560,6 +560,73 @@ jobs:
           }
         }
         
+        # Download and extract Windows Runtime dependencies
+        Write-Host "Downloading Windows Runtime dependencies..." -ForegroundColor Cyan
+        
+        $RuntimeDeps = @(
+          @{
+            Name = "Microsoft.VCLibs.x64.14.00.Desktop"
+            Url = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
+          },
+          @{
+            Name = "Microsoft.VCLibs.x64.14.00" 
+            Url = "https://aka.ms/Microsoft.VCLibs.x64.14.00.appx"
+          },
+          @{
+            Name = "Microsoft.UI.Xaml.2.8"
+            Url = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx"
+          }
+        )
+        
+        $RuntimeDepsDir = "windows\runtime_deps"
+        New-Item -ItemType Directory -Path $RuntimeDepsDir -Force | Out-Null
+        
+        foreach ($Dep in $RuntimeDeps) {
+          try {
+            $DepFile = "$RuntimeDepsDir\$($Dep.Name).appx"
+            Write-Host "Downloading: $($Dep.Name)" -ForegroundColor Yellow
+            
+            Invoke-WebRequest -Uri $Dep.Url -OutFile $DepFile -ErrorAction SilentlyContinue
+            
+            if (Test-Path $DepFile) {
+              Write-Host "  Downloaded: $($Dep.Name)" -ForegroundColor Green
+              
+              # Extract DLLs from the APPX file
+              $ExtractDir = "$RuntimeDepsDir\extract_$($Dep.Name)"
+              Expand-Archive -Path $DepFile -DestinationPath $ExtractDir -Force
+              
+              # Copy DLLs to both dev_release folders
+              $TargetDirs = @("windows\dev_release", "windows\dev_release_alt")
+              foreach ($TargetDir in $TargetDirs) {
+                if (Test-Path $TargetDir) {
+                  Get-ChildItem -Path $ExtractDir -Recurse -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
+                    $DestPath = Join-Path $TargetDir $_.Name
+                    if (-not (Test-Path $DestPath)) {
+                      Copy-Item -Path $_.FullName -Destination $DestPath -ErrorAction SilentlyContinue
+                      Write-Host "    Added runtime DLL: $($_.Name) to $TargetDir" -ForegroundColor Gray
+                    }
+                  }
+                  
+                  # Also copy .winmd and .pri files
+                  @("*.winmd", "*.pri") | ForEach-Object {
+                    Get-ChildItem -Path $ExtractDir -Recurse -Filter $_ -ErrorAction SilentlyContinue | ForEach-Object {
+                      $DestPath = Join-Path $TargetDir $_.Name
+                      if (-not (Test-Path $DestPath)) {
+                        Copy-Item -Path $_.FullName -Destination $DestPath -ErrorAction SilentlyContinue
+                      }
+                    }
+                  }
+                }
+              }
+              
+              # Cleanup extraction directory
+              Remove-Item -Path $ExtractDir -Recurse -Force -ErrorAction SilentlyContinue
+            }
+          } catch {
+            Write-Host "  Failed to download/process: $($Dep.Name) - $_" -ForegroundColor Yellow
+          }
+        }
+        
         # Don't fail the build if extraction had issues
         Write-Host "Build process completed" -ForegroundColor Green
 
@@ -649,6 +716,29 @@ jobs:
         } catch {
           Write-Host "  - Error checking Bundle folder: $_" -ForegroundColor Red
         }
+        
+        Write-Host "Runtime Dependencies:" -ForegroundColor Yellow
+        try {
+          if (Test-Path "windows\runtime_deps") {
+            $RuntimeFiles = Get-ChildItem -Path "windows\runtime_deps" -Filter "*.appx" -ErrorAction SilentlyContinue
+            if ($RuntimeFiles) {
+              $RuntimeFiles | ForEach-Object {
+                try {
+                  $size = [Math]::Round($_.Length / 1MB, 2)
+                  Write-Host "  - $($_.Name) ($size MB)" -ForegroundColor Green
+                } catch {
+                  Write-Host "  - $($_.Name) (size unknown)" -ForegroundColor Green
+                }
+              }
+            } else {
+              Write-Host "  - No runtime dependency files found" -ForegroundColor Gray
+            }
+          } else {
+            Write-Host "  - No runtime dependencies folder found" -ForegroundColor Gray
+          }
+        } catch {
+          Write-Host "  - Error checking runtime dependencies: $_" -ForegroundColor Red
+        }
 
     - name: Upload Windows exe for development
       uses: actions/upload-artifact@main
@@ -659,6 +749,7 @@ jobs:
           windows/dev_release_alt/**/*
           windows/loadmaster/Bundle/**/*
           windows/AppPackages/**/*.msix
+          windows/runtime_deps/**/*
 
     - name: Upload Windows build artifact
       uses: actions/upload-artifact@main
