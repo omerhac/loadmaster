@@ -186,11 +186,97 @@ jobs:
           exit 1
         }
 
-    - name: Build Windows
-      run: |        
+
+    # Create self-signed certificate for development/internal use
+    - name: Create Self-Signed Certificate
+      shell: powershell
+      run: |
+        $cert = New-SelfSignedCertificate -Subject "CN=YourCompany" -Type CodeSigning -KeyUsage DigitalSignature -FriendlyName "YourApp Code Signing" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+        $password = ConvertTo-SecureString -String "TempPassword123!" -Force -AsPlainText
+        $path = "windows\codesign.pfx"
+        Export-PfxCertificate -Cert "Cert:\CurrentUser\My\$($cert.Thumbprint)" -FilePath $path -Password $password
+        Write-Host "Certificate created and exported to $path"
+
+    # Build Windows MSIX Package
+    - name: Build Windows MSIX Package
+      shell: powershell
+      run: |
+        # First build the solution normally
+        Write-Host "Building React Native Windows solution..."
         npx react-native run-windows --no-launch --no-deploy --release
         
-    # List contents of relevant directories to find build artifacts
+        # Now create the MSIX package using MSBuild
+        Write-Host "Creating MSIX package..."
+        $msbuildPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe"
+        if (-not (Test-Path $msbuildPath)) {
+          $msbuildPath = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe"
+        }
+        if (-not (Test-Path $msbuildPath)) {
+          Write-Error "MSBuild not found at expected paths"
+          exit 1
+        }
+        
+        # Build with package creation enabled
+        & $msbuildPath windows\loadmaster.sln /p:Configuration=Release /p:Platform=x64 /p:AppxBundle=Always /p:AppxBundlePlatforms=x64 /p:PackageCertificateKeyFile=..\codesign.pfx /p:PackageCertificatePassword=TempPassword123! /p:UapAppxPackageBuildMode=StoreUpload
+
+    # Sign the package (if not already signed during build)
+    - name: Sign Windows Package
+      shell: powershell
+      run: |
+        # Look for MSIX files in various possible locations
+        $searchPaths = @(
+          "windows\AppPackages\*\*",
+          "windows\loadmaster\AppPackages\*\*", 
+          "windows\loadmaster\bin\x64\Release\*",
+          "windows\bin\x64\Release\*"
+        )
+        
+        $packagePath = $null
+        foreach ($searchPath in $searchPaths) {
+          Write-Host "Searching in: $searchPath"
+          $found = Get-ChildItem -Path $searchPath -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($found) {
+            $packagePath = $found
+            break
+          }
+        }
+        
+        if ($packagePath) {
+          Write-Host "Found package to sign: $($packagePath.FullName)"
+          # Check if already signed
+          $signResult = & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe" verify /pa $packagePath.FullName 2>&1
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Package is already signed"
+          } else {
+            Write-Host "Signing package..."
+            & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe" sign /f "windows\codesign.pfx" /p "TempPassword123!" /tr http://timestamp.digicert.com /td sha256 /fd sha256 $packagePath.FullName
+            Write-Host "Package signed successfully"
+          }
+        } else {
+          Write-Host "No .msix package found. Listing all build outputs:"
+          foreach ($searchPath in $searchPaths) {
+            if (Test-Path $searchPath) {
+              Write-Host "Contents of $searchPath :"
+              Get-ChildItem -Path $searchPath -Recurse -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $($_.FullName)" }
+            }
+          }
+        }
+
+    # Alternative: Sign with production certificate (uncomment and use with real certificate)
+    # - name: Sign Windows Package (Production)
+    #   shell: powershell
+    #   run: |
+    #     # Decode certificate from base64 secret
+    #     $certBytes = [System.Convert]::FromBase64String("${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}")
+    #     $certPath = "windows\production-cert.pfx"
+    #     [System.IO.File]::WriteAllBytes($certPath, $certBytes)
+    #     
+    #     $packagePath = Get-ChildItem -Path "windows\AppPackages\*\*" -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+    #     if ($packagePath) {
+    #       Write-Host "Signing package with production certificate: $($packagePath.FullName)"
+    #       & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe" sign /f $certPath /p "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}" /tr http://timestamp.digicert.com /td sha256 /fd sha256 $packagePath.FullName
+    #       Write-Host "Package signed with production certificate"
+    #     }     # List contents of relevant directories to find build artifacts
     - name: List build output directories
       shell: powershell
       run: |

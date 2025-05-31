@@ -1,0 +1,113 @@
+name: Simple Windows Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  simple-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install React Native Windows
+      run: npm install --save-dev react-native-windows@latest
+
+    - name: Initialize Windows project if needed
+      shell: powershell
+      run: |
+        if (-not (Test-Path "windows\loadmaster.sln")) {
+          npx react-native-windows-init --overwrite
+        }
+
+    - name: Create self-signed certificate
+      shell: powershell
+      run: |
+        # Create a self-signed certificate for signing
+        $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=LoadMaster" -KeyUsage DigitalSignature -FriendlyName "LoadMaster Dev Cert" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+        
+        # Export the certificate
+        $password = ConvertTo-SecureString -String "password123" -Force -AsPlainText
+        Export-PfxCertificate -cert "Cert:\CurrentUser\My\$($cert.Thumbprint)" -FilePath "LoadMaster.pfx" -Password $password
+        
+        Write-Host "Certificate created and exported to LoadMaster.pfx"
+
+    - name: Build MSIX package
+      shell: powershell
+      run: |
+        # Simple build
+        npx react-native run-windows --no-launch --no-deploy --release --no-packager
+        
+        Write-Host "Build completed. Looking for MSIX packages..."
+        Get-ChildItem -Path "windows\AppPackages" -Recurse -Filter "*.msix" | ForEach-Object {
+          Write-Host "Found: $($_.FullName)"
+        }
+
+    - name: Sign MSIX package
+      shell: powershell
+      run: |
+        # Find the MSIX file
+        $MSIXFile = Get-ChildItem -Path "windows\AppPackages" -Recurse -Filter "*.msix" | Select-Object -First 1
+        
+        if ($MSIXFile) {
+          Write-Host "Signing: $($MSIXFile.FullName)"
+          
+          # Sign the package
+          signtool sign /fd SHA256 /a /f "LoadMaster.pfx" /p "password123" $MSIXFile.FullName
+          
+          Write-Host "Package signed successfully!"
+        } else {
+          Write-Host "No MSIX package found to sign"
+        }
+
+    - name: Create installation package
+      shell: powershell
+      run: |
+        # Create a simple installation folder
+        New-Item -ItemType Directory -Path "windows\simple_install" -Force
+        
+        # Copy the MSIX file
+        $MSIXFile = Get-ChildItem -Path "windows\AppPackages" -Recurse -Filter "*.msix" | Select-Object -First 1
+        if ($MSIXFile) {
+          Copy-Item $MSIXFile.FullName "windows\simple_install\LoadMaster.msix"
+        }
+        
+        # Copy the certificate
+        Copy-Item "LoadMaster.pfx" "windows\simple_install\"
+        
+        # Create install script
+        @"
+        @echo off
+        echo Installing LoadMaster...
+        
+        REM Install the certificate
+        echo Installing certificate...
+        certutil -user -p password123 -importpfx LoadMaster.pfx
+        
+        REM Install the app
+        echo Installing app...
+        powershell Add-AppxPackage LoadMaster.msix
+        
+        echo Done! LoadMaster should now be installed.
+        pause
+        "@  | Out-File -FilePath "windows\simple_install\install.bat" -Encoding ASCII
+        
+        Write-Host "Installation package created in windows\simple_install\"
+
+    - name: Upload simple installation package
+      uses: actions/upload-artifact@main
+      with:
+        name: loadmaster-windows-simple
+        path: windows/simple_install/**/* 
