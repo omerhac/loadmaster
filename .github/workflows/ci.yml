@@ -201,6 +201,12 @@ jobs:
         Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster:"
         dir D:\a\loadmaster\loadmaster\windows\loadmaster -Recurse
 
+    - name: Upload Windows exe for development
+      uses: actions/upload-artifact@main
+      with:
+        name: windows-dev-exe
+        path: windows/loadmaster/x64/Release/loadmaster.exe
+
     - name: Upload Windows build artifact
       uses: actions/upload-artifact@main
       with:
