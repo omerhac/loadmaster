@@ -111,8 +111,8 @@ try {
     Expand-Archive -Path $ZipPath -DestinationPath $TempDir -Force
     
     # Find the exe
-    $ExePath = Join-Path $TempDir $ExeName
-    if (-not (Test-Path $ExePath)) {
+    $ExePath = Get-ChildItem -Path $TempDir -Recurse -Filter $ExeName | Select-Object -First 1
+    if (-not $ExePath) {
         Write-Host "❌ $ExeName not found in artifact!" -ForegroundColor Red
         Write-Host "   Contents of artifact:" -ForegroundColor Yellow
         Get-ChildItem -Path $TempDir -Recurse | ForEach-Object { 
@@ -121,21 +121,38 @@ try {
         exit 1
     }
 
+    # Get the directory containing the exe (where DLLs should be)
+    $ExeDir = $ExePath.DirectoryName
+    $ExeFullPath = $ExePath.FullName
+
     Write-Host ""
     Write-Host "🎯 Starting LoadMaster..." -ForegroundColor Green
-    Write-Host "   Path: $ExePath" -ForegroundColor Gray
+    Write-Host "   Path: $ExeFullPath" -ForegroundColor Gray
+    Write-Host "   Working Directory: $ExeDir" -ForegroundColor Gray
+    
+    # List DLLs found
+    $DllCount = (Get-ChildItem -Path $ExeDir -Filter "*.dll" -ErrorAction SilentlyContinue).Count
+    if ($DllCount -gt 0) {
+        Write-Host "   Found $DllCount DLL dependencies" -ForegroundColor Gray
+    }
+    
     Write-Host ""
     Write-Host "Press Ctrl+C to stop the application" -ForegroundColor Cyan
     Write-Host ""
 
-    # Run the exe
-    $Process = Start-Process -FilePath $ExePath -PassThru
-    
-    # Wait for process to exit
-    $Process.WaitForExit()
-    
-    Write-Host ""
-    Write-Host "✅ LoadMaster exited with code: $($Process.ExitCode)" -ForegroundColor $(if ($Process.ExitCode -eq 0) { "Green" } else { "Red" })
+    # Run the exe from its directory (so it can find DLLs)
+    Push-Location $ExeDir
+    try {
+        $Process = Start-Process -FilePath $ExeFullPath -PassThru
+        
+        # Wait for process to exit
+        $Process.WaitForExit()
+        
+        Write-Host ""
+        Write-Host "✅ LoadMaster exited with code: $($Process.ExitCode)" -ForegroundColor $(if ($Process.ExitCode -eq 0) { "Green" } else { "Red" })
+    } finally {
+        Pop-Location
+    }
 
 } catch {
     Write-Host "❌ Error: $_" -ForegroundColor Red

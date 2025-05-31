@@ -205,7 +205,7 @@ jobs:
       uses: actions/upload-artifact@main
       with:
         name: windows-dev-exe
-        path: windows/loadmaster/x64/Release/loadmaster.exe
+        path: windows/loadmaster/x64/Release/**/*
 
     - name: Upload Windows build artifact
       uses: actions/upload-artifact@main

@@ -75,7 +75,12 @@ The CI workflow has been updated to upload the Windows exe as an artifact:
   uses: actions/upload-artifact@main
   with:
     name: windows-dev-exe
-    path: windows/loadmaster/x64/Release/loadmaster.exe
+    path: windows/loadmaster/x64/Release/**/*
 ```
 
-This makes the exe available for quick download and testing. 
+This uploads the entire Release folder including:
+- The main `loadmaster.exe`
+- All required DLL dependencies
+- Any other runtime files needed
+
+The script automatically handles the folder structure and runs the exe from the correct location so it can find all its dependencies. 
