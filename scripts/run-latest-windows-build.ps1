@@ -110,8 +110,64 @@ try {
     Write-Host "📂 Extracting artifact..." -ForegroundColor Yellow
     Expand-Archive -Path $ZipPath -DestinationPath $TempDir -Force
     
-    # Find the exe - it might be at different levels depending on the artifact structure
-    $ExePath = Get-ChildItem -Path $TempDir -Recurse -Filter $ExeName | Select-Object -First 1
+    # Find the exe - check for extracted dev release first, then look in MSIX
+    $ExePath = $null
+    $DevReleaseExe = Get-ChildItem -Path $TempDir -Recurse -Filter $ExeName | Where-Object { $_.DirectoryName -like "*dev_release*" } | Select-Object -First 1
+    
+    if ($DevReleaseExe) {
+        $ExePath = $DevReleaseExe
+        Write-Host "✅ Found extracted exe from dev_release" -ForegroundColor Green
+    } else {
+        # Look for MSIX package and extract exe from it
+        $MSIXPackage = Get-ChildItem -Path $TempDir -Recurse -Filter "*.msix" | Select-Object -First 1
+        if ($MSIXPackage) {
+            Write-Host "📦 Found MSIX package, extracting exe..." -ForegroundColor Yellow
+            
+            $MSIXExtractDir = Join-Path $TempDir "msix_extracted"
+            New-Item -ItemType Directory -Path $MSIXExtractDir -Force | Out-Null
+            
+            try {
+                # Extract MSIX (it's essentially a ZIP file)
+                Add-Type -AssemblyName System.IO.Compression.FileSystem
+                [System.IO.Compression.ZipFile]::ExtractToDirectory($MSIXPackage.FullName, $MSIXExtractDir)
+                
+                # Find exe in extracted MSIX
+                $MSIXExe = Get-ChildItem -Path $MSIXExtractDir -Recurse -Filter "*.exe" | Where-Object { $_.Name -like "*loadmaster*" -or $_.Name -eq "app.exe" } | Select-Object -First 1
+                if ($MSIXExe) {
+                    # Create a dev folder and copy exe + dependencies
+                    $DevDir = Join-Path $TempDir "dev_extracted"
+                    New-Item -ItemType Directory -Path $DevDir -Force | Out-Null
+                    
+                    # Copy exe
+                    Copy-Item -Path $MSIXExe.FullName -Destination (Join-Path $DevDir $ExeName)
+                    
+                    # Copy DLLs from same directory
+                    $MSIXExeDir = $MSIXExe.DirectoryName
+                    Get-ChildItem -Path $MSIXExeDir -Filter "*.dll" | ForEach-Object {
+                        Copy-Item -Path $_.FullName -Destination $DevDir
+                    }
+                    
+                    # Copy other important files
+                    @("*.pri", "*.config", "*.manifest") | ForEach-Object {
+                        Get-ChildItem -Path $MSIXExeDir -Filter $_ | ForEach-Object {
+                            Copy-Item -Path $_.FullName -Destination $DevDir
+                        }
+                    }
+                    
+                    $ExePath = Get-ChildItem -Path $DevDir -Filter $ExeName | Select-Object -First 1
+                    Write-Host "✅ Extracted exe from MSIX package" -ForegroundColor Green
+                } else {
+                    Write-Host "❌ No exe found in MSIX package" -ForegroundColor Red
+                }
+            } catch {
+                Write-Host "❌ Failed to extract MSIX: $_" -ForegroundColor Red
+            }
+        } else {
+            # Fallback: look for any exe in the artifact
+            $ExePath = Get-ChildItem -Path $TempDir -Recurse -Filter $ExeName | Select-Object -First 1
+        }
+    }
+    
     if (-not $ExePath) {
         Write-Host "❌ $ExeName not found in artifact!" -ForegroundColor Red
         Write-Host "   Contents of artifact:" -ForegroundColor Yellow

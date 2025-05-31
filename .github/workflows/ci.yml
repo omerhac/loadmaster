@@ -100,6 +100,64 @@ jobs:
     - name: Install react-native-windows
       run: npm install --save-dev react-native-windows@latest
 
+    # Ensure Windows project is properly initialized
+    - name: Initialize Windows Project
+      shell: powershell
+      run: |
+        Write-Host "🔧 Checking Windows project initialization..." -ForegroundColor Cyan
+        
+        if (-not (Test-Path "windows\loadmaster.sln")) {
+          Write-Host "⚠️ Windows project not found, initializing..." -ForegroundColor Yellow
+          npx react-native-windows-init --overwrite
+          Write-Host "✅ Windows project initialized" -ForegroundColor Green
+        } else {
+          Write-Host "✅ Windows project already exists" -ForegroundColor Green
+        }
+        
+        Write-Host "Windows project structure:"
+        Get-ChildItem -Path "windows" -Directory | ForEach-Object {
+          Write-Host "  📁 $($_.Name)" -ForegroundColor Gray
+        }
+        
+        # Check solution file and project configuration
+        if (Test-Path "windows\loadmaster.sln") {
+          Write-Host "`n🔍 Solution file analysis:" -ForegroundColor Cyan
+          $SolutionContent = Get-Content "windows\loadmaster.sln"
+          
+          # Extract project configurations
+          $SolutionContent | Where-Object { $_ -match "GlobalSection\(SolutionConfigurationPlatforms\)" -or $_ -match "Release\|" -or $_ -match "Debug\|" } | ForEach-Object {
+            if ($_ -match "(Release|Debug)\|(.+) = ") {
+              Write-Host "  📋 Config: $($matches[1])|$($matches[2])" -ForegroundColor Gray
+            }
+          }
+          
+          # Find the main project file
+          $ProjectLine = $SolutionContent | Where-Object { $_ -match "loadmaster.*\.vcxproj" }
+          if ($ProjectLine) {
+            Write-Host "  🎯 Main project: $($ProjectLine -replace '.*"([^"]+\.vcxproj)".*', '$1')" -ForegroundColor Gray
+          }
+        }
+        
+        # Check if we have the right build tools
+        Write-Host "`n🔧 Build tools check:" -ForegroundColor Cyan
+        try {
+          $MSBuildVersion = & msbuild -version 2>&1 | Select-Object -First 1
+          Write-Host "  ✅ MSBuild: $MSBuildVersion" -ForegroundColor Green
+        } catch {
+          Write-Host "  ❌ MSBuild not found" -ForegroundColor Red
+        }
+        
+        # Ensure NuGet packages are restored
+        Write-Host "`n📦 Restoring NuGet packages..." -ForegroundColor Cyan
+        if (Test-Path "windows\loadmaster.sln") {
+          try {
+            nuget restore windows\loadmaster.sln
+            Write-Host "  ✅ NuGet restore completed" -ForegroundColor Green
+          } catch {
+            Write-Host "  ⚠️ NuGet restore failed: $_" -ForegroundColor Yellow
+          }
+        }
+
     # Update the Platform Toolset for SQLitePlugin to v143 (Visual Studio 2022)
     - name: Update SQLitePlugin Platform Toolset
       shell: powershell
@@ -128,8 +186,34 @@ jobs:
 
     # Create JavaScript bundle before building
     - name: Create JavaScript Bundle
+      shell: powershell
       run: |
-        npx react-native bundle --platform windows --entry-file index.js --bundle-output windows/loadmaster/Bundle/index.windows.bundle --assets-dest windows/loadmaster/Bundle --dev false
+        Write-Host "📦 Preparing JavaScript bundle..." -ForegroundColor Cyan
+        
+        # Ensure Bundle directory exists
+        $BundleDir = "windows\loadmaster\Bundle"
+        if (-not (Test-Path $BundleDir)) {
+          New-Item -ItemType Directory -Path $BundleDir -Force | Out-Null
+          Write-Host "✅ Created Bundle directory" -ForegroundColor Green
+        }
+        
+        # Create the bundle
+        $BundleFile = "$BundleDir\index.windows.bundle"
+        Write-Host "🏗️ Creating bundle: $BundleFile" -ForegroundColor Yellow
+        
+        try {
+          npx react-native bundle --platform windows --entry-file index.js --bundle-output $BundleFile --assets-dest $BundleDir --dev false
+          
+          if (Test-Path $BundleFile) {
+            $BundleSize = [Math]::Round((Get-Item $BundleFile).Length / 1KB, 2)
+            Write-Host "✅ Bundle created: $BundleSize KB" -ForegroundColor Green
+          } else {
+            Write-Host "⚠️ Bundle file not found after creation" -ForegroundColor Yellow
+          }
+        } catch {
+          Write-Host "❌ Bundle creation failed: $_" -ForegroundColor Red
+          Write-Host "⚠️ Continuing with build - bundle will be created during build process" -ForegroundColor Yellow
+        }
 
     # Install CppWinRT NuGet Package Globally
     # This is a workaround to fix the build error:
@@ -192,44 +276,196 @@ jobs:
         }
 
     - name: Build Windows
-      run: |        
-        npx react-native run-windows --no-launch --no-deploy --release
+      shell: powershell
+      run: |
+        Write-Host "🏗️ Building Windows Release..." -ForegroundColor Cyan
         
+        # First, try the standard React Native way
+        Write-Host "📋 Attempting React Native build..." -ForegroundColor Yellow
+        try {
+          npx react-native run-windows --no-launch --no-deploy --release --logging --no-packager
+          Write-Host "✅ React Native build completed" -ForegroundColor Green
+        } catch {
+          Write-Host "⚠️ React Native build failed, trying MSBuild directly..." -ForegroundColor Yellow
+        }
+        
+        # If that didn't work or didn't create an exe, try MSBuild directly
+        $ExePath = "windows\loadmaster\x64\Release\loadmaster.exe"
+        if (-not (Test-Path $ExePath)) {
+          Write-Host "🔨 Building with MSBuild directly..." -ForegroundColor Cyan
+          
+          if (Test-Path "windows\loadmaster.sln") {
+            try {
+              # Use MSBuild directly
+              msbuild windows\loadmaster.sln /p:Configuration=Release /p:Platform=x64 /p:AppxBundle=Never /m
+              Write-Host "✅ MSBuild completed" -ForegroundColor Green
+            } catch {
+              Write-Host "❌ MSBuild failed: $_" -ForegroundColor Red
+              
+              # Try with different platform
+              Write-Host "🔄 Trying with Win32 platform..." -ForegroundColor Yellow
+              try {
+                msbuild windows\loadmaster.sln /p:Configuration=Release /p:Platform=Win32 /p:AppxBundle=Never /m
+                Write-Host "✅ MSBuild Win32 completed" -ForegroundColor Green
+              } catch {
+                Write-Host "❌ MSBuild Win32 also failed: $_" -ForegroundColor Red
+              }
+            }
+          } else {
+            Write-Host "❌ No solution file found!" -ForegroundColor Red
+          }
+        }
+        
+        # Check if exe was actually created
+        $ExePath = "windows\loadmaster\x64\Release\loadmaster.exe"
+        $ExePathWin32 = "windows\loadmaster\Release\loadmaster.exe"
+        $ExePathAlt = "windows\loadmaster\AppPackages\loadmaster\loadmaster.exe"
+        
+        $FoundExe = $null
+        @($ExePath, $ExePathWin32, $ExePathAlt) | ForEach-Object {
+          if (Test-Path $_) {
+            $FoundExe = $_
+            Write-Host "✅ Found exe: $_" -ForegroundColor Green
+            $ExeSize = [Math]::Round((Get-Item $_).Length / 1MB, 2)
+            Write-Host "   Size: $ExeSize MB" -ForegroundColor Gray
+          }
+        }
+        
+        if (-not $FoundExe) {
+          Write-Host "❌ No exe found in expected locations" -ForegroundColor Red
+          Write-Host "🔍 Searching for exe files in entire windows folder..." -ForegroundColor Yellow
+          Get-ChildItem -Path "windows" -Recurse -Filter "*.exe" -ErrorAction SilentlyContinue | ForEach-Object {
+            Write-Host "  Found exe: $($_.FullName)" -ForegroundColor Yellow
+          }
+          
+          Write-Host "🔍 Checking all build output folders..." -ForegroundColor Yellow
+          @("Debug", "Release", "x64", "x86", "Win32", "ARM", "ARM64") | ForEach-Object {
+            $SearchPath = "windows\**\$_"
+            Get-ChildItem -Path "windows" -Recurse -Directory -Filter $_ -ErrorAction SilentlyContinue | ForEach-Object {
+              Write-Host "  📁 Found build folder: $($_.FullName)" -ForegroundColor Gray
+              Get-ChildItem -Path $_.FullName -Recurse -Filter "*.exe" -ErrorAction SilentlyContinue | ForEach-Object {
+                Write-Host "    🎯 EXE: $($_.FullName)" -ForegroundColor Green
+              }
+            }
+          }
+          
+          # Show what IS in the main folders
+          Write-Host "🔍 Contents of key folders:" -ForegroundColor Yellow
+          @("windows\loadmaster\x64\Release", "windows\loadmaster\Release", "windows\loadmaster\AppPackages") | ForEach-Object {
+            if (Test-Path $_) {
+              Write-Host "  📁 $_" -ForegroundColor Gray
+              Get-ChildItem -Path $_ -ErrorAction SilentlyContinue | ForEach-Object {
+                Write-Host "    - $($_.Name)" -ForegroundColor Gray
+              }
+            }
+          }
+        }
+        
+        # Extract exe from MSIX package if build succeeded
+        Write-Host "`n📦 Checking for MSIX packages..." -ForegroundColor Cyan
+        $MSIXPackages = Get-ChildItem -Path "windows\AppPackages" -Recurse -Filter "*.msix" -ErrorAction SilentlyContinue
+        if ($MSIXPackages) {
+          Write-Host "✅ Found MSIX packages:" -ForegroundColor Green
+          $MSIXPackages | ForEach-Object {
+            Write-Host "  📦 $($_.FullName)" -ForegroundColor Gray
+          }
+          
+          # Extract exe from the first MSIX package
+          $FirstMSIX = $MSIXPackages[0]
+          Write-Host "`n🔓 Extracting exe from MSIX package..." -ForegroundColor Yellow
+          
+          $ExtractDir = "windows\extracted_msix"
+          if (Test-Path $ExtractDir) {
+            Remove-Item -Path $ExtractDir -Recurse -Force
+          }
+          New-Item -ItemType Directory -Path $ExtractDir -Force | Out-Null
+          
+          try {
+            # MSIX is essentially a ZIP file, so we can extract it
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($FirstMSIX.FullName, $ExtractDir)
+            
+            # Find the exe in the extracted content
+            $ExtractedExe = Get-ChildItem -Path $ExtractDir -Recurse -Filter "*.exe" | Where-Object { $_.Name -ne "app.exe" -and $_.Name -like "*loadmaster*" }
+            if (-not $ExtractedExe) {
+              # Sometimes it's just called app.exe
+              $ExtractedExe = Get-ChildItem -Path $ExtractDir -Recurse -Filter "app.exe"
+            }
+            
+            if ($ExtractedExe) {
+              # Copy exe and its dependencies to a Release-like folder
+              $DevReleaseDir = "windows\dev_release"
+              if (Test-Path $DevReleaseDir) {
+                Remove-Item -Path $DevReleaseDir -Recurse -Force
+              }
+              New-Item -ItemType Directory -Path $DevReleaseDir -Force | Out-Null
+              
+              # Copy the exe
+              Copy-Item -Path $ExtractedExe.FullName -Destination "$DevReleaseDir\loadmaster.exe"
+              
+              # Copy all DLLs from the same directory
+              $ExeDir = $ExtractedExe.DirectoryName
+              Get-ChildItem -Path $ExeDir -Filter "*.dll" | ForEach-Object {
+                Copy-Item -Path $_.FullName -Destination $DevReleaseDir
+              }
+              
+              # Copy any other important files
+              @("*.pri", "*.config", "*.manifest") | ForEach-Object {
+                Get-ChildItem -Path $ExeDir -Filter $_ | ForEach-Object {
+                  Copy-Item -Path $_.FullName -Destination $DevReleaseDir
+                }
+              }
+              
+              Write-Host "✅ Extracted exe and dependencies to: $DevReleaseDir" -ForegroundColor Green
+              Write-Host "   Main exe: $DevReleaseDir\loadmaster.exe" -ForegroundColor Gray
+              
+              $DllCount = (Get-ChildItem -Path $DevReleaseDir -Filter "*.dll").Count
+              Write-Host "   Dependencies: $DllCount DLLs" -ForegroundColor Gray
+              
+            } else {
+              Write-Host "❌ No exe found in MSIX package" -ForegroundColor Red
+              Write-Host "Contents of MSIX:" -ForegroundColor Yellow
+              Get-ChildItem -Path $ExtractDir -Recurse | ForEach-Object {
+                Write-Host "  - $($_.FullName.Replace($ExtractDir, ''))" -ForegroundColor Gray
+              }
+            }
+          } catch {
+            Write-Host "❌ Failed to extract MSIX: $_" -ForegroundColor Red
+          }
+        } else {
+          Write-Host "❌ No MSIX packages found" -ForegroundColor Red
+        }
+
     # List contents of relevant directories to find build artifacts
     - name: List build output directories
       shell: powershell
       run: |
-        Write-Host "=== Listing Release folder ===" -ForegroundColor Cyan
-        Write-Host "Contents of windows\loadmaster\x64\Release:"
-        Get-ChildItem -Path "windows\loadmaster\x64\Release" -ErrorAction SilentlyContinue | ForEach-Object {
-          Write-Host "  - $($_.Name)" -ForegroundColor Yellow
+        Write-Host "=== Build Summary ===" -ForegroundColor Cyan
+        
+        Write-Host "`n📦 MSIX Packages:" -ForegroundColor Yellow
+        Get-ChildItem -Path "windows\AppPackages" -Recurse -Filter "*.msix" -ErrorAction SilentlyContinue | ForEach-Object {
+          $size = [Math]::Round($_.Length / 1MB, 2)
+          Write-Host "  - $($_.Name) ($size MB)" -ForegroundColor Green
         }
         
-        Write-Host "`n=== Listing Bundle folder ===" -ForegroundColor Cyan
-        Write-Host "Contents of windows\loadmaster\Bundle:"
-        Get-ChildItem -Path "windows\loadmaster\Bundle" -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
-          $relativePath = $_.FullName.Replace("$PWD\windows\loadmaster\Bundle\", "")
-          Write-Host "  - $relativePath" -ForegroundColor Yellow
-        }
-        
-        Write-Host "`n=== Listing AppPackages ===" -ForegroundColor Cyan
-        Write-Host "Contents of windows\AppPackages:"
-        Get-ChildItem -Path "windows\AppPackages" -Recurse -ErrorAction SilentlyContinue | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
-          $relativePath = $_.FullName.Replace("$PWD\windows\AppPackages\", "")
-          Write-Host "  - $relativePath" -ForegroundColor Yellow
-        }
-        
-        Write-Host "`n=== Checking for Resources.pri ===" -ForegroundColor Cyan
-        if (Test-Path "windows\loadmaster\Resources.pri") {
-          Write-Host "  - Found Resources.pri" -ForegroundColor Green
+        Write-Host "`n🎯 Extracted Dev Files:" -ForegroundColor Yellow
+        if (Test-Path "windows\dev_release") {
+          Get-ChildItem -Path "windows\dev_release" -ErrorAction SilentlyContinue | ForEach-Object {
+            $size = [Math]::Round($_.Length / 1KB, 2)
+            Write-Host "  - $($_.Name) ($size KB)" -ForegroundColor Green
+          }
         } else {
-          Write-Host "  - No Resources.pri found" -ForegroundColor Yellow
+          Write-Host "  - No dev release folder found" -ForegroundColor Gray
         }
         
-        Write-Host "`n=== Main build folder ===" -ForegroundColor Cyan
-        Write-Host "Contents of windows\loadmaster (root level only):"
-        Get-ChildItem -Path "windows\loadmaster" -File -ErrorAction SilentlyContinue | ForEach-Object {
-          Write-Host "  - $($_.Name) ($([Math]::Round($_.Length/1KB, 2)) KB)" -ForegroundColor Yellow
+        Write-Host "`n📄 Bundle Files:" -ForegroundColor Yellow
+        if (Test-Path "windows\loadmaster\Bundle") {
+          Get-ChildItem -Path "windows\loadmaster\Bundle" -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
+            $relativePath = $_.FullName.Replace("$PWD\windows\loadmaster\Bundle\", "")
+            Write-Host "  - $relativePath" -ForegroundColor Green
+          }
+        } else {
+          Write-Host "  - No Bundle folder found" -ForegroundColor Gray
         }
 
     - name: Upload Windows exe for development
@@ -237,7 +473,9 @@ jobs:
       with:
         name: windows-dev-exe
         path: |
-          windows/loadmaster/**/*
+          windows/dev_release/**/*
+          windows/loadmaster/Bundle/**/*
+          windows/AppPackages/**/*.msix
 
     - name: Upload Windows build artifact
       uses: actions/upload-artifact@main

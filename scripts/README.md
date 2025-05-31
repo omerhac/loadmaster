@@ -14,8 +14,18 @@ Quick scripts to download and run the latest Windows build from GitHub Actions.
 
 That's it! The script will:
 - Find the latest successful CI build
-- Download the Windows exe
-- Run it immediately
+- Download the Windows package (MSIX or extracted exe)
+- Extract the exe from MSIX if needed
+- Run it immediately with all dependencies
+
+## 📦 How It Works
+
+React Native Windows apps build to **MSIX packages** (not raw exe files). The script intelligently handles this by:
+
+1. **First**: Looking for pre-extracted exe files from CI
+2. **Fallback**: Extracting the exe from MSIX packages automatically
+3. **Smart Setup**: Copying all DLLs and dependencies to the right location
+4. **One-Click Run**: Launching the app from the correct directory
 
 ## 🔧 Configuration
 
@@ -68,19 +78,31 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 
 ## 🔄 CI Integration
 
-The CI workflow has been updated to upload the Windows exe as an artifact:
+The CI workflow has been updated to handle React Native Windows MSIX packages:
 
 ```yaml
 - name: Upload Windows exe for development
   uses: actions/upload-artifact@main
   with:
     name: windows-dev-exe
-    path: windows/loadmaster/x64/Release/**/*
+    path: |
+      windows/dev_release/**/*
+      windows/loadmaster/Bundle/**/*
+      windows/AppPackages/**/*.msix
 ```
 
-This uploads the entire Release folder including:
-- The main `loadmaster.exe`
-- All required DLL dependencies
-- Any other runtime files needed
+**What the CI does:**
 
-The script automatically handles the folder structure and runs the exe from the correct location so it can find all its dependencies. 
+1. **Builds the MSIX package** (standard React Native Windows output)
+2. **Extracts the exe from MSIX** during CI build
+3. **Creates a dev_release folder** with:
+   - The main `loadmaster.exe`
+   - All required DLL dependencies  
+   - Resources.pri and other runtime files
+4. **Uploads both** the extracted files AND the original MSIX
+
+**The script handles both scenarios:**
+- ✅ **Best case**: Downloads pre-extracted exe (fast startup)
+- 🔄 **Fallback**: Downloads MSIX and extracts locally (still works!)
+
+This gives you the fastest possible dev experience while maintaining compatibility with the standard React Native Windows build process. 
