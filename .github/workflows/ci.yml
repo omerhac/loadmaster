@@ -100,6 +100,123 @@ jobs:
     - name: Install react-native-windows
       run: npm install --save-dev react-native-windows@latest
 
+    # Check for all required dependencies
+    - name: Check Build Dependencies
+      shell: powershell
+      run: |
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host "Checking Build Dependencies" -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        
+        $missingDeps = @()
+        
+        # Check for MSBuild
+        Write-Host "`nChecking MSBuild..." -ForegroundColor Yellow
+        $msbuildPaths = @(
+          "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe",
+          "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe",
+          "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
+        )
+        $msbuildFound = $false
+        foreach ($path in $msbuildPaths) {
+          if (Test-Path $path) {
+            Write-Host "✓ MSBuild found at: $path" -ForegroundColor Green
+            $msbuildFound = $true
+            break
+          }
+        }
+        if (-not $msbuildFound) {
+          Write-Host "✗ MSBuild not found" -ForegroundColor Red
+          $missingDeps += "MSBuild"
+        }
+        
+        # Check for Windows SDK
+        Write-Host "`nChecking Windows SDK..." -ForegroundColor Yellow
+        $sdkPath = "C:\Program Files (x86)\Windows Kits\10\bin"
+        if (Test-Path $sdkPath) {
+          $sdkVersions = Get-ChildItem $sdkPath | Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' }
+          if ($sdkVersions.Count -gt 0) {
+            Write-Host "✓ Windows SDK versions found:" -ForegroundColor Green
+            $sdkVersions | ForEach-Object { Write-Host "  - $($_.Name)" -ForegroundColor Gray }
+          } else {
+            Write-Host "✗ No Windows SDK versions found" -ForegroundColor Red
+            $missingDeps += "Windows SDK"
+          }
+        } else {
+          Write-Host "✗ Windows SDK not found" -ForegroundColor Red
+          $missingDeps += "Windows SDK"
+        }
+        
+        # Check for signtool
+        Write-Host "`nChecking signtool..." -ForegroundColor Yellow
+        $signtoolFound = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits" -Recurse -Filter "signtool.exe" -ErrorAction SilentlyContinue | 
+                         Where-Object { $_.FullName -like "*x64*" } | 
+                         Select-Object -First 1
+        if ($signtoolFound) {
+          Write-Host "✓ signtool found at: $($signtoolFound.FullName)" -ForegroundColor Green
+        } else {
+          Write-Host "✗ signtool not found" -ForegroundColor Red
+          $missingDeps += "signtool"
+        }
+        
+        # Check for MakeAppx (in case we need it)
+        Write-Host "`nChecking MakeAppx..." -ForegroundColor Yellow
+        $makeappxFound = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits" -Recurse -Filter "makeappx.exe" -ErrorAction SilentlyContinue | 
+                         Where-Object { $_.FullName -like "*x64*" } | 
+                         Select-Object -First 1
+        if ($makeappxFound) {
+          Write-Host "✓ MakeAppx found at: $($makeappxFound.FullName)" -ForegroundColor Green
+        } else {
+          Write-Host "✗ MakeAppx not found (optional)" -ForegroundColor Yellow
+        }
+        
+        # Check for NuGet
+        Write-Host "`nChecking NuGet..." -ForegroundColor Yellow
+        try {
+          $nugetVersion = & nuget help | Select-Object -First 1
+          Write-Host "✓ NuGet found: $nugetVersion" -ForegroundColor Green
+        } catch {
+          Write-Host "✗ NuGet not found" -ForegroundColor Red
+          $missingDeps += "NuGet"
+        }
+        
+        # Check network connectivity to timestamp servers
+        Write-Host "`nChecking timestamp server connectivity..." -ForegroundColor Yellow
+        $timestampServers = @(
+          @{Name="DigiCert"; Url="http://timestamp.digicert.com"; Port=80},
+          @{Name="Sectigo"; Url="http://timestamp.sectigo.com"; Port=80},
+          @{Name="GlobalSign"; Url="http://timestamp.globalsign.com/scripts/timstamp.dll"; Port=80}
+        )
+        
+        foreach ($server in $timestampServers) {
+          try {
+            $tcpClient = New-Object System.Net.Sockets.TcpClient
+            $connect = $tcpClient.BeginConnect($server.Url.Replace("http://", "").Split('/')[0], $server.Port, $null, $null)
+            $wait = $connect.AsyncWaitHandle.WaitOne(3000, $false)
+            if ($wait -and !$tcpClient.Connected) {
+              Write-Host "✗ Cannot connect to $($server.Name) timestamp server" -ForegroundColor Red
+            } else {
+              Write-Host "✓ $($server.Name) timestamp server is reachable" -ForegroundColor Green
+            }
+            $tcpClient.Close()
+          } catch {
+            Write-Host "✗ Error checking $($server.Name): $_" -ForegroundColor Red
+          }
+        }
+        
+        # Summary
+        Write-Host "`n========================================" -ForegroundColor Cyan
+        Write-Host "Dependency Check Summary" -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        
+        if ($missingDeps.Count -eq 0) {
+          Write-Host "✓ All required dependencies are available!" -ForegroundColor Green
+        } else {
+          Write-Host "✗ Missing dependencies:" -ForegroundColor Red
+          $missingDeps | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
+          exit 1
+        }
+
     # Update the Platform Toolset for SQLitePlugin to v143 (Visual Studio 2022)
     - name: Update SQLitePlugin Platform Toolset
       shell: powershell
@@ -186,24 +303,267 @@ jobs:
           exit 1
         }
 
-    - name: Build Windows
-      run: |        
-        npx react-native run-windows --no-launch --no-deploy --release
+    - name: Build Windows MSIX Package
+      shell: powershell
+      run: |
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host "Starting Windows MSIX Package Build" -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        
+        # Log environment info
+        Write-Host "`nEnvironment Information:" -ForegroundColor Yellow
+        Write-Host "Current Directory: $(Get-Location)"
+        Write-Host "MSBuild Version:"
+        & "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe" -version
+        
+        # First restore NuGet packages
+        Write-Host "`n========================================" -ForegroundColor Cyan
+        Write-Host "Restoring NuGet packages..." -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        nuget restore windows\loadmaster.sln -Verbosity detailed
+        
+        # Log available Windows SDKs
+        Write-Host "`n========================================" -ForegroundColor Cyan
+        Write-Host "Available Windows SDKs:" -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" | ForEach-Object { Write-Host $_.Name }
+        
+        # Build the solution and generate a proper MSIX package
+        Write-Host "`n========================================" -ForegroundColor Cyan
+        Write-Host "Building MSIX Package..." -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host "Build Parameters:"
+        Write-Host "  Configuration: Release"
+        Write-Host "  Platform: x64"
+        Write-Host "  AppxBundle: Never"
+        Write-Host "  UapAppxPackageBuildMode: StoreUpload"
+        Write-Host "  AppxPackageSigningEnabled: false"
+        Write-Host "  GenerateAppxPackageOnBuild: true"
+        
+        msbuild windows\loadmaster.sln `
+          /p:Configuration=Release `
+          /p:Platform=x64 `
+          /p:AppxBundle=Never `
+          /p:UapAppxPackageBuildMode=StoreUpload `
+          /p:AppxPackageSigningEnabled=false `
+          /p:GenerateAppxPackageOnBuild=true `
+          /v:normal `
+          /fl `
+          /flp:logfile=msbuild.log;verbosity=diagnostic
+        
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "`nBuild Failed! Displaying last 100 lines of MSBuild log:" -ForegroundColor Red
+          Get-Content msbuild.log -Tail 100
+          exit 1
+        }
+        
+        Write-Host "`n========================================" -ForegroundColor Green
+        Write-Host "Build Completed Successfully!" -ForegroundColor Green
+        Write-Host "========================================" -ForegroundColor Green
+        
+    # Create a self-signed certificate for CI signing
+    - name: Create Self-Signed Certificate for CI
+      shell: powershell
+      run: |
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host "Creating Self-Signed Certificate" -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        
+        # Create a self-signed certificate
+        $cert = New-SelfSignedCertificate `
+          -Type Custom `
+          -Subject "CN=LoadMaster CI, O=LoadMaster Team, C=US" `
+          -KeyUsage DigitalSignature `
+          -FriendlyName "LoadMaster CI Certificate" `
+          -CertStoreLocation "Cert:\CurrentUser\My" `
+          -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+        
+        Write-Host "Certificate created with thumbprint: $($cert.Thumbprint)" -ForegroundColor Green
+        
+        # Export the certificate with private key
+        $password = ConvertTo-SecureString -String "LoadMasterCI2024!" -Force -AsPlainText
+        $certPath = "LoadMasterCI.pfx"
+        Export-PfxCertificate -Cert $cert -FilePath $certPath -Password $password
+        
+        Write-Host "Certificate exported to: $certPath" -ForegroundColor Green
+        
+        # Store certificate info for later steps
+        echo "CERT_PATH=$certPath" >> $env:GITHUB_ENV
+        echo "CERT_PASSWORD=LoadMasterCI2024!" >> $env:GITHUB_ENV
+        echo "CERT_THUMBPRINT=$($cert.Thumbprint)" >> $env:GITHUB_ENV
+        
+    # Find and sign the MSIX package
+    - name: Find and Sign MSIX Package
+      shell: powershell
+      run: |
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host "Finding and Signing MSIX Package" -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        
+        # Find the MSIX file
+        Write-Host "`nSearching for MSIX files..." -ForegroundColor Yellow
+        $msixFiles = Get-ChildItem -Path "windows" -Recurse -Filter "*.msix" | Where-Object { $_.FullName -notlike "*Dependencies*" }
+        
+        if ($msixFiles.Count -eq 0) {
+          Write-Host "ERROR: No MSIX files found!" -ForegroundColor Red
+          Write-Host "`nSearching in all subdirectories for any package files:" -ForegroundColor Yellow
+          Get-ChildItem -Path "windows" -Recurse -Include "*.msix", "*.appx", "*.msixbundle", "*.appxbundle" | ForEach-Object {
+            Write-Host "  Found: $($_.FullName)" -ForegroundColor Gray
+          }
+          exit 1
+        }
+        
+        Write-Host "`nFound $($msixFiles.Count) MSIX file(s):" -ForegroundColor Green
+        $msixFiles | ForEach-Object { Write-Host "  - $($_.FullName)" -ForegroundColor Gray }
+        
+        # Use the first MSIX file found
+        $msixPath = $msixFiles[0].FullName
+        Write-Host "`nUsing MSIX file: $msixPath" -ForegroundColor Cyan
+        Write-Host "File size: $([math]::Round($msixFiles[0].Length / 1MB, 2)) MB" -ForegroundColor Gray
+        
+        # Find signtool
+        $signtool = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe"
+        if (-not (Test-Path $signtool)) {
+          Write-Host "Signtool not found at expected path, searching..." -ForegroundColor Yellow
+          $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits" -Recurse -Filter "signtool.exe" | 
+                      Where-Object { $_.FullName -like "*x64*" } | 
+                      Sort-Object { $_.FullName } -Descending | 
+                      Select-Object -First 1
+          if ($signtool) {
+            $signtool = $signtool.FullName
+            Write-Host "Found signtool at: $signtool" -ForegroundColor Green
+          } else {
+            Write-Host "ERROR: Could not find signtool.exe!" -ForegroundColor Red
+            exit 1
+          }
+        }
+        
+        # Create a copy for signing
+        $signedMsixPath = $msixPath -replace '\.msix$', '_Signed.msix'
+        Copy-Item -Path $msixPath -Destination $signedMsixPath -Force
+        Write-Host "`nCreated copy for signing: $signedMsixPath" -ForegroundColor Gray
+        
+        # Sign the MSIX package with fallback timestamp servers
+        Write-Host "`nSigning MSIX package..." -ForegroundColor Cyan
+        
+        # Define timestamp servers with fallbacks
+        $timestampServers = @(
+          @{Name="DigiCert"; Url="http://timestamp.digicert.com"},
+          @{Name="Sectigo"; Url="http://timestamp.sectigo.com"},
+          @{Name="GlobalSign"; Url="http://timestamp.globalsign.com/scripts/timstamp.dll"},
+          @{Name="Symantec"; Url="http://timestamp.verisign.com/scripts/timstamp.dll"}
+        )
+        
+        $signed = $false
+        foreach ($server in $timestampServers) {
+          Write-Host "`nTrying to sign with $($server.Name) timestamp server..." -ForegroundColor Yellow
+          & $signtool sign `
+            /fd SHA256 `
+            /a `
+            /f "$env:CERT_PATH" `
+            /p "$env:CERT_PASSWORD" `
+            /tr $server.Url `
+            /td SHA256 `
+            /v `
+            $signedMsixPath
+          
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Successfully signed with $($server.Name) timestamp server!" -ForegroundColor Green
+            $signed = $true
+            break
+          } else {
+            Write-Host "Failed to sign with $($server.Name), trying next server..." -ForegroundColor Yellow
+          }
+        }
+        
+        if ($signed) {
+          Write-Host "`n========================================" -ForegroundColor Green
+          Write-Host "MSIX Package Signed Successfully!" -ForegroundColor Green
+          Write-Host "========================================" -ForegroundColor Green
+          
+          # Verify the signature
+          Write-Host "`nVerifying signature..." -ForegroundColor Cyan
+          & $signtool verify /pa /v $signedMsixPath
+          
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Signature verification passed!" -ForegroundColor Green
+          } else {
+            Write-Host "WARNING: Signature verification failed, but package is signed" -ForegroundColor Yellow
+          }
+          
+          # Store paths for artifact upload
+          echo "UNSIGNED_MSIX_PATH=$msixPath" >> $env:GITHUB_ENV
+          echo "SIGNED_MSIX_PATH=$signedMsixPath" >> $env:GITHUB_ENV
+        } else {
+          Write-Host "`nERROR: Failed to sign MSIX package with all timestamp servers!" -ForegroundColor Red
+          Write-Host "Attempted servers:" -ForegroundColor Red
+          $timestampServers | ForEach-Object { Write-Host "  - $($_.Name): $($_.Url)" -ForegroundColor Red }
+          exit 1
+        }
         
     # List contents of relevant directories to find build artifacts
     - name: List build output directories
       shell: powershell
       run: |
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages:"
-        dir D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages -Recurse
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\AppPackages:"
-        dir D:\a\loadmaster\loadmaster\windows\AppPackages -Recurse
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster:"
-        dir D:\a\loadmaster\loadmaster\windows\loadmaster -Recurse
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host "Build Output Summary" -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        
+        Write-Host "`nListing contents of windows\loadmaster\AppPackages:" -ForegroundColor Yellow
+        if (Test-Path "windows\loadmaster\AppPackages") {
+          Get-ChildItem -Path "windows\loadmaster\AppPackages" -Recurse | ForEach-Object { 
+            if ($_.PSIsContainer) {
+              Write-Host "[DIR]  $($_.FullName)" -ForegroundColor DarkGray
+            } else {
+              $size = [math]::Round($_.Length / 1KB, 2)
+              Write-Host "[FILE] $($_.FullName) ($size KB)" -ForegroundColor Gray
+            }
+          }
+        } else {
+          Write-Host "AppPackages directory not found at windows\loadmaster\AppPackages" -ForegroundColor Red
+        }
+        
+        Write-Host "`n========================================" -ForegroundColor Cyan
+        Write-Host "Package Files Found:" -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        Get-ChildItem -Path "windows" -Recurse -Include "*.msix", "*.msixbundle", "*.appx", "*.appxbundle" | ForEach-Object {
+          $size = [math]::Round($_.Length / 1MB, 2)
+          Write-Host "$($_.Name) - $size MB - $($_.FullName)" -ForegroundColor Green
+        }
+        
+        Write-Host "`n========================================" -ForegroundColor Cyan
+        Write-Host "Certificate Information:" -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        if (Test-Path "$env:CERT_PATH") {
+          Write-Host "Certificate file exists: $env:CERT_PATH" -ForegroundColor Green
+          Write-Host "Certificate thumbprint: $env:CERT_THUMBPRINT" -ForegroundColor Gray
+        }
 
-    - name: Upload Windows build artifact
+    - name: Upload Windows build artifacts
       uses: actions/upload-artifact@main
       with:
-        name: windows-tablet-build
-        path: windows/AppPackages/loadmaster/**/*_Test/**/*
+        name: windows-tablet-build-unsigned
+        path: |
+          windows\loadmaster\AppPackages\**\*.msix
+          windows\loadmaster\AppPackages\**\*.msixbundle
+          windows\loadmaster\AppPackages\**\*.msixsym
+          msbuild.log
+          
+    - name: Upload Signed Windows Package
+      uses: actions/upload-artifact@main
+      with:
+        name: windows-tablet-build-signed
+        path: |
+          ${{ env.SIGNED_MSIX_PATH }}
+          ${{ env.CERT_PATH }}
+          
+    - name: Upload Build Logs
+      if: always()
+      uses: actions/upload-artifact@main
+      with:
+        name: windows-build-logs
+        path: |
+          msbuild.log
+          windows\loadmaster\*.log
+          windows\loadmaster\AppPackages\**\*.log
 
