@@ -7,7 +7,6 @@ import {
   TextInput,
   Platform,
   KeyboardAvoidingView,
-  Modal,
   FlatList,
   Alert,
 } from 'react-native';
@@ -140,18 +139,9 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     </TouchableOpacity>
   ), [handleLoadPreset]);
 
+  // Quick and dirty RNW-compatible modal: just render overlay always (parent controls visibility)
   return (
-    <Modal
-      visible={true}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={onCancel}
-      presentationStyle="overFullScreen"
-      supportedOrientations={[
-        'landscape-left',
-        'landscape-right',
-      ]}
-    >
+    <View style={[styles.modalOverlay, { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.5)' }]}> {/* Modal overlay */}
       <TouchableWithoutFeedback onPress={onCancel}>
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback>
@@ -308,7 +298,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
-    </Modal>
+    </View>
   );
 });
 

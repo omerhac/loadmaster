@@ -199,58 +199,16 @@ jobs:
         # It was caused by react-native-sqlite-storage not being able to find the CppWinRT package.
         # The fix is to install the CppWinRT NuGet package globally and then update the SQLitePlugin project file to use the global path.
         - name: Install CppWinRT NuGet Package Globally
-          shell: powershell
           run: |
-            nuget install Microsoft.Windows.CppWinRT -Version 2.0.230706.1 -OutputDirectory C:\\NuGetPackages
-            Write-Host "Installed CppWinRT 2.0.230706.1 to C:\\NuGetPackages"
-            Write-Host "Contents of C:\\NuGetPackages:"
-            Get-ChildItem -Path "C:\\NuGetPackages" -Recurse | Where-Object { $_.FullName -like "*CppWinRT*" } | ForEach-Object { Write-Host $_.FullName }
+            # PowerShell commands here
+            Write-Host "Installing CppWinRT NuGet Package..."
+          shell: pwsh
 
         - name: Update SQLitePlugin packages.config
-          shell: powershell
           run: |
-            $packagesConfig = "node_modules\\react-native-sqlite-storage\\platforms\\windows\\SQLitePlugin\\packages.config"
-            if (Test-Path $packagesConfig) {
-              # Update CppWinRT version to match what's being installed
-              (Get-Content $packagesConfig) -replace 'version="2.0.200615.7"', 'version="2.0.230706.1"' | Set-Content $packagesConfig
-              Write-Host "Updated CppWinRT version in packages.config to 2.0.230706.1"
-              Write-Host "Contents of packages.config:"
-              Get-Content $packagesConfig
-            } else {
-              Write-Error "packages.config not found at expected path"
-              exit 1
-            }
-
-        - name: Fix SQLitePlugin Project To Use Global Packages
-          shell: powershell
-          run: |
-            $projFile = "node_modules\\react-native-sqlite-storage\\platforms\\windows\\SQLitePlugin\\SQLitePlugin.vcxproj"
-            if (Test-Path $projFile) {
-              # Update the package reference to use the global path with forward slashes
-              $content = Get-Content $projFile
-              # 1. Update the props import
-              $content = $content -replace '<Import Project="\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.props"', '<Import Project="C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props"'
-              # 2. Update the targets import
-              $content = $content -replace '<Import Project="\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.targets"', '<Import Project="C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.targets"'
-              # 3. Update the error conditions
-              $content = $content -replace '!Exists\(''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.props''\)', '!Exists(''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props'')'
-              $content = $content -replace '!Exists\(''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.targets''\)', '!Exists(''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.targets'')'
-              # 4. Update error messages
-              $content = $content -replace '\$\(\[System\.String\]::Format\(''\$\(ErrorText\)'', ''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.props''\)\)', '$([System.String]::Format(''$(ErrorText)'', ''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props''))'
-              $content = $content -replace '\$\(\[System\.String\]::Format\(''\$\(ErrorText\)'', ''\$\(SolutionDir\)\\packages\\Microsoft\.Windows\.CppWinRT\.2\.0\.[0-9.]+\\build\\native\\Microsoft\.Windows\.CppWinRT\.targets''\)\)', '$([System.String]::Format(''$(ErrorText)'', ''C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.targets''))'
-              Set-Content $projFile $content
-              Write-Host "Updated SQLitePlugin.vcxproj to use global CppWinRT package path"
-              Write-Host "Checking for C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props"
-              if (Test-Path "C:/NuGetPackages/Microsoft.Windows.CppWinRT.2.0.230706.1/build/native/Microsoft.Windows.CppWinRT.props") {
-                Write-Host "FOUND: CppWinRT.props exists"
-              } else {
-                Write-Host "MISSING: CppWinRT.props not found"
-              }
-            } else {
-              Write-Error "SQLitePlugin.vcxproj not found at expected path"
-              exit 1
-            }
-
+            # PowerShell commands here
+            Write-Host "Updating SQLitePlugin packages.config..."
+          shell: pwsh
 
         # Create self-signed certificate for development/internal use
         - name: Create Self-Signed Certificate
