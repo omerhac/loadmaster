@@ -110,7 +110,7 @@ try {
     Write-Host "📂 Extracting artifact..." -ForegroundColor Yellow
     Expand-Archive -Path $ZipPath -DestinationPath $TempDir -Force
     
-    # Find the exe
+    # Find the exe - it might be at different levels depending on the artifact structure
     $ExePath = Get-ChildItem -Path $TempDir -Recurse -Filter $ExeName | Select-Object -First 1
     if (-not $ExePath) {
         Write-Host "❌ $ExeName not found in artifact!" -ForegroundColor Red
@@ -124,16 +124,66 @@ try {
     # Get the directory containing the exe (where DLLs should be)
     $ExeDir = $ExePath.DirectoryName
     $ExeFullPath = $ExePath.FullName
+    
+    # Check for Bundle folder relative to exe
+    $BundleDir = Join-Path (Split-Path -Parent (Split-Path -Parent $ExeDir)) "Bundle"
+    if (-not (Test-Path $BundleDir)) {
+        # Try to find Bundle folder anywhere in the artifact
+        $BundleSearch = Get-ChildItem -Path $TempDir -Recurse -Directory -Filter "Bundle" | Select-Object -First 1
+        if ($BundleSearch) {
+            $BundleDir = $BundleSearch.FullName
+        }
+    }
+    
+    # Check for Resources.pri
+    $ResourcesPri = Get-ChildItem -Path $TempDir -Recurse -Filter "Resources.pri" | Select-Object -First 1
 
     Write-Host ""
     Write-Host "🎯 Starting LoadMaster..." -ForegroundColor Green
     Write-Host "   Path: $ExeFullPath" -ForegroundColor Gray
     Write-Host "   Working Directory: $ExeDir" -ForegroundColor Gray
     
-    # List DLLs found
+    # List important files found
     $DllCount = (Get-ChildItem -Path $ExeDir -Filter "*.dll" -ErrorAction SilentlyContinue).Count
     if ($DllCount -gt 0) {
         Write-Host "   Found $DllCount DLL dependencies" -ForegroundColor Gray
+    }
+    
+    if (Test-Path $BundleDir) {
+        $BundleFile = Join-Path $BundleDir "index.windows.bundle"
+        if (Test-Path $BundleFile) {
+            Write-Host "   ✓ JavaScript bundle found" -ForegroundColor Green
+        }
+        $AssetCount = (Get-ChildItem -Path $BundleDir -Recurse -File -Exclude "*.bundle" -ErrorAction SilentlyContinue).Count
+        if ($AssetCount -gt 0) {
+            Write-Host "   ✓ Found $AssetCount asset files" -ForegroundColor Green
+        }
+    } else {
+        Write-Host "   ⚠ No Bundle folder found - app may not have JavaScript code" -ForegroundColor Yellow
+    }
+    
+    if ($ResourcesPri) {
+        Write-Host "   ✓ Resources.pri found" -ForegroundColor Green
+        # Copy Resources.pri to exe directory if not already there
+        $TargetPri = Join-Path $ExeDir "Resources.pri"
+        if (-not (Test-Path $TargetPri)) {
+            Copy-Item $ResourcesPri.FullName $TargetPri
+        }
+    }
+    
+    # Ensure Bundle folder is in the correct location
+    # React Native Windows typically expects Bundle to be at ../Bundle relative to x64/Release/app.exe
+    if (Test-Path $BundleDir) {
+        $ExpectedBundleDir = Join-Path (Split-Path -Parent (Split-Path -Parent $ExeDir)) "Bundle"
+        if ($BundleDir -ne $ExpectedBundleDir -and -not (Test-Path $ExpectedBundleDir)) {
+            Write-Host "   📁 Moving Bundle folder to expected location..." -ForegroundColor Yellow
+            $ParentDir = Split-Path -Parent $ExpectedBundleDir
+            if (-not (Test-Path $ParentDir)) {
+                New-Item -ItemType Directory -Path $ParentDir -Force | Out-Null
+            }
+            Copy-Item -Path $BundleDir -Destination $ExpectedBundleDir -Recurse -Force
+            Write-Host "   ✓ Bundle folder relocated" -ForegroundColor Green
+        }
     }
     
     Write-Host ""

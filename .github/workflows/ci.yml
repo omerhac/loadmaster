@@ -126,6 +126,11 @@ jobs:
           exit 1
         }
 
+    # Create JavaScript bundle before building
+    - name: Create JavaScript Bundle
+      run: |
+        npx react-native bundle --platform windows --entry-file index.js --bundle-output windows/loadmaster/Bundle/index.windows.bundle --assets-dest windows/loadmaster/Bundle --dev false
+
     # Install CppWinRT NuGet Package Globally
     # This is a workaround to fix the build error:
     # The "CppWinRT.props" file cannot be found.
@@ -213,6 +218,19 @@ jobs:
           $relativePath = $_.FullName.Replace("$PWD\windows\AppPackages\", "")
           Write-Host "  - $relativePath" -ForegroundColor Yellow
         }
+        
+        Write-Host "`n=== Checking for Resources.pri ===" -ForegroundColor Cyan
+        if (Test-Path "windows\loadmaster\Resources.pri") {
+          Write-Host "  - Found Resources.pri" -ForegroundColor Green
+        } else {
+          Write-Host "  - No Resources.pri found" -ForegroundColor Yellow
+        }
+        
+        Write-Host "`n=== Main build folder ===" -ForegroundColor Cyan
+        Write-Host "Contents of windows\loadmaster (root level only):"
+        Get-ChildItem -Path "windows\loadmaster" -File -ErrorAction SilentlyContinue | ForEach-Object {
+          Write-Host "  - $($_.Name) ($([Math]::Round($_.Length/1KB, 2)) KB)" -ForegroundColor Yellow
+        }
 
     - name: Upload Windows exe for development
       uses: actions/upload-artifact@main
@@ -221,6 +239,9 @@ jobs:
         path: |
           windows/loadmaster/x64/Release/**/*
           windows/loadmaster/Bundle/**/*
+          windows/loadmaster/Resources.pri
+          windows/loadmaster/*.dll
+          windows/loadmaster/*.exe
 
     - name: Upload Windows build artifact
       uses: actions/upload-artifact@main
