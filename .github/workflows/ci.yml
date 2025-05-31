@@ -237,15 +237,11 @@ jobs:
       with:
         name: windows-dev-exe
         path: |
-          windows/loadmaster/x64/Release/**/*
-          windows/loadmaster/Bundle/**/*
-          windows/loadmaster/Resources.pri
-          windows/loadmaster/*.dll
-          windows/loadmaster/*.exe
+          windows/loadmaster/**/*
 
     - name: Upload Windows build artifact
       uses: actions/upload-artifact@main
       with:
         name: windows-tablet-build
-        path: windows/AppPackages/loadmaster/**/*_Test/**/*
+        path: windows/AppPackages/loadmaster/**/*
 
