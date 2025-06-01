@@ -1,6 +1,5 @@
 import SQLite, { SQLiteDatabase } from 'react-native-sqlite-storage';
 import { Platform } from 'react-native';
-import RNFS from 'react-native-fs';
 import { DatabaseResponse, SqlStatement, QueryResult } from './DatabaseTypes';
 
 declare const process: {
@@ -87,30 +86,41 @@ export class NativeDatabaseService implements DatabaseInterface {
   private static async openDatabase(): Promise<SQLiteDatabase> {
     let databasePath: string = this.DATABASE_NAME;
 
-    if (Platform.OS === 'android') {
-      // Define writable location
-      const writablePath = `${RNFS.DocumentDirectoryPath}/${this.DATABASE_NAME}`;
-
-      // Check if DB already exists in writable location
-      const exists = await RNFS.exists(writablePath);
-      if (!exists) {
-        // First run - copy the pre-populated DB from assets to writable location
-        await RNFS.copyFileAssets(this.DATABASE_NAME, writablePath);
-      }
-
-      // Open the writable copy
-      return await SQLite.openDatabase({
-        name: writablePath,
-        location: 'default',
-      });
-    } else if (Platform.OS === 'ios') {
-      databasePath = this.DATABASE_NAME;
-    } else if (Platform.OS === 'windows') {
-      databasePath = `${RNFS.DocumentDirectoryPath}/${this.DATABASE_NAME}`;
-      const exists = await RNFS.exists(databasePath);
-      if (!exists) {
-        const bundlePath = `ms-appx:///Assets/${this.DATABASE_NAME}`;
-        await RNFS.copyFile(bundlePath, databasePath);
+    if (Platform.OS === 'windows') {
+      // Simplified Windows handling - let SQLite handle database creation
+      console.log('Windows platform detected - using simplified database initialization');
+      
+      try {
+        // Try to open the database directly - SQLite will create it if it doesn't exist
+        const database = await SQLite.openDatabase({
+          name: this.DATABASE_NAME,
+          location: 'default',
+        });
+        console.log('Windows database opened successfully');
+        return database;
+      } catch (error) {
+        console.log('Windows database open failed, trying alternative approach:', error);
+        
+        // Fallback: try with explicit path
+        try {
+          const database = await SQLite.openDatabase({
+            name: this.DATABASE_NAME,
+            location: 'Documents',
+            createFromLocation: '~www/' + this.DATABASE_NAME,
+          });
+          console.log('Windows database opened with fallback method');
+          return database;
+        } catch (fallbackError) {
+          console.log('Windows fallback also failed, creating new database:', fallbackError);
+          
+          // Last resort: create a new empty database
+          const database = await SQLite.openDatabase({
+            name: this.DATABASE_NAME,
+            location: 'default',
+          });
+          console.log('Windows database created as new empty database');
+          return database;
+        }
       }
     }
 

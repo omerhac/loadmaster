@@ -6,7 +6,6 @@ import {
   TouchableWithoutFeedback,
   Platform,
   KeyboardAvoidingView,
-  Modal,
   FlatList,
   Alert,
   StyleSheet,
@@ -30,14 +29,6 @@ const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
   const [selectedMissionId, setSelectedMissionId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load missions when modal becomes visible
-  useEffect(() => {
-    if (visible) {
-      loadMissions();
-      setSelectedMissionId(null); // Reset selection when modal opens
-    }
-  }, [visible, loadMissions]);
-
   const loadMissions = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -56,6 +47,14 @@ const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
       setIsLoading(false);
     }
   }, []);
+
+  // Load missions when modal becomes visible
+  useEffect(() => {
+    if (visible) {
+      loadMissions();
+      setSelectedMissionId(null); // Reset selection when modal opens
+    }
+  }, [visible, loadMissions]);
 
   const selectedMission = useMemo(() =>
     missions.find(mission => mission.id === selectedMissionId) || null,
@@ -132,80 +131,71 @@ const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
 
   console.log('LoadMissionModal render - selectedMissionId:', selectedMissionId, 'isLoadButtonEnabled:', isLoadButtonEnabled);
 
-  return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={handleCancel}
-    //   presentationStyle="overFullScreen"
-      presentationStyle="overFullScreen"
-      supportedOrientations={[
-        'landscape-left',
-        'landscape-right',
-      ]}
-    >
-      <View style={styles.modalOverlay}>
-        <TouchableWithoutFeedback onPress={handleOverlayPress}>
-          <View style={StyleSheet.absoluteFill} />
-        </TouchableWithoutFeedback>
+  if (!visible) {
+    return null;
+  }
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardAvoidingView}
-        >
-          <View style={styles.modalContent}>
-            <TouchableOpacity style={styles.closeButton} onPress={handleCancel}>
-              <Text style={styles.closeButtonText}>×</Text>
+  return (
+    <View style={styles.modalOverlay}>
+      <TouchableWithoutFeedback onPress={handleOverlayPress}>
+        <View style={styles.backdrop} />
+      </TouchableWithoutFeedback>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoidingView}
+      >
+        <View style={styles.modalContent}>
+          <TouchableOpacity style={styles.closeButton} onPress={handleCancel}>
+            <Text style={styles.closeButtonText}>×</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.modalTitle}>Load Mission</Text>
+
+          <View style={styles.contentContainer}>
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>Loading missions...</Text>
+              </View>
+            ) : missions.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No missions found</Text>
+                <Text style={styles.emptySubtext}>Create a new mission to get started</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={missions}
+                keyExtractor={(item) => item.id?.toString() || ''}
+                renderItem={renderMissionItem}
+                style={styles.missionList}
+                showsVerticalScrollIndicator={true}
+                extraData={selectedMissionId}
+                bounces={false}
+                scrollEnabled={true}
+                nestedScrollEnabled={true}
+              />
+            )}
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={handleCancel}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
 
-            <Text style={styles.modalTitle}>Load Mission</Text>
-
-            <View style={styles.contentContainer}>
-              {isLoading ? (
-                <View style={styles.loadingContainer}>
-                  <Text style={styles.loadingText}>Loading missions...</Text>
-                </View>
-              ) : missions.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>No missions found</Text>
-                  <Text style={styles.emptySubtext}>Create a new mission to get started</Text>
-                </View>
-              ) : (
-                <FlatList
-                  data={missions}
-                  keyExtractor={(item) => item.id?.toString() || ''}
-                  renderItem={renderMissionItem}
-                  style={styles.missionList}
-                  showsVerticalScrollIndicator={true}
-                  extraData={selectedMissionId}
-                  bounces={false}
-                  scrollEnabled={true}
-                  nestedScrollEnabled={true}
-                />
-              )}
-            </View>
-
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={handleCancel}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.loadButton, !isLoadButtonEnabled && styles.loadButtonDisabled]}
-                onPress={handleLoad}
-                disabled={!isLoadButtonEnabled}
-              >
-                <Text style={styles.loadButtonText}>Load Mission</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={[styles.loadButton, !isLoadButtonEnabled && styles.loadButtonDisabled]}
+              onPress={handleLoad}
+              disabled={!isLoadButtonEnabled}
+            >
+              <Text style={styles.loadButtonText}>Load Mission</Text>
+            </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
-      </View>
-    </Modal>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
