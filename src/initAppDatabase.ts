@@ -13,14 +13,37 @@ import { getAllCargoTypes } from './services/db/operations/CargoTypeOperations';
 import { getAllAircraft } from './services/db/operations/AircraftOperations';
 
 export default async function initAppDatabase() {
-    const allAircraft = await getAllAircraft();
-    if (allAircraft.count > 0) {
-        // Database already initialized
-        console.log('Database already initialized');
-        return;
+    try {
+        const allAircraft = await getAllAircraft();
+        if (allAircraft.count > 0) {
+            // Database already initialized
+            console.log('Database already initialized');
+            return;
+        }
+    } catch (error) {
+        console.log('Error checking existing aircraft (database may not be initialized yet):', error);
     }
 
-    await initializeLoadmasterDatabase();
+    try {
+        console.log('Initializing database schemas...');
+        await initializeLoadmasterDatabase();
+        console.log('Database schemas initialized successfully');
+        
+        // Verify tables were created
+        const { DatabaseFactory } = require('./services/db/DatabaseService');
+        const db = await DatabaseFactory.getDatabase();
+        const tablesResult = await db.executeQuery("SELECT name FROM sqlite_master WHERE type='table';");
+        const tableNames = tablesResult.results.map(result => result.data?.name).filter(Boolean);
+        console.log('Created tables:', tableNames);
+        
+        if (tableNames.length === 0) {
+            throw new Error('No tables were created during schema initialization');
+        }
+    } catch (error) {
+        console.error('Error initializing database schemas:', error);
+        throw error;
+    }
+
     const aircraft: Aircraft = {
         type: 'C-130',
         name: 'Hercules',
@@ -44,6 +67,7 @@ export default async function initAppDatabase() {
         default_height: 96,
         default_forward_overhang: 0,
         default_back_overhang: 0,
+        default_cog: 54,
         type: 'bulk' as const,
     };
     const cargoTypeResult = await createCargoType(defaultCargoType);

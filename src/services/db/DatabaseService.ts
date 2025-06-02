@@ -38,12 +38,18 @@ export class DatabaseFactory {
 
   static async getDatabase(): Promise<DatabaseInterface> {
     if (!this.instance) {
+      console.log('Initializing database instance...');
+      console.log('__DEV__:', __DEV__);
+      console.log('NODE_ENV:', process.env.NODE_ENV);
+      
       if (__DEV__ && process.env.NODE_ENV === 'test') {
         // For Jest tests, we'll use the TestDatabaseService
+        console.log('Using TestDatabaseService for test environment');
         const { TestDatabaseService } = require('./TestDatabaseService');
         this.instance = await TestDatabaseService.initialize();
       } else {
         // For production app, use the native implementation
+        console.log('Using NativeDatabaseService for production environment');
         this.instance = await NativeDatabaseService.initialize();
       }
     }
@@ -144,13 +150,25 @@ export class NativeDatabaseService implements DatabaseInterface {
     }
 
     try {
+      console.log('Starting schema initialization...');
       // Split the SQL into individual statements
       const statements = sql.split(';').filter(stmt => stmt.trim().length > 0);
+      console.log(`Executing ${statements.length} schema statements`);
 
       // Execute each statement
-      for (const statement of statements) {
-        await this.database.executeSql(statement + ';');
+      for (let i = 0; i < statements.length; i++) {
+        const statement = statements[i];
+        try {
+          console.log(`Executing statement ${i + 1}/${statements.length}: ${statement.substring(0, 50)}...`);
+          await this.database.executeSql(statement + ';');
+          console.log(`Statement ${i + 1} executed successfully`);
+        } catch (statementError) {
+          console.error(`Error executing statement ${i + 1}:`, statement);
+          console.error('Statement error:', statementError);
+          throw statementError;
+        }
       }
+      console.log('Schema initialization completed successfully');
     } catch (error) {
       console.error('Error initializing schema:', error);
       throw error;
