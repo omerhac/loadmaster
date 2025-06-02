@@ -1,11 +1,28 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+  modalContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 0,
+  },
   modalOverlay: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1000,
+  },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   keyboardAvoidingView: {
     width: '100%',
@@ -19,6 +36,14 @@ export const styles = StyleSheet.create({
     width: '60%',
     maxWidth: 400,
     minWidth: 300,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   closeButton: {
     position: 'absolute',
