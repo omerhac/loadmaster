@@ -15,7 +15,7 @@
 
   <Properties>
     <DisplayName>loadmaster</DisplayName>
-    <PublisherDisplayName>omerhacohen</PublisherDisplayName>
+    <PublisherDisplayName>Loadmaster-Internal</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
