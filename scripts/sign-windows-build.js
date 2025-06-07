@@ -65,8 +65,7 @@ try {
     let msbuildProps = 'BaseIntDir=$(BaseIntDir)';
     
     // Add packaging properties for MSIX creation
-    msbuildProps += ',GenerateAppxPackageOnBuild=true';
-    msbuildProps += ',AppxBundle=Always';
+    msbuildProps += ',UapAppxPackageBuildMode=StoreUpload';
     msbuildProps += ',AppxBundlePlatforms=x64';
     msbuildProps += ',AppxPackageDir=windows\\AppPackages\\';
 
