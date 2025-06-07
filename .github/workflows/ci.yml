@@ -201,12 +201,11 @@ jobs:
     - name: List build output directories
       shell: powershell
       run: |
-        Write-Host "Listing contents of windows\x64\Release\loadmaster\AppX\"
-        dir windows\x64\Release\loadmaster\AppX\ -Recurse
+        Write-Host "Listing contents of windows\x64\Release\"
+        dir windows\x64\Release -Recurse
 
     - name: Upload Windows build artifact
       uses: actions/upload-artifact@main
       with:
-        name: windows-tablet-build
-        path: windows/x64/Release/loadmaster/AppX
-
+        name: windows-build
+        path: windows/x64/Release/
