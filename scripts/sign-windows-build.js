@@ -43,7 +43,7 @@ if (encodedCertificate) {
 try {
     console.log('\nBuilding Windows app...');
 
-    let buildCommand = 'npx react-native run-windows --no-packager --no-launch';
+    let buildCommand = 'npx react-native run-windows --no-launch';
 
     // Add deploy option if provided
     if (deployOption) {
@@ -64,10 +64,10 @@ try {
     // Add MSBuild properties
     let msbuildProps = 'BaseIntDir=$(BaseIntDir)';
     
-    // Add packaging properties for MSIX creation
-    msbuildProps += ',UapAppxPackageBuildMode=StoreUpload';
-    msbuildProps += ',AppxBundlePlatforms=x64';
-    msbuildProps += ',AppxPackageDir=windows\\AppPackages\\';
+    // // Add packaging properties for MSIX creation
+    // msbuildProps += ',UapAppxPackageBuildMode=StoreUpload';
+    // msbuildProps += ',AppxBundlePlatforms=x64';
+    // msbuildProps += ',AppxPackageDir=windows\\AppPackages\\';
 
     if (certificatePath) {
         // Add certificate for signing
