@@ -22,16 +22,17 @@ console.log(`Certificate: ${encodedCertificate ? 'Provided' : 'Not provided'}`);
 let certificatePath = '';
 if (encodedCertificate) {
     try {
-        console.log('\nSetting up certificate...');
-        
+                console.log('\nSetting up certificate...');
+
         // Decode base64 certificate
+        // eslint-disable-next-line no-undef
         const pfxBytes = Buffer.from(encodedCertificate, 'base64');
         certificatePath = path.join(process.cwd(), 'EncodedKey.pfx');
-        
+
         // Write certificate to file
         fs.writeFileSync(certificatePath, pfxBytes);
         console.log(`Certificate written to: ${certificatePath}`);
-        
+
     } catch (error) {
         console.error('Error setting up certificate:', error);
         process.exit(1);
@@ -41,32 +42,32 @@ if (encodedCertificate) {
 // Step 2: Build Windows app
 try {
     console.log('\nBuilding Windows app...');
-    
+
     let buildCommand = 'npx react-native run-windows --no-packager --no-launch';
-    
+
     // Add deploy option if provided
     if (deployOption) {
         buildCommand += ` ${deployOption}`;
     }
-    
+
     // Add architecture
     buildCommand += ` --arch ${buildPlatform}`;
-    
+
     // Add logging
     buildCommand += ` --logging --buildLogDirectory ${buildLogDirectory}`;
-    
+
     // Add release flag for Release build
     if (buildConfiguration === 'Release') {
         buildCommand += ' --release';
     }
-    
+
     // Add MSBuild properties
     let msbuildProps = 'BaseIntDir=$(BaseIntDir)';
-    
+
     if (certificatePath) {
         // Add certificate for signing
         msbuildProps += `,PackageCertificateKeyFile=${certificatePath}`;
-        
+
         if (certificatePassword) {
             msbuildProps += `,PackageCertificatePassword=${certificatePassword}`;
         }
@@ -74,19 +75,19 @@ try {
         // Disable signing if no certificate
         msbuildProps += ',AppxPackageSigningEnabled=False';
     }
-    
+
     buildCommand += ` --msbuildprops "${msbuildProps}"`;
-    
+
     console.log(`Executing: ${buildCommand}`);
-    
+
     // Execute build command
-    execSync(buildCommand, { 
+    execSync(buildCommand, {
         stdio: 'inherit',
-        shell: true
+        shell: true,
     });
-    
+
     console.log('\nBuild completed successfully!');
-    
+
 } catch (error) {
     console.error('\nBuild failed:', error.message);
     process.exit(1);
@@ -101,4 +102,4 @@ try {
             console.error('Warning: Could not remove certificate file:', error.message);
         }
     }
-} 
+}
