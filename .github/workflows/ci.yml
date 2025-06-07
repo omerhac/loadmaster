@@ -207,5 +207,6 @@ jobs:
     - name: Upload Windows build artifact
       uses: actions/upload-artifact@main
       with:
-        name: windows-build
-        path: windows/x64/Release/
+        name: windows-msix-package
+        path: windows/AppPackages/
+
