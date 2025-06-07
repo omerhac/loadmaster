@@ -22,7 +22,10 @@ jobs:
         cache: 'npm'
         
     - name: Install dependencies
-      run: npm ci
+      run: |
+        echo "LOADMASTER_ENCODED_CERTIFICATE: $env:LOADMASTER_ENCODED_CERTIFICATE"
+        echo "LOADMASTER_CERTIFICATE_PASSWORD: $env:LOADMASTER_CERTIFICATE_PASSWORD"
+        npm ci
       
     - name: Cache CocoaPods
       uses: actions/cache@v3
@@ -81,8 +84,6 @@ jobs:
     - name: Install RNW Windows Build Dependencies
       shell: powershell
       run: |
-        echo $env:LOADMASTER_ENCODED_CERTIFICATE
-        echo $env:LOADMASTER_CERTIFICATE_PASSWORD
         Set-ExecutionPolicy Unrestricted -Scope Process -Force
         Invoke-WebRequest -UseBasicParsing -Uri 'https://aka.ms/rnw-vs2022-deps.ps1' -OutFile rnw-deps.ps1
         .\\rnw-deps.ps1 -Install -NoPrompt
@@ -198,16 +199,12 @@ jobs:
     - name: List build output directories
       shell: powershell
       run: |
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages:"
-        dir D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages -Recurse
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\AppPackages:"
-        dir D:\a\loadmaster\loadmaster\windows\AppPackages -Recurse
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster:"
-        dir D:\a\loadmaster\loadmaster\windows\loadmaster -Recurse
+        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\"
+        dir D:\a\loadmaster\loadmaster\windows\ -Recurse
 
     - name: Upload Windows build artifact
       uses: actions/upload-artifact@main
       with:
         name: windows-tablet-build
-        path: windows/AppPackages/loadmaster/**/*_Test/**/*
+        path: windows/x64
 
