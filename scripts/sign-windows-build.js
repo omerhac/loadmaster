@@ -43,7 +43,7 @@ if (encodedCertificate) {
 try {
     console.log('\nBuilding Windows app...');
 
-    let buildCommand = 'npx react-native run-windows --no-packager --no-launch';
+    let buildCommand = 'npx react-native run-windows --no-packager --no-launch --deploy';
 
     // Add deploy option if provided
     if (deployOption) {
