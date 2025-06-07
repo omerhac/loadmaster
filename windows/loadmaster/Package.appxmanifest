@@ -8,7 +8,7 @@
 
   <Identity
     Name="bd48e466-7160-4456-afa1-03e765bfeb51"
-    Publisher="CN=omerhacohen"
+    Publisher="CN=Loadmaster-Internal"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="bd48e466-7160-4456-afa1-03e765bfeb51" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
