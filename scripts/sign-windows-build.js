@@ -63,11 +63,16 @@ try {
 
     // Add MSBuild properties
     let msbuildProps = 'BaseIntDir=$(BaseIntDir)';
+    
+    // Add packaging properties for MSIX creation
+    msbuildProps += ',GenerateAppxPackageOnBuild=true';
+    msbuildProps += ',AppxBundle=Always';
+    msbuildProps += ',AppxBundlePlatforms=x64';
+    msbuildProps += ',AppxPackageDir=windows\\AppPackages\\';
 
     if (certificatePath) {
         // Add certificate for signing
         msbuildProps += `,PackageCertificateKeyFile=${certificatePath}`;
-
         if (certificatePassword) {
             msbuildProps += `,PackageCertificatePassword=${certificatePassword}`;
         }
