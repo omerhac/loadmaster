@@ -1,15 +1,6 @@
 process.env.NODE_ENV = 'test';
 
-/* global jest */
-
-jest.mock('react-native-fs', () => ({
-  DocumentDirectoryPath: '/mock/document/directory',
-  exists: jest.fn().mockResolvedValue(true),
-  copyFileAssets: jest.fn().mockResolvedValue(true),
-  copyFile: jest.fn().mockResolvedValue(true),
-}));
-
-jest.mock('react-native', () => {
+jest.mock('react-native', () => { // eslint-disable-line no-undef
   // Create a platformSpecific store for tests to modify
   const platformMock = {
     OS: 'android',
@@ -18,9 +9,9 @@ jest.mock('react-native', () => {
   return {
     Platform: platformMock,
     StyleSheet: {
-      create: jest.fn(styles => styles),
+      create: jest.fn(styles => styles), // eslint-disable-line no-undef
     },
-    useColorScheme: jest.fn(() => 'light'),
+    useColorScheme: jest.fn(() => 'light'), // eslint-disable-line no-undef
   };
 });
 
