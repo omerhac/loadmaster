@@ -47,7 +47,7 @@ const NewMissionModal: React.FC<NewMissionModalProps> = ({
       <TouchableWithoutFeedback onPress={handleCancel}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
-      
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}

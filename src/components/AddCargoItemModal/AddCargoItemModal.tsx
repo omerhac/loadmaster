@@ -144,7 +144,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
       <TouchableWithoutFeedback onPress={onCancel}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
-      
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}

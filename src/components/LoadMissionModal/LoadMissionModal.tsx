@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   FlatList,
   Alert,
-  StyleSheet,
 } from 'react-native';
 import { Mission } from '../../services/db/operations/types';
 import { getAllMissions } from '../../services/db/operations/MissionOperations';

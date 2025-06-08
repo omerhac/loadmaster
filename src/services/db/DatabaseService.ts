@@ -41,7 +41,7 @@ export class DatabaseFactory {
       console.log('Initializing database instance...');
       console.log('__DEV__:', __DEV__);
       console.log('NODE_ENV:', process.env.NODE_ENV);
-      
+
       if (__DEV__ && process.env.NODE_ENV === 'test') {
         // For Jest tests, we'll use the TestDatabaseService
         console.log('Using TestDatabaseService for test environment');
@@ -95,7 +95,7 @@ export class NativeDatabaseService implements DatabaseInterface {
     if (Platform.OS === 'windows') {
       // Simplified Windows handling - let SQLite handle database creation
       console.log('Windows platform detected - using simplified database initialization');
-      
+
       try {
         // Try to open the database directly - SQLite will create it if it doesn't exist
         const database = await SQLite.openDatabase({
@@ -106,7 +106,7 @@ export class NativeDatabaseService implements DatabaseInterface {
         return database;
       } catch (error) {
         console.log('Windows database open failed, trying alternative approach:', error);
-        
+
         // Fallback: try with explicit path
         try {
           const database = await SQLite.openDatabase({
@@ -118,7 +118,7 @@ export class NativeDatabaseService implements DatabaseInterface {
           return database;
         } catch (fallbackError) {
           console.log('Windows fallback also failed, creating new database:', fallbackError);
-          
+
           // Last resort: create a new empty database
           const database = await SQLite.openDatabase({
             name: this.DATABASE_NAME,

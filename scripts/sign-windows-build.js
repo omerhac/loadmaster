@@ -63,7 +63,7 @@ try {
 
     // Add MSBuild properties
     let msbuildProps = 'BaseIntDir=$(BaseIntDir)';
-    
+
     // // Add packaging properties for MSIX creation
     // msbuildProps += ',UapAppxPackageBuildMode=StoreUpload';
     // msbuildProps += ',AppxBundlePlatforms=x64';

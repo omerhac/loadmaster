@@ -28,14 +28,14 @@ export default async function initAppDatabase() {
         console.log('Initializing database schemas...');
         await initializeLoadmasterDatabase();
         console.log('Database schemas initialized successfully');
-        
+
         // Verify tables were created
         const { DatabaseFactory } = require('./services/db/DatabaseService');
         const db = await DatabaseFactory.getDatabase();
         const tablesResult = await db.executeQuery("SELECT name FROM sqlite_master WHERE type='table';");
         const tableNames = tablesResult.results.map(result => result.data?.name).filter(Boolean);
         console.log('Created tables:', tableNames);
-        
+
         if (tableNames.length === 0) {
             throw new Error('No tables were created during schema initialization');
         }
