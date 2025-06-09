@@ -77,3 +77,13 @@ yarn-error.log
 
 .history/
 venv/
+
+# Certificate files
+*.pfx
+*.cer
+*.p12
+encoded-certificate.txt
+EncodedKey.pfx
+
+# Build logs
+build-logs/

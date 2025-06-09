@@ -20,7 +20,8 @@ jobs:
         cache: 'npm'
         
     - name: Install dependencies
-      run: npm ci
+      run: |
+        npm ci
       
     - name: Cache CocoaPods
       uses: actions/cache@v3
@@ -63,7 +64,10 @@ jobs:
         
   build-and-test-windows:
     runs-on: windows-latest
-    
+    environment: loadmaster
+    env:
+      LOADMASTER_ENCODED_CERTIFICATE: ${{ secrets.LOADMASTER_ENCODED_CERTIFICATE }}
+      LOADMASTER_CERTIFICATE_PASSWORD: ${{ secrets.LOADMASTER_CERTIFICATE_PASSWORD }}
     steps:
     - uses: actions/checkout@v4
     
@@ -74,7 +78,10 @@ jobs:
         cache: 'npm'
         
     - name: Install dependencies
-      run: npm ci
+      run: |
+        echo "LOADMASTER_ENCODED_CERTIFICATE: $env:LOADMASTER_ENCODED_CERTIFICATE"
+        echo "LOADMASTER_CERTIFICATE_PASSWORD: $env:LOADMASTER_CERTIFICATE_PASSWORD"
+        npm ci
       
     - name: Install RNW Windows Build Dependencies
       shell: powershell
@@ -188,22 +195,18 @@ jobs:
 
     - name: Build Windows
       run: |        
-        npx react-native run-windows --no-launch --no-deploy --release
+         npm run windows:build-signed
         
     # List contents of relevant directories to find build artifacts
     - name: List build output directories
       shell: powershell
       run: |
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages:"
-        dir D:\a\loadmaster\loadmaster\windows\loadmaster\AppPackages -Recurse
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\AppPackages:"
-        dir D:\a\loadmaster\loadmaster\windows\AppPackages -Recurse
-        Write-Host "Listing contents of D:\a\loadmaster\loadmaster\windows\loadmaster:"
-        dir D:\a\loadmaster\loadmaster\windows\loadmaster -Recurse
+        Write-Host "Listing contents of windows\x64\Release\"
+        dir windows\x64\Release -Recurse
 
     - name: Upload Windows build artifact
       uses: actions/upload-artifact@main
       with:
-        name: windows-tablet-build
-        path: windows/AppPackages/loadmaster/**/*_Test/**/*
+        name: windows-msix-package
+        path: windows/AppPackages/
 
