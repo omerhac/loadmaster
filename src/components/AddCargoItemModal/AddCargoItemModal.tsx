@@ -45,7 +45,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
       setHeight(initialItem.height.toString());
       setWeight(initialItem.weight.toString());
       setCog(initialItem.cog.toString());
-      setFs(initialItem.fs?.toString() || '0');
+      setFs(initialItem.fs.toString());
     } else {
       setName('');
       setLength('');
@@ -53,7 +53,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
       setHeight('');
       setWeight('');
       setCog('');
-      setFs('0');
+      setFs('0'); // Default to 0 for new items
     }
   }, [initialItem]);
 
@@ -109,7 +109,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     setHeight(preset.height.toString());
     setWeight(preset.weight.toString());
     setCog(preset.cog.toString());
-    setFs(preset.fs?.toString() || '0');
+    setFs(preset.fs.toString());
     setShowPresets(false);
   }, []);
 
@@ -229,7 +229,10 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
                   placeholder="Height"
                 />
               </View>
+            </View>
 
+            {/* Third Row: Weight and FS */}
+            <View style={styles.formRow}>
               <View style={styles.formColumn}>
                 <Text style={styles.label}>Weight (lbs)</Text>
                 <TextInput
@@ -248,12 +251,13 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
                   value={fs}
                   onChangeText={setFs}
                   keyboardType="numeric"
-                  placeholder="Fuselage Station"
+                  placeholder={initialItem?.status === 'onDeck' ? 'Fuselage Station' : '0 (not on deck)'}
+                  editable={initialItem?.status === 'onDeck'}
                 />
               </View>
             </View>
 
-            {/* Third Row: Center of Gravity */}
+            {/* Fourth Row: Center of Gravity */}
             <View style={styles.formRow}>
               <View style={styles.formFullWidth}>
                 <Text style={styles.label}>Center of Gravity (inches from front)</Text>

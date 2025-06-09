@@ -27,6 +27,7 @@ import { getAircraftById } from './src/services/db/operations/AircraftOperations
 import { getMissionById, createMission } from './src/services/db/operations/MissionOperations';
 import { DEFAULT_MISSION_ID, DEFAULT_NEW_MISSION, DEFAULT_Y_POS } from './src/constants';
 import { updateMission } from './src/services/db/operations/MissionOperations';
+import { xPositionToFs, fsToXPosition, updateCargoItemPosition } from './src/utils/cargoUtils';
 
 initAppDatabase();
 
@@ -44,7 +45,8 @@ function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
   const weight = item.weight ?? 0;
   const cog = item.cog ?? 0;
   const cargo_type_id = item.cargo_type_id ?? 1;
-  const fs = Math.round(item.x_start_position + cog);
+  // Only calculate FS for items that are onDeck, otherwise default to 0
+  const fs = status === 'onDeck' ? xPositionToFs(item.x_start_position, cog) : 0;
   return {
     id,
     cargo_type_id,
@@ -70,31 +72,41 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
   }
   const aircraft: Aircraft = (aircraftResponse.results[0].data as Aircraft);
 
-  return {
+  // Helper function to safely convert to number
+  const toNumber = (value: any): number => {
+    if (value === null || value === undefined) {
+      return 0;
+    }
+    const num = Number(value);
+    return isNaN(num) ? 0 : num;
+  };
+
+  const result = {
     id: mission.id.toString(),
-    name: mission.name,
-    date: mission.created_date,
+    name: mission.name || '',
+    date: mission.created_date || new Date().toISOString().split('T')[0],
     departureLocation: 'Nevatim',
     arrivalLocation: 'Ramat David',
-    aircraftIndex: aircraft.empty_mac,
-    crewMembersFront: mission.front_crew_weight,
-    crewMembersBack: mission.back_crew_weight,
+    aircraftIndex: toNumber(aircraft.empty_mac),
+    crewMembersFront: toNumber(mission.front_crew_weight),
+    crewMembersBack: toNumber(mission.back_crew_weight),
     cockpit: 0, // TODO: ??
-    safetyGearWeight: mission.safety_gear_weight,
-    foodWeight: mission.food_weight,
-    etcWeight: mission.etc_weight,
-    configurationWeights: mission.configuration_weights,
+    safetyGearWeight: toNumber(mission.safety_gear_weight),
+    foodWeight: toNumber(mission.food_weight),
+    etcWeight: toNumber(mission.etc_weight),
+    configurationWeights: toNumber(mission.configuration_weights),
     fuelPods: false,
     fuelDistribution: {
-      outbd: mission.outboard_fuel,
-      inbd: mission.inboard_fuel,
-      aux: mission.auxiliary_fuel,
-      ext: mission.external_fuel,
-      fuselage: mission.fuselage_fuel,
+      outbd: toNumber(mission.outboard_fuel),
+      inbd: toNumber(mission.inboard_fuel),
+      aux: toNumber(mission.auxiliary_fuel),
+      ext: toNumber(mission.external_fuel),
+      fuselage: toNumber(mission.fuselage_fuel),
     },
     aircraftId: mission.aircraft_id,
     notes: '',
   };
+  return result;
 }
 
 function App(): React.JSX.Element {
@@ -148,9 +160,9 @@ function App(): React.JSX.Element {
     let x_start_position = -1;
     let y_start_position = -1;
     console.log('item', item);
-    if (item.fs) {
-      // item defined in manual cargo insertion
-      x_start_position = item.fs - item.cog;
+    if (status === 'onDeck' && item.fs > 0) {
+      // item defined in manual cargo insertion or being placed on deck
+      x_start_position = fsToXPosition(item.fs, item.cog);
       y_start_position = DEFAULT_Y_POS;
     }
     let newItem: DbCargoItem = {
@@ -281,7 +293,11 @@ function App(): React.JSX.Element {
         cog: i.cog,
       });
 
-      return { ...i, status, position: newPosition };
+      // Use utility function to update position and sync fs
+      const updatedItem = updateCargoItemPosition(i, newPosition);
+      // Only keep FS for onDeck items, reset to 0 for others
+      const finalFs = status === 'onDeck' ? updatedItem.fs : 0;
+      return { ...updatedItem, status, fs: finalFs };
     }));
   }, [currentMissionId]);
 
@@ -339,12 +355,7 @@ function App(): React.JSX.Element {
     setCurrentView('planning');
   }, []);
 
-  const handleSavePreviewItems = useCallback((items: CargoItem[]) => {
-    setCargoItems(prev => prev.map(item => {
-      const editedItem = items.find(i => i.id === item.id);
-      return editedItem || item;
-    }));
-  }, []);
+
 
   const handleNewMission = useCallback(async (missionName: string) => {
     try {
@@ -444,7 +455,8 @@ function App(): React.JSX.Element {
     preview: (
       <Preview
         items={cargoItems}
-        onSave={handleSavePreviewItems}
+        missionSettings={missionSettings ?? null}
+        missionId={currentMissionId}
         onReturn={() => setCurrentView('planning')}
       />
     ),
