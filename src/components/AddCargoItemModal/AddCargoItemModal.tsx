@@ -229,19 +229,20 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
                   placeholder="Height"
                 />
               </View>
+            </View>
 
-                    <View style={styles.formColumn}>
-                      <Text style={styles.label}>FS</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={fs}
-                        onChangeText={setFs}
-                        keyboardType="numeric"
-                        placeholder={initialItem?.status === 'onDeck' ? "Fuselage Station" : "0 (not on deck)"}
-                        editable={initialItem?.status === 'onDeck'}
-                      />
-                    </View>
-                  </View>
+            {/* Third Row: Weight and FS */}
+            <View style={styles.formRow}>
+              <View style={styles.formColumn}>
+                <Text style={styles.label}>Weight (lbs)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={weight}
+                  onChangeText={setWeight}
+                  keyboardType="numeric"
+                  placeholder="Weight"
+                />
+              </View>
 
               <View style={styles.formColumn}>
                 <Text style={styles.label}>FS</Text>
@@ -250,12 +251,13 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
                   value={fs}
                   onChangeText={setFs}
                   keyboardType="numeric"
-                  placeholder="Fuselage Station"
+                  placeholder={initialItem?.status === 'onDeck' ? 'Fuselage Station' : '0 (not on deck)'}
+                  editable={initialItem?.status === 'onDeck'}
                 />
               </View>
             </View>
 
-            {/* Third Row: Center of Gravity */}
+            {/* Fourth Row: Center of Gravity */}
             <View style={styles.formRow}>
               <View style={styles.formFullWidth}>
                 <Text style={styles.label}>Center of Gravity (inches from front)</Text>

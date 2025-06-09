@@ -46,8 +46,10 @@ const Preview = ({
   // Calculate MAC values when component mounts or mission changes
   useEffect(() => {
     async function calculateMACValues() {
-      if (!missionId) return;
-      
+      if (!missionId) {
+        return;
+      }
+
       setIsLoading(true);
       try {
         // Calculate MAC index for each cargo item
@@ -105,12 +107,16 @@ const Preview = ({
   };
 
   const getMACValidationColor = () => {
-    if (!macValidation) return '#666';
+    if (!macValidation) {
+      return '#666';
+    }
     return macValidation.isValid ? '#28a745' : '#dc3545';
   };
 
   const getMACValidationText = () => {
-    if (!macValidation) return 'Unknown';
+    if (!macValidation) {
+      return 'Unknown';
+    }
     if (macValidation.isValid) {
       return `✓ Valid (${macValidation.minAllowedMac}% - ${macValidation.maxAllowedMac}%)`;
     } else {
@@ -272,14 +278,14 @@ const Preview = ({
                   <Text style={[styles.tableHeaderText, styles.cogColumn]}>CoG</Text>
                   <Text style={[styles.tableHeaderText, styles.macColumn]}>MAC Index</Text>
                 </View>
-                
+
                 {/* Table Rows */}
                 {itemsOnDeck.map((item, index) => (
-                  <View 
-                    key={item.id} 
+                  <View
+                    key={item.id}
                     style={[
-                      styles.tableRow, 
-                      index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd
+                      styles.tableRow,
+                      index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd,
                     ]}
                   >
                     <Text style={[styles.tableCellText, styles.nameColumn]} numberOfLines={2}>

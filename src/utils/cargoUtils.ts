@@ -73,4 +73,5 @@ export function updateCargoItemCog(item: CargoItem, newCog: number): CargoItem {
       x: newXPosition,
     },
   };
-} 
+}
+

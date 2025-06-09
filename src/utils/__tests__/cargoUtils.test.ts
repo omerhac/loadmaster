@@ -47,7 +47,7 @@ describe('cargoUtils', () => {
   describe('updateCargoItemFs', () => {
     it('should update fs and sync x position', () => {
       const result = updateCargoItemFs(mockCargoItem, 300);
-      
+
       expect(result.fs).toBe(300);
       expect(result.position.x).toBe(250); // 300 - 50
       expect(result.position.y).toBe(100); // unchanged
@@ -58,7 +58,7 @@ describe('cargoUtils', () => {
   describe('updateCargoItemXPosition', () => {
     it('should update x position and sync fs', () => {
       const result = updateCargoItemXPosition(mockCargoItem, 150);
-      
+
       expect(result.position.x).toBe(150);
       expect(result.fs).toBe(200); // 150 + 50
       expect(result.position.y).toBe(100); // unchanged
@@ -71,7 +71,7 @@ describe('cargoUtils', () => {
       const onDeckItem = { ...mockCargoItem, status: 'onDeck' as const };
       const newPosition = { x: 175, y: 200 };
       const result = updateCargoItemPosition(onDeckItem, newPosition);
-      
+
       expect(result.position).toEqual(newPosition);
       expect(result.fs).toBe(225); // 175 + 50
       expect(result.cog).toBe(50); // unchanged
@@ -81,7 +81,7 @@ describe('cargoUtils', () => {
       const inventoryItem = { ...mockCargoItem, status: 'inventory' as const };
       const newPosition = { x: 175, y: 200 };
       const result = updateCargoItemPosition(inventoryItem, newPosition);
-      
+
       expect(result.position).toEqual(newPosition);
       expect(result.fs).toBe(0); // Should be 0 for inventory items
       expect(result.cog).toBe(50); // unchanged
@@ -91,7 +91,7 @@ describe('cargoUtils', () => {
       const onDeckItem = { ...mockCargoItem, status: 'onDeck' as const };
       const newPosition = { x: -1, y: 200 };
       const result = updateCargoItemPosition(onDeckItem, newPosition);
-      
+
       expect(result.position).toEqual(newPosition);
       expect(result.fs).toBe(0); // Should be 0 for invalid x position
       expect(result.cog).toBe(50); // unchanged
@@ -101,7 +101,7 @@ describe('cargoUtils', () => {
   describe('updateCargoItemCog', () => {
     it('should update cog and sync x position while keeping fs constant', () => {
       const result = updateCargoItemCog(mockCargoItem, 75);
-      
+
       expect(result.cog).toBe(75);
       expect(result.fs).toBe(250); // unchanged
       expect(result.position.x).toBe(175); // 250 - 75
@@ -113,22 +113,23 @@ describe('cargoUtils', () => {
     it('should maintain consistency when converting back and forth', () => {
       const originalFs = 250;
       const cog = 50;
-      
+
       const xPos = fsToXPosition(originalFs, cog);
       const backToFs = xPositionToFs(xPos, cog);
-      
+
       expect(backToFs).toBe(originalFs);
     });
 
     it('should maintain consistency in cargo item updates', () => {
       const item = mockCargoItem;
-      
+
       // Update fs, then update x position back to original
       const updatedFs = updateCargoItemFs(item, 300);
       const backToOriginal = updateCargoItemXPosition(updatedFs, item.position.x);
-      
+
       expect(backToOriginal.fs).toBe(item.fs);
       expect(backToOriginal.position.x).toBe(item.position.x);
     });
   });
-}); 
+});
+
