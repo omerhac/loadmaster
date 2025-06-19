@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,14 @@ import {
   KeyboardAvoidingView,
   FlatList,
   Alert,
+  Animated,
+  Dimensions,
+  ScrollView,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { CargoItem } from '../../types';
 import { styles } from './AddCargoItemModal.styles';
+import { Portal } from 'react-native-portalize';
 
 interface AddCargoItemModalProps {
   initialItem?: CargoItem;
@@ -21,12 +25,14 @@ interface AddCargoItemModalProps {
   savedPresets?: CargoItem[];
 }
 
-const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
+const SCREEN_WIDTH = Dimensions.get('window').width;
+
+const AddCargoItemModal = React.memo(({
   initialItem,
   onSave,
   onCancel,
   savedPresets = [],
-}) => {
+}: AddCargoItemModalProps) => {
   const [name, setName] = useState('');
   const [length, setLength] = useState<string>('');
   const [width, setWidth] = useState<string>('');
@@ -35,6 +41,8 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
   const [cog, setCog] = useState<string>('');
   const [fs, setFs] = useState<string>('');
   const [showPresets, setShowPresets] = useState(false);
+
+  const slideAnim = useRef(new Animated.Value(SCREEN_WIDTH)).current;
 
   // Set initial values if editing an existing item
   useEffect(() => {
@@ -139,167 +147,133 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     </TouchableOpacity>
   ), [handleLoadPreset]);
 
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 350,
+      useNativeDriver: true,
+    }).start();
+    return () => {
+      Animated.timing(slideAnim, {
+        toValue: SCREEN_WIDTH,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    };
+  }, [slideAnim]);
+
   return (
-    <View style={styles.modalOverlay}>
-      <TouchableWithoutFeedback onPress={onCancel}>
-        <View style={styles.backdrop} />
-      </TouchableWithoutFeedback>
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoidingView}
-      >
-        <View style={styles.modalContent}>
-          <TouchableOpacity style={styles.closeButton} onPress={onCancel}>
-            <Text style={styles.closeButtonText}>×</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.modalTitle}>
-            {initialItem ? 'Edit Item' : 'Add New Item'}
-          </Text>
-
-          {/* Load Preset Button */}
-          <View style={styles.presetContainer}>
-            <TouchableOpacity
-              style={styles.loadPresetButton}
-              onPress={togglePresetDropdown}
-            >
-              <Text style={styles.loadPresetText}>Load Preset</Text>
-            </TouchableOpacity>
-
-            {/* Preset Dropdown */}
-            {showPresets && savedPresets.length > 0 && (
-              <View style={styles.presetDropdown}>
-                <FlatList
-                  data={savedPresets}
-                  keyExtractor={(item) => item.id}
-                  renderItem={renderPresetItem}
-                  style={styles.presetList}
-                />
+    <Portal>
+      <View style={styles.modalOverlay}>
+        <TouchableWithoutFeedback onPress={onCancel}>
+          <View style={styles.backdrop} />
+        </TouchableWithoutFeedback>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoidingView}
+        >
+          <Animated.View
+            style={[
+              styles.animatedModalContent,
+              { transform: [{ translateX: slideAnim }] },
+            ]}
+          >
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+              <TouchableOpacity style={styles.closeButton} onPress={onCancel}>
+                <Text style={styles.closeButtonText}>×</Text>
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>
+                {initialItem ? 'Edit Item' : 'Add New Item'}
+              </Text>
+              {/* Load Preset Button */}
+              <View style={styles.presetContainer}>
+                <TouchableOpacity
+                  style={styles.loadPresetButton}
+                  onPress={togglePresetDropdown}
+                >
+                  <Text style={styles.loadPresetText}>Load Preset</Text>
+                </TouchableOpacity>
+                {/* Preset Dropdown */}
+                {showPresets && savedPresets.length > 0 && (
+                  <View style={styles.presetDropdown}>
+                    <FlatList
+                      data={savedPresets}
+                      keyExtractor={(item) => item.id}
+                      renderItem={renderPresetItem}
+                      style={styles.presetList}
+                    />
+                  </View>
+                )}
               </View>
-            )}
-          </View>
-
-          {/* Compact Form Layout */}
-          <View style={styles.compactFormContainer}>
-            {/* First Row: Name */}
-            <View style={styles.formRow}>
-              <View style={styles.formFullWidth}>
-                <Text style={styles.label}>Name</Text>
-                <TextInput
-                  style={styles.input}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="Item Name"
-                />
-              </View>
-            </View>
-
-            {/* Second Row: Dimensions */}
-            <View style={styles.formRow}>
-              <View style={styles.formColumn}>
-                <Text style={styles.label}>Length (in)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={length}
-                  onChangeText={setLength}
-                  keyboardType="numeric"
-                  placeholder="Length"
-                />
-              </View>
-
-              <View style={styles.formColumn}>
-                <Text style={styles.label}>Width (in)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={width}
-                  onChangeText={setWidth}
-                  keyboardType="numeric"
-                  placeholder="Width"
-                />
-              </View>
-
-              <View style={styles.formColumn}>
-                <Text style={styles.label}>Height (in)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={height}
-                  onChangeText={setHeight}
-                  keyboardType="numeric"
-                  placeholder="Height"
-                />
-              </View>
-            </View>
-
-            {/* Third Row: Weight and FS */}
-            <View style={styles.formRow}>
-              <View style={styles.formColumn}>
-                <Text style={styles.label}>Weight (lbs)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={weight}
-                  onChangeText={setWeight}
-                  keyboardType="numeric"
-                  placeholder="Weight"
-                />
-              </View>
-
-              <View style={styles.formColumn}>
-                <Text style={styles.label}>FS</Text>
-                <TextInput
-                  style={styles.input}
-                  value={fs}
-                  onChangeText={setFs}
-                  keyboardType="numeric"
-                  placeholder={initialItem?.status === 'onDeck' ? 'Fuselage Station' : '0 (not on deck)'}
-                  editable={initialItem?.status === 'onDeck'}
-                />
-              </View>
-            </View>
-
-            {/* Fourth Row: Center of Gravity */}
-            <View style={styles.formRow}>
-              <View style={styles.formFullWidth}>
-                <Text style={styles.label}>Center of Gravity (inches from front)</Text>
-                <View style={styles.cogContainer}>
-                  <Slider
-                    style={styles.slider}
-                    minimumValue={0}
-                    maximumValue={parseFloat(length || '0') > 0 ? parseFloat(length) : 1}
-                    value={parseFloat(cog || '0')}
-                    onValueChange={value => setCog(value.toFixed(1))}
-                    minimumTrackTintColor="#0066cc"
-                    maximumTrackTintColor="#d3d3d3"
-                    thumbTintColor="#0066cc"
-                    disabled={parseFloat(length || '0') <= 0}
-                  />
-                  <TextInput
-                    style={styles.cogInput}
-                    value={cog}
-                    onChangeText={setCog}
-                    keyboardType="numeric"
-                    placeholder="COG"
-                    editable={parseFloat(length || '0') > 0}
-                  />
+              {/* Compact Form Layout */}
+              <View style={styles.compactFormContainer}>
+                {/* First Row: Name */}
+                <View style={styles.formRow}>
+                  <View style={styles.formFullWidth}>
+                    <Text style={styles.label}>Name</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={name}
+                      onChangeText={setName}
+                      placeholder="Item Name"
+                    />
+                  </View>
+                </View>
+                {/* Second Row: Dimensions */}
+                <View style={styles.formRow}>
+                  <View style={styles.formColumnBetter}><Text style={styles.label}>Length (in)</Text><TextInput style={styles.input} value={length} onChangeText={setLength} keyboardType="numeric" placeholder="Length" /></View>
+                  <View style={styles.formColumnBetter}><Text style={styles.label}>Width (in)</Text><TextInput style={styles.input} value={width} onChangeText={setWidth} keyboardType="numeric" placeholder="Width" /></View>
+                  <View style={styles.formColumnBetter}><Text style={styles.label}>Height (in)</Text><TextInput style={styles.input} value={height} onChangeText={setHeight} keyboardType="numeric" placeholder="Height" /></View>
+                </View>
+                {/* Third Row: Weight and FS */}
+                <View style={styles.formRow}>
+                  <View style={styles.formColumnBetter}><Text style={styles.label}>Weight (lbs)</Text><TextInput style={styles.input} value={weight} onChangeText={setWeight} keyboardType="numeric" placeholder="Weight" /></View>
+                  <View style={styles.formColumnBetter}><Text style={styles.label}>FS</Text><TextInput style={styles.input} value={fs} onChangeText={setFs} keyboardType="numeric" placeholder={initialItem?.status === 'onDeck' ? 'Fuselage Station' : '0 (not on deck)'} editable={initialItem?.status === 'onDeck'} /></View>
+                </View>
+                {/* Fourth Row: Center of Gravity */}
+                <View style={styles.formRow}>
+                  <View style={styles.formFullWidth}>
+                    <Text style={styles.label}>Center of Gravity (inches from front)</Text>
+                    <View style={styles.cogContainer}>
+                      <Slider
+                        style={styles.slider}
+                        minimumValue={0}
+                        maximumValue={parseFloat(length || '0') > 0 ? parseFloat(length) : 1}
+                        value={parseFloat(cog || '0')}
+                        onValueChange={value => setCog(value.toFixed(1))}
+                        minimumTrackTintColor="#0066cc"
+                        maximumTrackTintColor="#d3d3d3"
+                        thumbTintColor="#0066cc"
+                        disabled={parseFloat(length || '0') <= 0}
+                      />
+                      <TextInput
+                        style={styles.cogInput}
+                        value={cog}
+                        onChangeText={setCog}
+                        keyboardType="numeric"
+                        placeholder="COG"
+                        editable={parseFloat(length || '0') > 0}
+                      />
+                    </View>
+                  </View>
                 </View>
               </View>
-            </View>
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.saveButton, !isDataValid && styles.saveButtonDisabled]}
-              onPress={handleSubmit}
-              disabled={!isDataValid}
-            >
-              <Text style={styles.saveButtonText}>
-                {initialItem ? 'Update Item' : 'Add Item'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={[styles.saveButton, !isDataValid && styles.saveButtonDisabled]}
+                  onPress={handleSubmit}
+                  disabled={!isDataValid}
+                >
+                  <Text style={styles.saveButtonText}>
+                    {initialItem ? 'Update Item' : 'Add Item'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </Animated.View>
+        </KeyboardAvoidingView>
+      </View>
+    </Portal>
   );
 });
 
