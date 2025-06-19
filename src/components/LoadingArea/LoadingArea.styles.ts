@@ -20,11 +20,13 @@ export const styles = StyleSheet.create({
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    marginTop: 10,
+    // borderTopWidth: 1,
+    // borderTopColor: '#ddd',
+    margin: 5,
     position: 'relative',
     backgroundColor: '#ffffff',
+    borderRadius: 5,
+
   },
   stageHeader: {
     flexDirection: 'row',
@@ -36,7 +38,7 @@ export const styles = StyleSheet.create({
     borderBottomColor: '#ddd',
   },
   stageTitle: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
     color: '#333',
   },

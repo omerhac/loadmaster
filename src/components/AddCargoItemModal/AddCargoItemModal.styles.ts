@@ -13,8 +13,6 @@ export const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
     zIndex: 1000,
   },
   backdrop: {
@@ -26,8 +24,7 @@ export const styles = StyleSheet.create({
   },
   keyboardAvoidingView: {
     width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+    height: '100%',
   },
   modalContent: {
     backgroundColor: '#fff',
@@ -123,8 +120,10 @@ export const styles = StyleSheet.create({
   formRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 15,
     width: '100%',
+    flexWrap: 'wrap',
   },
   formColumn: {
     width: '20%',
@@ -184,5 +183,33 @@ export const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '500',
+  },
+  animatedModalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
+    padding: 24,
+    width: 400,
+    maxWidth: '95%',
+    height: '100%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    right: 0,
+    position: 'absolute',
+    top: 0,
+    overflow: 'hidden',
+  },
+  formColumnBetter: {
+    flex: 1,
+    minWidth: 120,
+    maxWidth: 180,
+    paddingHorizontal: 8,
+    marginBottom: 8,
   },
 });
