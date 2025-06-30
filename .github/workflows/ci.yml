@@ -76,7 +76,8 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        
+    - name: Force portalize to use public npm registry
+      run: echo "react-native-portalize:registry=https://registry.npmjs.org/" >> $GITHUB_WORKSPACE/.npmrc
     - name: Install dependencies
       run: |
         echo "LOADMASTER_ENCODED_CERTIFICATE: $env:LOADMASTER_ENCODED_CERTIFICATE"
