@@ -78,14 +78,14 @@ jobs:
         cache: 'npm'
     - name: Set npm default registry to public
       run: npm config set registry https://registry.npmjs.org/
-    - name: Force portalize to use public npm registry
-      run: echo "react-native-portalize:registry=https://registry.npmjs.org/" >> $GITHUB_WORKSPACE/.npmrc
     - name: Install dependencies
       run: |
         echo "LOADMASTER_ENCODED_CERTIFICATE: $env:LOADMASTER_ENCODED_CERTIFICATE"
         echo "LOADMASTER_CERTIFICATE_PASSWORD: $env:LOADMASTER_CERTIFICATE_PASSWORD"
         npm ci
-      
+    - name: Kill Node processes (Windows)
+      if: runner.os == 'Windows'
+      run: taskkill /F /IM node.exe || true
     - name: Install RNW Windows Build Dependencies
       shell: powershell
       run: |
