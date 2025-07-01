@@ -1,6 +1,7 @@
 // Images
 export const Images = {
   deck: require('../assets/images/deck.jpeg'),
+  mac: require('../assets/images/mac.png'),
 };
 
 // Export the Icon component and IconName type

@@ -9,7 +9,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, View, Platform, Dimensions } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Host } from 'react-native-portalize';
-import { CargoItem, MissionSettings, Position, View as AppView } from './src/types';
+import { CargoItem, MissionSettings, Position } from './src/types';
 import { Aircraft, CargoType as DbCargoType, Mission } from './src/services/db/operations/types';
 import Header from './src/components/Header/Header';
 import Sidebar from './src/components/Sidebar/Sidebar';
@@ -29,6 +29,9 @@ import { getMissionById, createMission } from './src/services/db/operations/Miss
 import { DEFAULT_MISSION_ID, DEFAULT_NEW_MISSION, DEFAULT_Y_POS } from './src/constants';
 import { updateMission } from './src/services/db/operations/MissionOperations';
 import { xPositionToFs, fsToXPosition, updateCargoItemPosition } from './src/utils/cargoUtils';
+import { Graphs } from './src/components/Graphs/Graphs';
+import { Images } from './src/assets';
+import { calculateMACPercent, calculateTotalAircraftWeight } from './src/services/mac';
 
 initAppDatabase();
 
@@ -110,14 +113,18 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
   return result;
 }
 
+type AppViewType = 'settings' | 'planning' | 'preview' | 'graphs';
+
 function App(): React.JSX.Element {
-  const [currentView, setCurrentView] = useState<AppView>('planning');
+  const [currentView, setCurrentView] = useState<AppViewType>('planning');
   const [missionSettings, setMissionSettings] = useState<MissionSettings | null>(null);
   const [cargoItems, setCargoItems] = useState<CargoItem[]>([]);
   const [isLandscape, setIsLandscape] = useState(true);
   const [showNewMissionModal, setShowNewMissionModal] = useState(false);
   const [showLoadMissionModal, setShowLoadMissionModal] = useState(false);
   const [currentMissionId, setCurrentMissionId] = useState<number>(DEFAULT_MISSION_ID);
+  const [macPercent, setMacPercent] = useState<number | null>(null);
+  const [totalWeight, setTotalWeight] = useState<number | null>(null);
 
   useEffect(() => {
     async function getDefaultCargoItems() {
@@ -156,6 +163,22 @@ function App(): React.JSX.Element {
 
     return () => subscription.remove();
   }, []);
+
+  useEffect(() => {
+    if (currentView === 'graphs' && currentMissionId) {
+      (async () => {
+        try {
+          const mac = await calculateMACPercent(currentMissionId);
+          setMacPercent(mac);
+          const weight = await calculateTotalAircraftWeight(currentMissionId);
+          setTotalWeight(weight);
+        } catch (e) {
+          setMacPercent(null);
+          setTotalWeight(null);
+        }
+      })();
+    }
+  }, [currentView, currentMissionId]);
 
   const handleAddItem = useCallback(async (item: CargoItem, status: 'inventory' | 'onStage' | 'onDeck' = 'inventory') => {
     let x_start_position = -1;
@@ -356,8 +379,6 @@ function App(): React.JSX.Element {
     setCurrentView('planning');
   }, []);
 
-
-
   const handleNewMission = useCallback(async (missionName: string) => {
     try {
       let newMission: Mission = DEFAULT_NEW_MISSION;
@@ -415,7 +436,7 @@ function App(): React.JSX.Element {
     setShowLoadMissionModal(false);
   }, []);
 
-  const views = {
+  const views: Record<AppViewType, React.ReactNode> = {
     settings: (
       <MissionSettingsComponent
         settings={missionSettings ?? undefined}
@@ -433,6 +454,7 @@ function App(): React.JSX.Element {
           onPreviewClick={() => setCurrentView('preview')}
           onNewMissionClick={handleNewMissionClick}
           onLoadMissionClick={handleLoadMissionClick}
+          onGraphsClick={() => setCurrentView('graphs')}
         />
         <View style={styles.contentContainer}>
           <Sidebar
@@ -441,7 +463,7 @@ function App(): React.JSX.Element {
             onEditItem={handleEditItem}
             onDeleteItem={handleDeleteItem}
             onDuplicateItem={handleDuplicateItem}
-            onUpdateItemStatus={handleUpdateItemStatus}
+            _onUpdateItemStatus={handleUpdateItemStatus}
             onSaveAsPreset={handleSaveAsPreset}
             onAddToStage={handleAddToStage}
             onRemoveFromStage={handleRemoveFromStage}
@@ -459,6 +481,14 @@ function App(): React.JSX.Element {
         missionSettings={missionSettings ?? null}
         missionId={currentMissionId}
         onReturn={() => setCurrentView('planning')}
+      />
+    ),
+    graphs: (
+      <Graphs
+        macPercent={macPercent ?? 0}
+        weight={totalWeight ?? 0}
+        imageSource={Images.mac}
+        onBack={() => setCurrentView('planning')}
       />
     ),
   };

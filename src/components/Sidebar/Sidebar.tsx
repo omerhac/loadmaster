@@ -37,7 +37,6 @@ type SidebarProps = {
   onEditItem: (item: CargoItem) => void;
   onDeleteItem: (id: string) => void;
   onDuplicateItem: (id: string) => void;
-  onUpdateItemStatus: (id: string, status: Status, position?: Position) => void;
   onSaveAsPreset: (item: CargoItem) => void;
   onAddToStage: (id: string) => void;
   onRemoveFromStage: (id: string) => void;
@@ -49,8 +48,6 @@ const Sidebar = ({
   onEditItem,
   onDeleteItem,
   onDuplicateItem,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onUpdateItemStatus,
   onSaveAsPreset,
   onAddToStage,
   onRemoveFromStage,
