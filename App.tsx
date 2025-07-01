@@ -8,6 +8,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, View, Platform, Dimensions } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Host } from 'react-native-portalize';
 import { CargoItem, MissionSettings, Position, View as AppView } from './src/types';
 import { Aircraft, CargoType as DbCargoType, Mission } from './src/services/db/operations/types';
 import Header from './src/components/Header/Header';
@@ -463,21 +464,23 @@ function App(): React.JSX.Element {
   };
 
   return (
-    <GestureHandlerRootView style={styles.root}>
-      <SafeAreaView style={styles.safeArea}>
-        {views[currentView]}
-        <NewMissionModal
-          visible={showNewMissionModal}
-          onSave={handleNewMission}
-          onCancel={handleCancelNewMission}
-        />
-        <LoadMissionModal
-          visible={showLoadMissionModal}
-          onLoad={handleLoadMission}
-          onCancel={handleCancelLoadMission}
-        />
-      </SafeAreaView>
-    </GestureHandlerRootView>
+    <Host>
+      <GestureHandlerRootView style={styles.root}>
+        <SafeAreaView style={styles.safeArea}>
+          {views[currentView]}
+          <NewMissionModal
+            visible={showNewMissionModal}
+            onSave={handleNewMission}
+            onCancel={handleCancelNewMission}
+          />
+          <LoadMissionModal
+            visible={showLoadMissionModal}
+            onLoad={handleLoadMission}
+            onCancel={handleCancelLoadMission}
+          />
+        </SafeAreaView>
+      </GestureHandlerRootView>
+    </Host>
   );
 }
 
