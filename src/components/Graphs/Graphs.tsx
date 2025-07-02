@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, StyleSheet, Dimensions, Image as RNImage } from 'react-native';
 import { MACGraph } from '../MACGraph/MACGraph';
 
@@ -10,7 +9,7 @@ export type GraphsProps = {
 };
 
 export const Graphs = ({ macPercent, weight, imageSource, onBack }: GraphsProps) => {
-  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const { height: screenHeight } = Dimensions.get('window');
   const resolved = RNImage.resolveAssetSource(imageSource);
   const aspectRatio = resolved.width / resolved.height;
   const displayHeight = screenHeight * 0.7;
@@ -41,4 +40,4 @@ const styles = StyleSheet.create({
   backButton: { fontSize: 16, color: '#007AFF', marginRight: 16, paddingVertical: 4, paddingHorizontal: 8 },
   title: { fontSize: 20, fontWeight: 'bold', marginBottom: 16 },
   graphWrapper: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 0 },
-}); 
+});

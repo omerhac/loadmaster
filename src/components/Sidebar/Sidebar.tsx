@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Platform, Dimensions, Switch, Alert } from 'react-native';
-import { CargoItem, Status, Position } from '../../types';
+import { CargoItem } from '../../types';
 import SidebarItem from '../SidebarItem/SidebarItem';
 import AddCargoItemModal from '../AddCargoItemModal/AddCargoItemModal';
 import { styles } from './Sidebar.styles';
