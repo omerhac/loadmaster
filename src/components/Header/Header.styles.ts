@@ -24,4 +24,23 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
+  headerButtons: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+  },
+  graphsButton: {
+    marginLeft: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    // backgroundColor: '#444',
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  graphsButtonText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
 });

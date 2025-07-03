@@ -8,6 +8,7 @@ import {
   SettingsIcon,
   PreviewIcon,
   BurgerMenuIcon,
+  GraphIcon,
 } from '../icons';
 import { styles } from './Header.styles';
 
@@ -16,9 +17,10 @@ interface HeaderProps {
   onPreviewClick: () => void;
   onNewMissionClick: () => void;
   onLoadMissionClick: () => void;
+  onGraphsClick: () => void;
 }
 
-const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick }: HeaderProps) => {
+const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onGraphsClick }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const menuItems = [
@@ -65,6 +67,8 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
   return (
     <View style={styles.header}>
       <Text style={styles.title}>Loadmaster</Text>
+      <View style={styles.headerButtons}>
+
       <TouchableOpacity
         style={styles.burgerButton}
         onPress={() => setIsMenuOpen(!isMenuOpen)}
@@ -77,6 +81,10 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
           position={{ top: 45, right: 0 }}
         />
       </TouchableOpacity>
+      <TouchableOpacity style={styles.graphsButton} onPress={onGraphsClick}>
+        <GraphIcon />
+      </TouchableOpacity>
+      </View>
     </View>
   );
 };

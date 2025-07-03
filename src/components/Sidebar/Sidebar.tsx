@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Platform, Dimensions, Switch, Alert } from 'react-native';
-import { CargoItem, Status, Position } from '../../types';
+import { CargoItem } from '../../types';
 import SidebarItem from '../SidebarItem/SidebarItem';
 import AddCargoItemModal from '../AddCargoItemModal/AddCargoItemModal';
 import { styles } from './Sidebar.styles';
@@ -37,7 +37,6 @@ type SidebarProps = {
   onEditItem: (item: CargoItem) => void;
   onDeleteItem: (id: string) => void;
   onDuplicateItem: (id: string) => void;
-  onUpdateItemStatus: (id: string, status: Status, position?: Position) => void;
   onSaveAsPreset: (item: CargoItem) => void;
   onAddToStage: (id: string) => void;
   onRemoveFromStage: (id: string) => void;
@@ -49,8 +48,6 @@ const Sidebar = ({
   onEditItem,
   onDeleteItem,
   onDuplicateItem,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onUpdateItemStatus,
   onSaveAsPreset,
   onAddToStage,
   onRemoveFromStage,
@@ -160,7 +157,7 @@ const Sidebar = ({
     ]}>
       <View style={styles.sortContainer}>
         <View style={styles.sortHeader}>
-          <Text style={styles.sortLabel}>Sort by:</Text>
+          <Text style={styles.sortLabel}>Show loaded:</Text>
           <View style={styles.switchRow}>
             <Switch
               style={styles.switchStyle}
@@ -169,7 +166,6 @@ const Sidebar = ({
               trackColor={{ false: '#b3b3b3', true: '#0066cc' }}
               thumbColor={showLoadedItems ? '#ffffff' : '#f4f3f4'}
             />
-            <Text style={styles.toggleLabel}>Show loaded</Text>
           </View>
         </View>
         <View style={styles.sortControls}>
