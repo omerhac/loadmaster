@@ -36,7 +36,7 @@ export const Graphs = ({ macPercent, weight, imageSource, onBack }: GraphsProps)
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', backgroundColor: '#fff', paddingVertical: 8 },
-  header: { width: '100%', flexDirection: 'row', alignItems: 'center', marginBottom: 16, paddingHorizontal: 16 },
+  header: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingHorizontal: 16 },
   backButton: { fontSize: 16, color: '#007AFF', marginRight: 16, paddingVertical: 4, paddingHorizontal: 8 },
   title: { fontSize: 20, fontWeight: 'bold', marginBottom: 16 },
   graphWrapper: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 0 },

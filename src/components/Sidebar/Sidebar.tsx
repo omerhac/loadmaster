@@ -157,7 +157,7 @@ const Sidebar = ({
     ]}>
       <View style={styles.sortContainer}>
         <View style={styles.sortHeader}>
-          <Text style={styles.sortLabel}>Sort by:</Text>
+          <Text style={styles.sortLabel}>Show loaded:</Text>
           <View style={styles.switchRow}>
             <Switch
               style={styles.switchStyle}
@@ -166,7 +166,6 @@ const Sidebar = ({
               trackColor={{ false: '#b3b3b3', true: '#0066cc' }}
               thumbColor={showLoadedItems ? '#ffffff' : '#f4f3f4'}
             />
-            <Text style={styles.toggleLabel}>Show loaded</Text>
           </View>
         </View>
         <View style={styles.sortControls}>

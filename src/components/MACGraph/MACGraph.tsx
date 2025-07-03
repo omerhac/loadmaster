@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, ImageBackground, StyleSheet, ImageSourcePropType, Text, Platform } from 'react-native';
 
 export type MACGraphProps = {
