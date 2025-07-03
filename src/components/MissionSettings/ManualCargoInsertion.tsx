@@ -112,7 +112,7 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
             placeholderTextColor="#999"
           />
         </View>
-        <View style={[styles.inputGroup, { flex: 1 }]}> 
+        <View style={[styles.inputGroup, { flex: 1 }]}>
           <Text style={styles.labelSmall}>Dock:</Text>
           <TouchableOpacity
             style={[styles.addButton, { backgroundColor: '#555', height: 32, width: '100%' }]}

@@ -7,7 +7,7 @@ import { styles } from './Sidebar.styles';
 import { getAllCargoTypes } from '../../services/db/operations/CargoTypeOperations';
 import { CargoType as DbCargoType } from '../../services/db/operations/types';
 
-type SortOption = 'none' | 'name' | 'weight' | 'dimensions' | 'status';
+// type SortOption = 'none' | 'name' | 'weight' | 'dimensions' | 'status';
 
 const generateId = () => {
   return Math.random().toString(36).substring(2, 15) +
@@ -28,6 +28,7 @@ function convertDbCargoTypeToCargoItem(dbCargoType: DbCargoType): CargoItem {
     cog,
     fs: 0, // Default to 0 for inventory items
     position: { x: -1, y: -1 },
+    dock: 'CoG',
   };
 }
 
@@ -55,9 +56,9 @@ const Sidebar = ({
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<CargoItem | null>(null);
   const [savedPresets, setSavedPresets] = useState<CargoItem[]>([]);
-  const [sortBy, setSortBy] = useState<SortOption>('none');
+  // const [sortBy, setSortBy] = useState<SortOption>('none');
   const [showLoadedItems, setShowLoadedItems] = useState(true);
-  const [reverseSort, setReverseSort] = useState(false);
+  // const [reverseSort, setReverseSort] = useState(false);
 
   const isIpad = Platform.OS === 'ios' && Platform.isPad;
   const isWindows = Platform.OS === 'windows';
@@ -81,32 +82,32 @@ const Sidebar = ({
     );
 
     // Sort items based on selected criterion
-    if (sortBy !== 'none') {
-      filtered = [...filtered].sort((a, b) => {
-        switch (sortBy) {
-          case 'name':
-            return a.name.localeCompare(b.name);
-          case 'weight':
-            return a.weight - b.weight;
-          case 'dimensions':
-            const aVolume = a.length * a.width * a.height;
-            const bVolume = b.length * b.width * b.height;
-            return aVolume - bVolume;
-          case 'status':
-            return a.status.localeCompare(b.status);
-          default:
-            return 0;
-        }
-      });
+    // if (sortBy !== 'none') {
+    //   filtered = [...filtered].sort((a, b) => {
+    //     switch (sortBy) {
+    //       case 'name':
+    //         return a.name.localeCompare(b.name);
+    //       case 'weight':
+    //         return a.weight - b.weight;
+    //       case 'dimensions':
+    //         const aVolume = a.length * a.width * a.height;
+    //         const bVolume = b.length * b.width * b.height;
+    //         return aVolume - bVolume;
+    //       case 'status':
+    //         return a.status.localeCompare(b.status);
+    //       default:
+    //         return 0;
+    //     }
+    //   });
 
-      // Reverse the sort order if needed
-      if (reverseSort) {
-        filtered.reverse();
-      }
-    }
+    //   // Reverse the sort order if needed
+    //   if (reverseSort) {
+    //     filtered.reverse();
+    //   }
+    // }
 
     return filtered;
-  }, [items, sortBy, showLoadedItems, reverseSort]);
+  }, [items, showLoadedItems]);
 
   const filteredItems = sortAndFilterItems();
 
