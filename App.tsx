@@ -63,7 +63,7 @@ function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
     status,
     position,
     fs,
-    dock: 'CoG', // Always provide a dock value (default)
+    dock: 'CoG',
   };
 }
 

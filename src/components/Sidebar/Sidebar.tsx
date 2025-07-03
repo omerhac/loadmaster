@@ -168,7 +168,7 @@ const Sidebar = ({
             />
           </View>
         </View>
-        <View style={styles.sortControls}>
+        {/* <View style={styles.sortControls}>
           <TouchableOpacity
             style={styles.sortSelect}
             onPress={() => {
@@ -193,7 +193,7 @@ const Sidebar = ({
           >
             <Text style={styles.sortDirectionText}>{reverseSort ? '↑' : '↓'}</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
 
       <ScrollView style={styles.itemsList}>
