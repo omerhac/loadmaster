@@ -17,7 +17,8 @@ const DEFAULT_DIMENSIONS = {
   height: 50,
 };
 
-
+const DOCK_OPTIONS = ['Front', 'Back', 'CoG'] as const;
+type DockType = typeof DOCK_OPTIONS[number];
 
 const calculateChange = (_fs: number, _weight: number): number => {
   // Will be implemented later, returning 0 for now
@@ -39,6 +40,13 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
   const [fs, setFs] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [weight, setWeight] = useState<string>('');
+  const [dock, setDock] = useState<DockType>('CoG');
+
+  const handleToggleDock = () => {
+    const currentIndex = DOCK_OPTIONS.indexOf(dock);
+    const nextIndex = (currentIndex + 1) % DOCK_OPTIONS.length;
+    setDock(DOCK_OPTIONS[nextIndex]);
+  };
 
   const handleAddCargoItem = () => {
     if (!fs || !name || !weight) { return; }
@@ -70,6 +78,7 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
       cog,
       status: 'onDeck',
       position: calculatePosition(parsedFs, cog),
+      dock: dock,
     };
 
     onAddCargoItem?.(newItem, 'onDeck');
@@ -78,6 +87,7 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
     setFs('');
     setName('');
     setWeight('');
+    setDock('CoG');
   };
 
   const handleRemoveItem = (id: string) => {
@@ -86,7 +96,6 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
       onRemoveItem(id);
     }
   };
-
 
   return (
     <View style={styles.formGroup}>
@@ -103,7 +112,15 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
             placeholderTextColor="#999"
           />
         </View>
-
+        <View style={[styles.inputGroup, { flex: 1 }]}> 
+          <Text style={styles.labelSmall}>Dock:</Text>
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: '#555', height: 32, width: '100%' }]}
+            onPress={handleToggleDock}
+          >
+            <Text style={styles.addButtonText}>{dock}</Text>
+          </TouchableOpacity>
+        </View>
         <View style={[styles.inputGroup, { flex: 1.5 }]}>
           <Text style={styles.labelSmall}>Cargo Name:</Text>
           <TextInput
@@ -126,6 +143,7 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
             placeholderTextColor="#999"
           />
         </View>
+
         <TouchableOpacity
           style={styles.addButton}
           onPress={handleAddCargoItem}
@@ -134,7 +152,6 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
         </TouchableOpacity>
       </View>
 
-
       {cargoItems.length > 0 && (
         <View style={styles.cargoList}>
           <View style={styles.tableContainer}>
@@ -142,6 +159,9 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
             <View style={styles.tableRow}>
               <View style={[styles.tableCell, { flex: 0.8 }]}>
                 <Text style={styles.tableHeaderText}>FS</Text>
+              </View>
+              <View style={[styles.tableCell, { flex: 1 }]}>
+                <Text style={styles.tableHeaderText}>Dock</Text>
               </View>
               <View style={[styles.tableCell, { flex: 2 }]}>
                 <Text style={styles.tableHeaderText}>Name</Text>
@@ -170,6 +190,9 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
                   <View key={item.id} style={styles.tableRow}>
                     <View style={[styles.tableCell, { flex: 0.8 }]}>
                       <Text style={styles.tableCellText}>{item.fs}</Text>
+                    </View>
+                    <View style={[styles.tableCell, { flex: 1 }]}>
+                        <Text>{item.dock || 'CoG'}</Text>
                     </View>
                     <View style={[styles.tableCell, { flex: 2 }]}>
                       <Text style={styles.tableCellText}>{item.name}</Text>
