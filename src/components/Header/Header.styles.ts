@@ -32,7 +32,7 @@ export const styles = StyleSheet.create({
     marginLeft: 12,
     paddingVertical: 6,
     paddingHorizontal: 14,
-    backgroundColor: '#444',
+    // backgroundColor: '#444',
     borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',

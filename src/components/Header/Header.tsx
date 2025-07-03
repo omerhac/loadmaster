@@ -8,6 +8,7 @@ import {
   SettingsIcon,
   PreviewIcon,
   BurgerMenuIcon,
+  GraphIcon,
 } from '../icons';
 import { styles } from './Header.styles';
 
@@ -81,7 +82,7 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
         />
       </TouchableOpacity>
       <TouchableOpacity style={styles.graphsButton} onPress={onGraphsClick}>
-        <Text style={styles.graphsButtonText}>Graphs</Text>
+        <GraphIcon />
       </TouchableOpacity>
       </View>
     </View>
