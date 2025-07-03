@@ -63,6 +63,7 @@ function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
     status,
     position,
     fs,
+    dock: 'CoG',
   };
 }
 
@@ -208,7 +209,10 @@ function App(): React.JSX.Element {
       const response = await createCargoItem(newItem);
       if (response && response.results && response.results.length > 0) {
         newItem.id = response.results[0].lastInsertId;
-        const newItemForState = convertDbCargoItemToCargoItem(newItem);
+        const newItemForState = {
+          ...convertDbCargoItemToCargoItem(newItem),
+          dock: item.dock || 'CoG', // preserve dock from input item
+        };
         setCargoItems(prev => [...prev, newItemForState]);
       } else {
         console.error('Failed to add cargo item: Invalid response from createCargoItem', response);
@@ -463,7 +467,6 @@ function App(): React.JSX.Element {
             onEditItem={handleEditItem}
             onDeleteItem={handleDeleteItem}
             onDuplicateItem={handleDuplicateItem}
-            _onUpdateItemStatus={handleUpdateItemStatus}
             onSaveAsPreset={handleSaveAsPreset}
             onAddToStage={handleAddToStage}
             onRemoveFromStage={handleRemoveFromStage}

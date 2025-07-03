@@ -20,19 +20,20 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   sortContainer: {
-    padding: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderBottomWidth: 1,
+    backgroundColor: '#ddd',
     borderBottomColor: '#ddd',
   },
   sortHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-evenly',
     alignItems: 'center',
-    marginBottom: 4,
+    // marginBottom: 4,
   },
   sortLabel: {
     fontSize: 12,
-    fontWeight: '500',
   },
   switchRow: {
     flexDirection: 'row',
@@ -110,6 +111,7 @@ export const styles = StyleSheet.create({
     padding: 6,
     borderTopWidth: 1,
     borderTopColor: '#ddd',
+    backgroundColor: '#ddd',
   },
   addButton: {
     backgroundColor: '#0066cc',
