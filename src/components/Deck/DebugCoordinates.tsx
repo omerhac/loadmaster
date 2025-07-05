@@ -24,9 +24,9 @@ const DebugCoordinates: React.FC<DebugCoordinatesProps> = ({ corners }) => {
   };
 
   const formatCoordinate = (coord: Position) => {
-    // Round to 2 decimal places
-    const x = Math.round(coord.x * 100) / 100;
-    const y = Math.round(coord.y * 100) / 100;
+    // Round to 1 decimal place
+    const x = Math.round(coord.x * 10) / 10;
+    const y = Math.round(coord.y * 10) / 10;
     return `(${x}, ${y})`;
   };
 
@@ -36,7 +36,7 @@ const DebugCoordinates: React.FC<DebugCoordinatesProps> = ({ corners }) => {
         <Text
           key={key}
 
-          style={[styles.coordLabel, labelStyles[key], { fontSize: 5 }]}
+          style={[styles.coordLabel, labelStyles[key], { fontSize: 8 }]}
         >
           {formatCoordinate(coord)}
         </Text>
