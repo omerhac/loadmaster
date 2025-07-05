@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useCallback } from 'react';
+import React, { useRef, useState } from 'react';
 import { Text, TouchableOpacity, PanResponder, Animated } from 'react-native';
 import { CargoItem, Position } from '../../types';
 import { styles } from './Deck.styles';
@@ -23,8 +23,38 @@ const LOADING_AREA_RELATIVE_WIDTH_IN_IMAGE = 0.9376669635;
 // from fs_250 to fs_849
 const LOADING_AREA_WIDTH_IN_INCHES = 599;
 
+const DECK_IMAGE_ASPECT_RATIO = 2.649;
+
+function calculateActualImageBounds(containerSize: { width: number; height: number }) {
+  const containerAspectRatio = containerSize.width / containerSize.height;
+
+  let actualWidth, actualHeight, offsetX, offsetY;
+
+  if (containerAspectRatio > DECK_IMAGE_ASPECT_RATIO) {
+    // Container is wider than image - letterboxing on left/right
+    actualHeight = containerSize.height;
+    actualWidth = actualHeight * DECK_IMAGE_ASPECT_RATIO;
+    offsetX = (containerSize.width - actualWidth) / 2;
+    offsetY = 0;
+  } else {
+    // Container is taller than image - letterboxing on top/bottom
+    actualWidth = containerSize.width;
+    actualHeight = actualWidth / DECK_IMAGE_ASPECT_RATIO;
+    offsetX = 0;
+    offsetY = (containerSize.height - actualHeight) / 2;
+  }
+
+  return {
+    width: actualWidth,
+    height: actualHeight,
+    offsetX,
+    offsetY,
+  };
+}
+
 function convertPixelToInchesSize(sizeInPixel: number, deckSize: { width: number; height: number }) {
-  const loadingAreaPixelWidth = deckSize.width * LOADING_AREA_RELATIVE_WIDTH_IN_IMAGE;
+  const actualBounds = calculateActualImageBounds(deckSize);
+  const loadingAreaPixelWidth = actualBounds.width * LOADING_AREA_RELATIVE_WIDTH_IN_IMAGE;
   const relativeSize = sizeInPixel / loadingAreaPixelWidth;
   return relativeSize * LOADING_AREA_WIDTH_IN_INCHES;
 }
@@ -43,7 +73,8 @@ function convertPixelCornersToInchesCorners(cornersInPixel: { [key: string]: { x
 }
 
 function convertInchesToPixelSize(inches: number, deckSize: { width: number; height: number }) {
-  const loadingAreaPixelWidth = deckSize.width * LOADING_AREA_RELATIVE_WIDTH_IN_IMAGE;
+  const actualBounds = calculateActualImageBounds(deckSize);
+  const loadingAreaPixelWidth = actualBounds.width * LOADING_AREA_RELATIVE_WIDTH_IN_IMAGE;
   const relativeSize = inches / LOADING_AREA_WIDTH_IN_INCHES;
   return relativeSize * loadingAreaPixelWidth;
 }
@@ -76,7 +107,7 @@ const DeckItem: React.FC<DeckItemProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragPosition, setDragPosition] = useState<Position | null>(null);
   const scale = useRef(new Animated.Value(1)).current;
-  
+
   // Store all changing values in refs to keep them accessible to PanResponder
   const itemRef = useRef(item);
   const deckSizeRef = useRef(deckSize);
@@ -93,18 +124,21 @@ const DeckItem: React.FC<DeckItemProps> = ({
 
   const itemPixelWidth = convertInchesToPixelSize(item.width, deckSize);
   const itemPixelHeight = convertInchesToPixelSize(item.length, deckSize);
-  const FS_250_INCHES_OFFSET = convertPixelToInchesSize(FS_250_PIXEL_RELATIVE_OFFSET * deckSize.width, deckSize);
+  const actualBounds = calculateActualImageBounds(deckSize);
+  const FS_250_INCHES_OFFSET = convertPixelToInchesSize(FS_250_PIXEL_RELATIVE_OFFSET * actualBounds.width, deckSize);
 
   const canonicalizePosition = (position: Position) => {
-    const offset = convertPixelToInchesSize(FS_250_PIXEL_RELATIVE_OFFSET * deckSizeRef.current.width, deckSizeRef.current);
+    const currActualBounds = calculateActualImageBounds(deckSizeRef.current);
+    const offset = convertPixelToInchesSize(currActualBounds.offsetX + (FS_250_PIXEL_RELATIVE_OFFSET * currActualBounds.width), deckSizeRef.current);
     return {
       x: position.x - offset + 250,
       y: position.y,
     };
   };
-  
+
   const uncanonicalizePosition = (position: Position) => {
-    const offset = convertPixelToInchesSize(FS_250_PIXEL_RELATIVE_OFFSET * deckSizeRef.current.width, deckSizeRef.current);
+    const currActualBounds = calculateActualImageBounds(deckSizeRef.current);
+    const offset = convertPixelToInchesSize(currActualBounds.offsetX + (FS_250_PIXEL_RELATIVE_OFFSET * currActualBounds.width), deckSizeRef.current);
     return {
       x: position.x + offset - 250,
       y: position.y,
@@ -116,72 +150,81 @@ const DeckItem: React.FC<DeckItemProps> = ({
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
-      
+
       onPanResponderGrant: (_e, gs) => {
         console.log('=== DRAG START ===');
         const currentItem = itemRef.current;
         const currentDeckOffset = deckOffsetRef.current;
-        
+
         console.log('Current item position:', currentItem.position);
         console.log('Touch coordinates:', { x0: gs.x0, y0: gs.y0 });
-        
+
         setIsDragging(true);
-        
+
         // Calculate finger offset from item's top-left corner
         const px0 = gs.x0 - currentDeckOffset.x;
         const py0 = gs.y0 - currentDeckOffset.y;
         const itemPixelPos = uncanonicalizePosition(currentItem.position);
-        
+
         fingerOffsetRef.current = {
           x: px0 - itemPixelPos.x,
-          y: py0 - itemPixelPos.y
+          y: py0 - itemPixelPos.y,
         };
-        
+
         console.log('Finger offset:', fingerOffsetRef.current);
       },
-      
+
       onPanResponderMove: (_e, gs) => {
         const currentDeckOffset = deckOffsetRef.current;
         const currentDeckSize = deckSizeRef.current;
         const currentItem = itemRef.current;
-        
-        // Calculate new position
+
+        // Calculate actual image bounds within container
+        const currActualBounds = calculateActualImageBounds(currentDeckSize);
+
+        // Calculate new position relative to the container
         const px = gs.moveX - currentDeckOffset.x - fingerOffsetRef.current.x;
         const py = gs.moveY - currentDeckOffset.y - fingerOffsetRef.current.y;
-        
-        // Apply bounds
-        const fs_250_pixel_offset = currentDeckSize.width * FS_250_PIXEL_RELATIVE_OFFSET;
-        const fs_849_pixel_offset = currentDeckSize.width * FS_849_PIXEL_RELATIVE_OFFSET;
-        const deck_y_top_bound = currentDeckSize.height * DECK_Y_TOP_BOUND_RELATIVE_OFFSET;
-        const deck_y_bottom_bound = currentDeckSize.height * DECK_Y_BOTTOM_BOUND_RELATIVE_OFFSET;
-        
+
+        // Apply bounds based on actual image position and size
+        const fs_250_pixel_offset = currActualBounds.offsetX + (currActualBounds.width * FS_250_PIXEL_RELATIVE_OFFSET);
+        const fs_849_pixel_offset = currActualBounds.width * FS_849_PIXEL_RELATIVE_OFFSET;
+        const deck_y_top_bound = currActualBounds.offsetY + (currActualBounds.height * DECK_Y_TOP_BOUND_RELATIVE_OFFSET);
+        const deck_y_bottom_bound = currActualBounds.height * DECK_Y_BOTTOM_BOUND_RELATIVE_OFFSET;
+
         const itemWidth = convertInchesToPixelSize(currentItem.width, currentDeckSize);
         const itemHeight = convertInchesToPixelSize(currentItem.length, currentDeckSize);
-        
-        const clampedX = Math.max(fs_250_pixel_offset, Math.min(px, currentDeckSize.width - itemWidth - fs_849_pixel_offset));
-        const clampedY = Math.max(deck_y_top_bound, Math.min(py, currentDeckSize.height - itemHeight - deck_y_bottom_bound));
-        
+
+        const clampedX = Math.max(
+          fs_250_pixel_offset,
+          Math.min(px, currActualBounds.offsetX + currActualBounds.width - itemWidth - fs_849_pixel_offset)
+        );
+        const clampedY = Math.max(
+          deck_y_top_bound,
+          Math.min(py, currActualBounds.offsetY + currActualBounds.height - itemHeight - deck_y_bottom_bound)
+        );
+
         const newPos = { x: clampedX, y: clampedY };
         currentDragPositionRef.current = newPos;
         setDragPosition(newPos);
       },
-      
+
       onPanResponderRelease: () => {
         console.log('=== DRAG RELEASE ===');
         const currentItem = itemRef.current;
         const finalPixelPos = currentDragPositionRef.current ?? uncanonicalizePosition(currentItem.position);
         const finalCanonicalPos = canonicalizePosition(finalPixelPos);
-        
+
         console.log('Final pixel position:', finalPixelPos);
         console.log('Final canonical position:', finalCanonicalPos);
-        
+
         setIsDragging(false);
         setDragPosition(null);
         currentDragPositionRef.current = null;
-        
+
         onUpdateItemStatusRef.current(currentItem.id, 'onDeck', finalCanonicalPos);
       },
-      
+
       onPanResponderTerminate: () => {
         console.log('=== DRAG TERMINATED ===');
         setIsDragging(false);
@@ -199,7 +242,7 @@ const DeckItem: React.FC<DeckItemProps> = ({
   const currentPosition = dragPosition ?? uncanonicalizePosition(item.position);
   console.log('Current position (for rendering):', currentPosition);
   console.log('Is dragging:', isDragging);
-  
+
   // compute the corners of the item in the deck coordinate system
   // (convert from pixel space to deck space and then to canonical deck space)
   const pixelCorners = {
