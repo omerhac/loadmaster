@@ -38,7 +38,7 @@ const Deck: React.FC<DeckProps> = React.memo(({
       <ImageBackground
         source={Images.deck}
         style={styles.deck}
-        resizeMode="cover"
+        resizeMode="contain"
       >
         {deckItems.map((item) => (
           <DeckItem

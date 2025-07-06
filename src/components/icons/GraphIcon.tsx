@@ -8,4 +8,4 @@ const GraphIcon = () => (
   </Svg>
 );
 
-export default GraphIcon; 
+export default GraphIcon;
