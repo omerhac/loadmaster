@@ -36,7 +36,6 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
   const [height, setHeight] = useState<string>('');
   const [weight, setWeight] = useState<string>('');
   const [cog, setCog] = useState<string>('');
-  const [fs, setFs] = useState<string>('');
   const [showPresets, setShowPresets] = useState(false);
   const [slideAnim] = useState(new Animated.Value(0));
 
@@ -49,7 +48,6 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
       setHeight(initialItem.height.toString());
       setWeight(initialItem.weight.toString());
       setCog(initialItem.cog.toString());
-      setFs(initialItem.fs.toString());
     } else {
       setName('');
       setLength('');
@@ -57,7 +55,6 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
       setHeight('');
       setWeight('');
       setCog('');
-      setFs('0'); // Default to 0 for new items
     }
   }, [initialItem]);
 
@@ -86,24 +83,24 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
 
     const cogValue = parseFloat(cog || '0');
     const lengthValue = parseFloat(length);
-    const fsValue = parseFloat(fs || '0');
 
     const itemToSave: CargoItem = {
       id: initialItem?.id || '',
       name,
-      cargo_type_id: initialItem?.cargo_type_id || 1, // TODO: add cargo type id
-      length: lengthValue,
+      cargo_type_id: initialItem?.cargo_type_id || 1,
+      length: parseFloat(length),
       width: parseFloat(width),
       height: parseFloat(height),
       weight: parseFloat(weight),
       cog: cogValue > 0 ? cogValue : lengthValue / 2, // Default to half length if not set
-      fs: fsValue,
+      fs: initialItem?.fs ?? 0, // keep previous FS, but not editable here
+      dock: initialItem?.dock ?? 'CoG',
       status: initialItem?.status || 'inventory',
       position: initialItem?.position || { x: -1, y: -1 },
     };
 
     onSave(itemToSave);
-  }, [name, length, width, height, weight, cog, fs, initialItem, isDataValid, onSave]);
+  }, [name, length, width, height, weight, cog, initialItem, isDataValid, onSave]);
 
   // Handle loading a preset
   const handleLoadPreset = useCallback((preset: CargoItem) => {
@@ -113,7 +110,6 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     setHeight(preset.height.toString());
     setWeight(preset.weight.toString());
     setCog(preset.cog.toString());
-    setFs(preset.fs.toString());
     setShowPresets(false);
   }, []);
 
@@ -200,16 +196,12 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
                     />
                   </View>
                 </View>
-                {/* Second Row: Dimensions */}
+                {/* Second Row: Dimensions and Weight */}
                 <View style={styles.formRow}>
                   <View style={styles.formColumnBetter}><Text style={styles.label}>Length (in)</Text><TextInput style={styles.input} value={length} onChangeText={setLength} keyboardType="numeric" placeholder="Length" /></View>
                   <View style={styles.formColumnBetter}><Text style={styles.label}>Width (in)</Text><TextInput style={styles.input} value={width} onChangeText={setWidth} keyboardType="numeric" placeholder="Width" /></View>
                   <View style={styles.formColumnBetter}><Text style={styles.label}>Height (in)</Text><TextInput style={styles.input} value={height} onChangeText={setHeight} keyboardType="numeric" placeholder="Height" /></View>
-                </View>
-                {/* Third Row: Weight and FS */}
-                <View style={styles.formRow}>
                   <View style={styles.formColumnBetter}><Text style={styles.label}>Weight (lbs)</Text><TextInput style={styles.input} value={weight} onChangeText={setWeight} keyboardType="numeric" placeholder="Weight" /></View>
-                  <View style={styles.formColumnBetter}><Text style={styles.label}>FS</Text><TextInput style={styles.input} value={fs} onChangeText={setFs} keyboardType="numeric" placeholder={initialItem?.status === 'onDeck' ? 'Fuselage Station' : '0 (not on deck)'} editable={initialItem?.status === 'onDeck'} /></View>
                 </View>
                 {/* Fourth Row: Center of Gravity */}
                 <View style={styles.formRow}>

@@ -223,23 +223,47 @@ function App(): React.JSX.Element {
   }, [currentMissionId]);
 
   const handleEditItem = useCallback((item: CargoItem) => {
-    setCargoItems(prev => prev.map(i => i.id === item.id ? item : i));
-    updateCargoItem({
-      id: parseInt(item.id, 10),
-      status: item.status,
-      x_start_position: item.position.x,
-      y_start_position: item.position.y,
-      mission_id: currentMissionId,
-      cargo_type_id: item.cargo_type_id,
-      name: item.name,
-      weight: item.weight,
-      length: item.length,
-      width: item.width,
-      height: item.height,
-      forward_overhang: 0, // TODO: Add forward overhang
-      back_overhang: 0, // TODO: Add back overhang
-      cog: item.cog,
-    });
+    setCargoItems(prev => prev.map(i => {
+      if (i.id !== item.id) return i;
+      // If FS changed, update position.x accordingly
+      if (i.fs !== item.fs) {
+        const updatedItem = updateCargoItemPosition({ ...i, ...item }, { ...i.position, x: fsToXPosition(item.fs, i.cog) });
+        updateCargoItem({
+          id: parseInt(item.id, 10),
+          status: updatedItem.status,
+          x_start_position: updatedItem.position.x,
+          y_start_position: updatedItem.position.y,
+          mission_id: currentMissionId,
+          cargo_type_id: updatedItem.cargo_type_id,
+          name: updatedItem.name,
+          weight: updatedItem.weight,
+          length: updatedItem.length,
+          width: updatedItem.width,
+          height: updatedItem.height,
+          forward_overhang: 0,
+          back_overhang: 0,
+          cog: updatedItem.cog,
+        });
+        return updatedItem;
+      }
+      updateCargoItem({
+        id: parseInt(item.id, 10),
+        status: item.status,
+        x_start_position: item.position.x,
+        y_start_position: item.position.y,
+        mission_id: currentMissionId,
+        cargo_type_id: item.cargo_type_id,
+        name: item.name,
+        weight: item.weight,
+        length: item.length,
+        width: item.width,
+        height: item.height,
+        forward_overhang: 0,
+        back_overhang: 0,
+        cog: item.cog,
+      });
+      return item;
+    }));
   }, [currentMissionId]);
 
   const handleDeleteItem = useCallback((id: string) => {
@@ -474,6 +498,7 @@ function App(): React.JSX.Element {
           <LoadingArea
             items={cargoItems}
             onUpdateItemStatus={handleUpdateItemStatus}
+            onEditItem={handleEditItem}
           />
         </View>
       </View>
