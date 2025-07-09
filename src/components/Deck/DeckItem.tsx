@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { Text, TouchableOpacity, PanResponder, Animated } from 'react-native';
+import { Text, TouchableOpacity, PanResponder, Animated, TextInput, View } from 'react-native';
 import { CargoItem, Position } from '../../types';
 import { styles } from './Deck.styles';
 import DebugCoordinates, { SHOW_DEBUG_COORDS } from './DebugCoordinates';
+import { PencilIcon } from '../icons';
 
 // the offset of the "start loading from here position" relative to
 // the deck image width (from deck start)
@@ -24,6 +25,10 @@ const LOADING_AREA_RELATIVE_WIDTH_IN_IMAGE = 0.9376669635;
 const LOADING_AREA_WIDTH_IN_INCHES = 599;
 
 const DECK_IMAGE_ASPECT_RATIO = 2.649;
+
+const DOCK_OPTIONS = ['Back', 'CoG', 'Front'] as const;
+type DockType = typeof DOCK_OPTIONS[number];
+const DOCK_DISPLAY_MAP: Record<DockType, string> = { Back: 'B', CoG: 'C', Front: 'F' };
 
 function calculateActualImageBounds(containerSize: { width: number; height: number }) {
   const containerAspectRatio = containerSize.width / containerSize.height;
@@ -89,6 +94,7 @@ interface DeckItemProps {
   onRemove?: (id: string) => void;
   // the callback to update the item status
   onUpdateItemStatus: (id: string, status: 'onStage' | 'onDeck' | 'inventory', position: { x: number, y: number }) => void;
+  onEditItem?: (item: CargoItem) => void;
 }
 
 const DeckItem: React.FC<DeckItemProps> = ({
@@ -97,6 +103,7 @@ const DeckItem: React.FC<DeckItemProps> = ({
   deckOffset,
   onRemove,
   onUpdateItemStatus,
+  onEditItem,
 }) => {
   console.log('=== DeckItem RENDER ===');
   console.log('Item ID:', item.id);
@@ -107,6 +114,9 @@ const DeckItem: React.FC<DeckItemProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragPosition, setDragPosition] = useState<Position | null>(null);
   const scale = useRef(new Animated.Value(1)).current;
+  const [isFsEditVisible, setIsFsEditVisible] = useState(false);
+  const [fsInput, setFsInput] = useState(item.fs.toString());
+  const [dockInput, setDockInput] = useState<DockType>(item.dock || 'CoG');
 
   // Store all changing values in refs to keep them accessible to PanResponder
   const itemRef = useRef(item);
@@ -260,49 +270,114 @@ const DeckItem: React.FC<DeckItemProps> = ({
   console.log('Dropped canonical inches corners:', { corners: canonicalInchesCorners });
 
   return (
-    <Animated.View
-      {...panResponder.panHandlers}
-      style={[
-        styles.cargoItem,
-        {
-          width: itemPixelWidth,
-          height: itemPixelHeight,
-          left: currentPosition.x,
-          top: currentPosition.y,
-          transform: [{ scale }],
-        },
-        isSelected && styles.selectedItem,
-        isDragging && styles.draggingItem,
-      ]}
-    >
-      <TouchableOpacity
-        style={styles.itemContentContainer}
-        onPress={() => !isDragging && setIsSelected(!isSelected)}
-        activeOpacity={0.8}
-        disabled={isDragging}
+    <>
+      <Animated.View
+        {...panResponder.panHandlers}
+        style={[
+          styles.cargoItem,
+          {
+            width: itemPixelWidth,
+            height: itemPixelHeight,
+            left: currentPosition.x,
+            top: currentPosition.y,
+            transform: [{ scale }],
+          },
+          isSelected && styles.selectedItem,
+          isDragging && styles.draggingItem,
+        ]}
       >
-        <Text style={styles.itemName}>{item.name}</Text>
-        {isSelected && !isDragging && onRemove && (
-          <TouchableOpacity
-            style={styles.removeButton}
-            onPress={() => { onRemove(item.id); setIsSelected(false); }}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={styles.removeButtonText}>×</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.itemContentContainer}
+          onPress={() => !isDragging && setIsSelected(!isSelected)}
+          activeOpacity={0.8}
+          disabled={isDragging}
+        >
+          <Text style={styles.itemName}>{item.name}</Text>
+          {isSelected && !isDragging && (
+            <>
+              {onRemove && (
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => { onRemove(item.id); setIsSelected(false); }}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Text style={styles.removeButtonText}>×</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => {
+                  setIsFsEditVisible(true);
+                  setFsInput(item.fs.toString());
+                  setDockInput(item.dock || 'CoG');
+                }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <PencilIcon />
+              </TouchableOpacity>
+            </>
+          )}
+        </TouchableOpacity>
+        {isFsEditVisible && (
+          <View style={styles.fsEditPopover}>
+            <View style={styles.fsAndDockContainer}>
+              <TextInput
+                style={styles.fsEditInput}
+                value={fsInput}
+                onChangeText={setFsInput}
+                keyboardType="numeric"
+                placeholder="FS"
+                placeholderTextColor="#aaa"
+                autoFocus
+              />
+              <TouchableOpacity
+                style={[styles.dockOption, styles.dockOptionSingle]}
+                onPress={() => {
+                  const currentIndex = DOCK_OPTIONS.indexOf(dockInput);
+                  const nextIndex = (currentIndex + 1) % DOCK_OPTIONS.length;
+                  setDockInput(DOCK_OPTIONS[nextIndex]);
+                }}
+              >
+                <Text style={[
+                  styles.dockOptionText,
+                  styles.dockOptionTextSelected,
+                ]}>{DOCK_DISPLAY_MAP[dockInput]}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.fsOkCancelContainer}>
+              <TouchableOpacity
+                style={styles.fsEditConfirm}
+                onPress={() => {
+                  const newFs = parseInt(fsInput, 10);
+                  if (!isNaN(newFs) && onEditItem) {
+                    onEditItem({ ...item, fs: newFs, dock: dockInput });
+                  }
+                  // Do NOT close the popover here
+                }}
+              >
+                <Text style={styles.fsEditConfirmText}>Apply</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.fsEditCancel}
+                onPress={() => setIsFsEditVisible(false)}
+              >
+                <Text style={styles.fsEditCancelText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
-      </TouchableOpacity>
-      {SHOW_DEBUG_COORDS && (
-        <DebugCoordinates
-          corners={{
-            topLeft: canonicalInchesCorners.topLeft,
-            topRight: canonicalInchesCorners.topRight,
-            bottomLeft: canonicalInchesCorners.bottomLeft,
-            bottomRight: canonicalInchesCorners.bottomRight,
-          }}
-        />
-      )}
-    </Animated.View>
+        {!SHOW_DEBUG_COORDS && (
+          <DebugCoordinates
+            corners={{
+              topLeft: canonicalInchesCorners.topLeft,
+              topRight: canonicalInchesCorners.topRight,
+              bottomLeft: canonicalInchesCorners.bottomLeft,
+              bottomRight: canonicalInchesCorners.bottomRight,
+            }}
+          />
+        )}
+      </Animated.View>
+    </>
   );
 };
 

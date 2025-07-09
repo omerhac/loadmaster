@@ -8,9 +8,10 @@ import { styles } from './LoadingArea.styles';
 interface LoadingAreaProps {
   items: CargoItem[];
   onUpdateItemStatus: (id: string, status: 'onStage' | 'onDeck' | 'inventory', position?: { x: number, y: number }) => void;
+  onEditItem: (item: CargoItem) => void;
 }
 
-const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateItemStatus }) => {
+const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateItemStatus, onEditItem }) => {
   const isIpad = Platform.OS === 'ios' && Platform.isPad;
   const isWindows = Platform.OS === 'windows';
   const isTablet = isIpad || isWindows || (Platform.OS === 'android' && Dimensions.get('window').width > 900);
@@ -44,6 +45,10 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
     return () => clearTimeout(timer);
   }, []);
 
+  const handleEditItem = useCallback((updatedItem: CargoItem) => {
+    onEditItem(updatedItem);
+  }, [onEditItem]);
+
   // Calculate styles based on device properties
   const containerStyle = useMemo(() => [
     styles.loadingArea,
@@ -56,7 +61,6 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
     items.filter(item => item.status === 'onStage'),
     [items]
   );
-  const stageItemCount = stageItems.length;
 
   // Handle adding an item to the stage
   const handleAddToStage = useCallback((id: string) => {
@@ -117,13 +121,14 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
           deckOffset={{ x: deckMeasurements.x, y: deckMeasurements.y }}
           onRemoveFromDeck={handleRemoveFromDeck}
           onUpdateItemStatus={onUpdateItemStatus}
+          onEditItem={handleEditItem}
         />
       </View>
 
       <View style={styles.stageAreaContainer}>
         <View style={styles.stageHeader}>
           <Text style={styles.stageTitle}>Stage Area</Text>
-          <Text style={styles.stageItemCount}>{stageItemCount} items</Text>
+          <Text style={styles.stageItemCount}>{stageItems.length} items</Text>
         </View>
 
         <Stage
