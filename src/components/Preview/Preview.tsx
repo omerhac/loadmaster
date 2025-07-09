@@ -202,12 +202,8 @@ const Preview = ({
             <Text style={styles.sectionTitle}>Crew & Configuration</Text>
             <View style={styles.detailsGrid}>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Front Crew Weight:</Text>
-                <Text style={styles.detailValue}>{missionSettings.crewMembersFront} lbs</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Back Crew Weight:</Text>
-                <Text style={styles.detailValue}>{missionSettings.crewMembersBack} lbs</Text>
+                <Text style={styles.detailLabel}>Loadmasters:</Text>
+                <Text style={styles.detailValue}>{missionSettings.loadmasters} ({missionSettings.loadmastersFs} FS)</Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Safety Gear Weight:</Text>

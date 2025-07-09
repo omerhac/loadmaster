@@ -45,8 +45,8 @@ export type MissionSettings = {
     departureLocation: string;
     arrivalLocation: string;
     aircraftIndex: number;
-    crewMembersFront: number;
-    crewMembersBack: number;
+    loadmasters: number;
+    loadmastersFs: number;
     cockpit: number;
     safetyGearWeight: number;
     fuelPods: boolean;

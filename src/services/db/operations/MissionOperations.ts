@@ -13,7 +13,7 @@ export async function createMission(mission: Mission): Promise<DatabaseResponse>
   const db = await DatabaseFactory.getDatabase();
   const sql = `
     INSERT INTO mission (
-      name, created_date, modified_date, front_crew_weight, back_crew_weight,
+      name, created_date, modified_date, loadmasters, loadmasters_fs,
       configuration_weights, crew_gear_weight, food_weight,
       safety_gear_weight, etc_weight, outboard_fuel, inboard_fuel,
       fuselage_fuel, auxiliary_fuel, external_fuel, aircraft_id
@@ -24,8 +24,8 @@ export async function createMission(mission: Mission): Promise<DatabaseResponse>
     mission.name,
     mission.created_date,
     mission.modified_date,
-    mission.front_crew_weight,
-    mission.back_crew_weight,
+    mission.loadmasters,
+    mission.loadmasters_fs,
     mission.configuration_weights,
     mission.crew_gear_weight,
     mission.food_weight,
@@ -76,7 +76,7 @@ export async function updateMission(mission: Mission): Promise<DatabaseResponse>
   const sql = `
     UPDATE mission
     SET name = ?, modified_date = ?,
-        front_crew_weight = ?, back_crew_weight = ?, configuration_weights = ?,
+        loadmasters = ?, loadmasters_fs = ?, configuration_weights = ?,
         crew_gear_weight = ?, food_weight = ?, safety_gear_weight = ?,
         etc_weight = ?, outboard_fuel = ?, inboard_fuel = ?,
         fuselage_fuel = ?, auxiliary_fuel = ?, external_fuel = ?, aircraft_id = ?
@@ -85,8 +85,8 @@ export async function updateMission(mission: Mission): Promise<DatabaseResponse>
   return db.executeQuery(sql, [
     mission.name,
     mission.modified_date,
-    mission.front_crew_weight,
-    mission.back_crew_weight,
+    mission.loadmasters,
+    mission.loadmasters_fs,
     mission.configuration_weights,
     mission.crew_gear_weight,
     mission.food_weight,

@@ -93,8 +93,8 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
     departureLocation: 'Nevatim',
     arrivalLocation: 'Ramat David',
     aircraftIndex: toNumber(aircraft.empty_mac),
-    crewMembersFront: toNumber(mission.front_crew_weight),
-    crewMembersBack: toNumber(mission.back_crew_weight),
+    loadmasters: toNumber(mission.loadmasters),
+    loadmastersFs: toNumber(mission.loadmasters_fs),
     cockpit: 0, // TODO: ??
     safetyGearWeight: toNumber(mission.safety_gear_weight),
     foodWeight: toNumber(mission.food_weight),
@@ -382,15 +382,14 @@ function App(): React.JSX.Element {
 
   const handleMissionSave = useCallback((settings: MissionSettings) => {
     setMissionSettings(settings);
-
     const mission: Mission = {
       id: parseInt(settings.id, 10),
       name: settings.name,
       created_date: settings.date,
       modified_date: new Date().toISOString(),
-      front_crew_weight: settings.crewMembersFront,
-      back_crew_weight: settings.crewMembersBack,
-      configuration_weights: settings.cockpit,
+      loadmasters: settings.loadmasters,
+      loadmasters_fs: settings.loadmastersFs,
+      configuration_weights: settings.configurationWeights,
       crew_gear_weight: settings.safetyGearWeight,
       food_weight: settings.foodWeight,
       safety_gear_weight: settings.safetyGearWeight,
@@ -403,7 +402,6 @@ function App(): React.JSX.Element {
       aircraft_id: settings.aircraftId,
     };
     updateMission(mission);
-    // TODO: support updating aircraft empty MAC%
     setCurrentView('planning');
   }, []);
 

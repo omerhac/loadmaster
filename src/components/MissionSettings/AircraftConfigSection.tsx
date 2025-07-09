@@ -6,8 +6,8 @@ import { FuelDistribution } from '../../types';
 
 interface AircraftConfigSectionProps {
   aircraftIndex: string;
-  crewMembersFront: number;
-  crewMembersBack: number;
+  loadmasters: number;
+  loadmastersFs: number;
   cockpit: number;
   safetyGearWeight: number;
   fuelPods: boolean;
@@ -17,8 +17,8 @@ interface AircraftConfigSectionProps {
 
 const AircraftConfigSection = ({
   aircraftIndex,
-  crewMembersFront,
-  crewMembersBack,
+  loadmasters,
+  loadmastersFs,
   cockpit,
   safetyGearWeight,
   fuelPods,
@@ -50,23 +50,22 @@ const AircraftConfigSection = ({
 
       <View style={styles.inputRow}>
         <View style={styles.inputGroup}>
-          <Text style={styles.labelSmall}>Crew Front:</Text>
+          <Text style={styles.labelSmall}>Loadmasters:</Text>
           <TextInput
             style={styles.numberInput}
-            value={crewMembersFront.toString()}
-            onChangeText={(value) => handleNumericChange('crewMembersFront', value)}
+            value={loadmasters.toString()}
+            onChangeText={(value) => handleNumericChange('loadmasters', value)}
             keyboardType="numeric"
             placeholder="0"
             placeholderTextColor="#999"
           />
         </View>
-
         <View style={styles.inputGroup}>
-          <Text style={styles.labelSmall}>Crew Back:</Text>
+          <Text style={styles.labelSmall}>Loadmasters FS:</Text>
           <TextInput
             style={styles.numberInput}
-            value={crewMembersBack.toString()}
-            onChangeText={(value) => handleNumericChange('crewMembersBack', value)}
+            value={loadmastersFs.toString()}
+            onChangeText={(value) => handleNumericChange('loadmastersFs', value)}
             keyboardType="numeric"
             placeholder="0"
             placeholderTextColor="#999"
