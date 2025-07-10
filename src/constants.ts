@@ -11,13 +11,15 @@ export const DEFAULT_BACK_CREW_WEIGHT = 500;
 export const DEFAULT_CONFIGURATION_WEIGHTS = 500;
 export const DEFAULT_CREW_GEAR_WEIGHT = 300;
 export const DEFAULT_FOOD_WEIGHT = 200;
-export const DEFAULT_SAFETY_GEAR_WEIGHT = 150;
+export const DEFAULT_SAFETY_GEAR_WEIGHT = 250;
 export const DEFAULT_ETC_WEIGHT = 100;
 export const DEFAULT_OUTBOARD_FUEL = 1000;
 export const DEFAULT_INBOARD_FUEL = 2000;
 export const DEFAULT_FUSELAGE_FUEL = 1500;
 export const DEFAULT_AUXILIARY_FUEL = 500;
 export const DEFAULT_EXTERNAL_FUEL = 800;
+export const DEFAULT_OTHERS_WEIGHT = 0;
+export const DEFAULT_OTHERS_FS = 0;
 export const DEFAULT_NEW_MISSION: Mission = {
   id: DEFAULT_MISSION_ID,
   name: 'New Mission',
@@ -35,5 +37,7 @@ export const DEFAULT_NEW_MISSION: Mission = {
   fuselage_fuel: DEFAULT_FUSELAGE_FUEL,
   auxiliary_fuel: DEFAULT_AUXILIARY_FUEL,
   external_fuel: DEFAULT_EXTERNAL_FUEL,
+  others: DEFAULT_OTHERS_WEIGHT,
+  othersFs: DEFAULT_OTHERS_FS,
   aircraft_id: DEFAULT_AIRCRAFT_ID,
 };

@@ -33,6 +33,8 @@ export interface Mission {
   fuselage_fuel: number;
   auxiliary_fuel: number;
   external_fuel: number;
+  others: number;
+  othersFs: number;
   aircraft_id: number;
 }
 

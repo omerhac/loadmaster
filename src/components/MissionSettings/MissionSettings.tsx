@@ -49,6 +49,8 @@ const DEFAULT_MISSION_SETTINGS: MissionSettings = {
   },
   aircraftId: DEFAULT_AIRCRAFT_ID,
   notes: '',
+  others: 0,
+  othersFs: 0,
 };
 
 interface MissionSettingsProps {
@@ -136,6 +138,8 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
           fuelPods={formData.fuelPods}
           fuelDistribution={formData.fuelDistribution}
           onChange={handleChange}
+          others={formData.others}
+          othersFs={formData.othersFs}
         />
 
         <ManualCargoInsertion

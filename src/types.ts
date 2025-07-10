@@ -56,4 +56,6 @@ export type MissionSettings = {
     etcWeight: number;
     foodWeight: number;
     configurationWeights: number;
+    others: number;
+    othersFs: number;
 }

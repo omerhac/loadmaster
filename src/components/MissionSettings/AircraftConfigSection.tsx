@@ -13,6 +13,8 @@ interface AircraftConfigSectionProps {
   fuelPods: boolean;
   fuelDistribution: FuelDistribution;
   onChange: (name: string, value: string | number | boolean) => void;
+  others: number;
+  othersFs: number;
 }
 
 const AircraftConfigSection = ({
@@ -24,6 +26,8 @@ const AircraftConfigSection = ({
   fuelPods,
   fuelDistribution,
   onChange,
+  others,
+  othersFs,
 }: AircraftConfigSectionProps) => {
   const handleTextChange = useCallback((name: string, value: string) => {
     onChange(name, value);
@@ -96,6 +100,27 @@ const AircraftConfigSection = ({
             keyboardType="numeric"
             placeholder="250"
             placeholderTextColor="#999"
+          />
+        </View>
+      </View>
+
+      <View style={styles.inputRow}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.labelSmall}>Others:</Text>
+          <TextInput
+            style={styles.numberInput}
+            keyboardType="numeric"
+            value={(others ?? 0).toString()}
+            onChangeText={text => onChange('others', Number(text))}
+          />
+        </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.labelSmall}>Others FS:</Text>
+          <TextInput
+            style={styles.numberInput}
+            keyboardType="numeric"
+            value={(othersFs ?? 0).toString()}
+            onChangeText={text => onChange('othersFs', Number(text))}
           />
         </View>
       </View>
