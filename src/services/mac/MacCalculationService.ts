@@ -13,6 +13,7 @@ import {
   getAircraftById,
   findClosestFuelMacConfiguration,
 } from '../db/operations';
+import { DEFAULT_LOADMASTER_WEIGHT } from '../../constants';
 
 /**
  * Calculates the MAC percentage for a given mission
@@ -141,9 +142,8 @@ export async function calculateAdditionalWeightsMACIndex(missionId: number): Pro
   let totalAdditionalMAC = 0;
 
   // Crew weight
-  // TODO: split front and back crew weight into two different stations
-  totalAdditionalMAC += (CREW_STATION - 533.46) * mission.front_crew_weight / 50000;
-  totalAdditionalMAC += (CREW_STATION - 533.46) * mission.back_crew_weight / 50000;
+  const loadmasters_weight = mission.loadmasters * DEFAULT_LOADMASTER_WEIGHT;
+  totalAdditionalMAC += (CREW_STATION - 533.46) * loadmasters_weight / 50000;
 
   // Configuration weights
   totalAdditionalMAC += (CONFIG_STATION - 533.46) * mission.configuration_weights / 50000;
@@ -209,9 +209,9 @@ export async function calculateTotalAircraftWeight(missionId: number): Promise<n
                          mission.external_fuel;
 
   // 6. Sum all weights to get gross weight
+  const loadmasters_weight = mission.loadmasters * DEFAULT_LOADMASTER_WEIGHT;
   const grossWeight = aircraft.empty_weight +
-                      mission.front_crew_weight +
-                      mission.back_crew_weight +
+                      loadmasters_weight +
                       mission.configuration_weights +
                       mission.crew_gear_weight +
                       mission.food_weight +

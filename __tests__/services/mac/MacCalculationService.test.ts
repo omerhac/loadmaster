@@ -151,7 +151,7 @@ describe('MAC Calculation Service', () => {
       const SAFETY_GEAR_STATION = 510.0;
       const ETC_STATION = 490.0;
 
-      // Crew weight: front_crew_weight + back_crew_weight = 500 + 500 = 1000
+      // Crew weight: loadmasters * DEFAULT_LOADMASTER_WEIGHT = 2 * 100 = 200
       // Config weights: 500
       // Crew gear weight: 300
       // Food weight: 200
@@ -159,7 +159,7 @@ describe('MAC Calculation Service', () => {
       // ETC weight: 100
 
       // Calculate each component
-      const crewComponent = (CREW_STATION - 533.46) * 1000 / 50000;
+      const crewComponent = (CREW_STATION - 533.46) * 200 / 50000;
       const configComponent = (CONFIG_STATION - 533.46) * 500 / 50000;
       const crewGearComponent = (CREW_GEAR_STATION - 533.46) * 300 / 50000;
       const foodComponent = (FOOD_STATION - 533.46) * 200 / 50000;
@@ -184,13 +184,13 @@ describe('MAC Calculation Service', () => {
 
       // Expected value: aircraft.empty_weight + all additional weights + cargo weight + fuel weight
       // aircraft.empty_weight = 75000
-      // front_crew_weight = 500, back_crew_weight = 500, configuration_weights = 500, crew_gear_weight = 300,
+      // loadmasters_weight = 200, configuration_weights = 500, crew_gear_weight = 300,
       // food_weight = 200, safety_gear_weight = 150, etc_weight = 100
       // cargo weight = 2000
       // fuel weight = 10000 (2500 * 4 fuel tanks)
-      // Total = 75000 + 500 + 500 + 500 + 300 + 200 + 150 + 100 + 2000 + 10000 = 89250
+      // Total = 75000 + 200 + 500 + 300 + 200 + 150 + 100 + 2000 + 10000 = 88450
 
-      expect(totalWeight).toBeCloseTo(89250, 1);
+      expect(totalWeight).toBeCloseTo(88450, 1);
     });
 
     it('should throw an error for non-existent mission', async () => {
@@ -295,7 +295,7 @@ describe('MAC Calculation Service', () => {
 
       // Step 2: Calculate additional weights MAC contribution
       // Using these station values:
-      // CREW_STATION = 450.0, crew_weight = 1000
+      // CREW_STATION = 450.0, crew_weight = 200
       // CONFIG_STATION = 500.0, configuration_weights = 500
       // CREW_GEAR_STATION = 520.0, crew_gear_weight = 300
       // FOOD_STATION = 480.0, food_weight = 200
@@ -303,13 +303,13 @@ describe('MAC Calculation Service', () => {
       // ETC_STATION = 490.0, etc_weight = 100
 
       // Each weight's contribution = (station - 533.46) * weight / 50000
-      // Crew: (450 - 533.46) * 1000 / 50000 = -1.6692
+      // Crew: (450 - 533.46) * 200 / 50000 = -0.33384
       // Config: (500 - 533.46) * 500 / 50000 = -0.3346
       // Crew Gear: (520 - 533.46) * 300 / 50000 = -0.08076
       // Food: (480 - 533.46) * 200 / 50000 = -0.21384
       // Safety: (510 - 533.46) * 150 / 50000 = -0.07038
       // ETC: (490 - 533.46) * 100 / 50000 = -0.08692
-      // Total Additional Weights MAC = -2.4557
+      // Total Additional Weights MAC = -1.12034
 
       // Step 3: Calculate fuel MAC contribution
       // Using the mission's fuel values (2500 each for 4 tanks) with our fuel MAC configuration: 11.5
@@ -319,20 +319,17 @@ describe('MAC Calculation Service', () => {
 
       // Step 5: Calculate total MAC index
       // Total MAC index = Cargo MAC + Additional Weights MAC + Fuel MAC + Empty Aircraft MAC
-      // Total MAC index = -1.2384 + (-2.4557) + 11.5 + 84 = 91.8059
+      // Total MAC index = -1.2384 + (-1.12034) + 11.5 + 84 = 93.14126
 
       // Step 6: Calculate aircraft CG
-      // Total Weight = aircraft.empty_weight + all weights + cargo + fuel
-      //               = 75000 + 500 + 500 + 500 + 300 + 200 + 150 + 100 + 2000 + 10000 = 89250
-      // CG = (totalIndex - 100) * 50000 / totalWeight + 533.46
-      // CG = (91.8059 - 100) * 50000 / 89250 + 533.46 = 528.87
+      // Total Weight = 88450
+      // CG = (93.14126 - 100) * 50000 / 88450 + 533.46 = 529.47
 
       // Step 7: Calculate MAC percentage
-      // MAC percent = (CG - 487.4) * 100 / 164.5
-      // MAC percent = (528.87 - 487.4) * 100 / 164.5 = 25.21
+      // MAC percent = (529.47 - 487.4) * 100 / 164.5 = 25.6
 
       // Verify the result is close to the calculated value
-      expect(macPercent).toBeCloseTo(25.21, 1);
+      expect(macPercent).toBeCloseTo(25.6, 1);
 
       // Also verify it's a valid number
       expect(macPercent).toBeDefined();
