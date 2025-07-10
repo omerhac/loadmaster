@@ -37,8 +37,8 @@ describe('Fuel Operations', () => {
       name: 'Fuel Test Mission',
       created_date: new Date().toISOString(),
       modified_date: new Date().toISOString(),
-      front_crew_weight: 400,
-      back_crew_weight: 400,
+      loadmasters: 2,
+      loadmasters_fs: 500,
       configuration_weights: 150,
       crew_gear_weight: 200,
       food_weight: 100,
@@ -52,8 +52,7 @@ describe('Fuel Operations', () => {
       aircraft_id: aircraftId,
     };
 
-    const missionResult = await createMission(mission);
-    missionId = missionResult.results[0].lastInsertId as number;
+    await createMission(mission);
   });
 
   afterAll(() => {
