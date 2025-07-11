@@ -9,4 +9,4 @@ const PencilIcon = () => (
   </Svg>
 );
 
-export default PencilIcon; 
+export default PencilIcon;

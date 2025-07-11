@@ -18,9 +18,11 @@ interface HeaderProps {
   onNewMissionClick: () => void;
   onLoadMissionClick: () => void;
   onGraphsClick: () => void;
+  macPercent?: number | null;
+  totalWeight?: number | null;
 }
 
-const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onGraphsClick }: HeaderProps) => {
+const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onGraphsClick, macPercent, totalWeight }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const menuItems = [
@@ -67,6 +69,20 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
   return (
     <View style={styles.header}>
       <Text style={styles.title}>Loadmaster</Text>
+      <View style={styles.metricsContainer}>
+        {macPercent !== null && macPercent !== undefined && (
+          <View style={[styles.metricContainer, styles.firstMetric]}>
+            <Text style={styles.metricLabel}>MAC%</Text>
+            <Text style={styles.metricValue}>{macPercent.toFixed(1)}%</Text>
+          </View>
+        )}
+        {totalWeight !== null && totalWeight !== undefined && (
+          <View style={styles.metricContainer}>
+            <Text style={styles.metricLabel}>GROSS WEIGHT</Text>
+            <Text style={styles.metricValue}>{totalWeight.toFixed(0)} kg</Text>
+          </View>
+        )}
+      </View>
       <View style={styles.headerButtons}>
 
       <TouchableOpacity

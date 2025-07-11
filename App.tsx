@@ -166,7 +166,7 @@ function App(): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (currentView === 'graphs' && currentMissionId) {
+    if ((currentView === 'graphs' || currentView === 'planning') && currentMissionId) {
       (async () => {
         try {
           const mac = await calculateMACPercent(currentMissionId);
@@ -179,7 +179,7 @@ function App(): React.JSX.Element {
         }
       })();
     }
-  }, [currentView, currentMissionId]);
+  }, [currentView, currentMissionId, cargoItems]);
 
   const handleAddItem = useCallback(async (item: CargoItem, status: 'inventory' | 'onStage' | 'onDeck' = 'inventory') => {
     let x_start_position = -1;
@@ -224,7 +224,7 @@ function App(): React.JSX.Element {
 
   const handleEditItem = useCallback((item: CargoItem) => {
     setCargoItems(prev => prev.map(i => {
-      if (i.id !== item.id) return i;
+      if (i.id !== item.id) {return i;}
       // If FS changed, update position.x accordingly
       if (i.fs !== item.fs) {
         const updatedItem = updateCargoItemPosition({ ...i, ...item }, { ...i.position, x: fsToXPosition(item.fs, i.cog) });
@@ -481,6 +481,8 @@ function App(): React.JSX.Element {
           onNewMissionClick={handleNewMissionClick}
           onLoadMissionClick={handleLoadMissionClick}
           onGraphsClick={() => setCurrentView('graphs')}
+          macPercent={macPercent}
+          totalWeight={totalWeight}
         />
         <View style={styles.contentContainer}>
           <Sidebar
