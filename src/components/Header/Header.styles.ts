@@ -43,4 +43,31 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.5,
   },
+  metricsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 16,
+  },
+  metricContainer: {
+    alignItems: 'center',
+    backgroundColor: '#444',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginLeft: 8,
+  },
+  firstMetric: {
+    marginLeft: 0,
+  },
+  metricLabel: {
+    color: '#bbb',
+    fontSize: 10,
+    fontWeight: '500',
+    marginBottom: 1,
+  },
+  metricValue: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

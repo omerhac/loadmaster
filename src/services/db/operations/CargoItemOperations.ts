@@ -66,6 +66,14 @@ export async function getCargoItemsByMissionId(missionId: number): Promise<Datab
 }
 
 /**
+ * Get cargo items by mission ID
+ */
+export async function getOnDeckCargoItemsByMissionId(missionId: number): Promise<DatabaseResponse> {
+  const db = await DatabaseFactory.getDatabase();
+  return db.executeQuery('SELECT * FROM cargo_item WHERE mission_id = ? AND status = ?;', [missionId, 'onDeck']);
+}
+
+/**
  * Update cargo item
  */
 export async function updateCargoItem(cargoItem: CargoItem): Promise<DatabaseResponse> {

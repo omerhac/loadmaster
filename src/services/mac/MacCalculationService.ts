@@ -8,7 +8,7 @@
 
 import {
   getMissionById,
-  getCargoItemsByMissionId,
+  getOnDeckCargoItemsByMissionId,
   getCargoItemById,
   getAircraftById,
   findClosestFuelMacConfiguration,
@@ -33,7 +33,7 @@ export async function calculateMACPercent(missionId: number): Promise<number> {
   }
 
   // 2. Get all cargo items for this mission
-  const cargoItemsResult = await getCargoItemsByMissionId(missionId);
+  const cargoItemsResult = await getOnDeckCargoItemsByMissionId(missionId);
   const cargoItems = cargoItemsResult.results.map(result => result.data).filter(Boolean);
 
   // 3. Calculate total MAC index from cargo items
@@ -192,7 +192,7 @@ export async function calculateTotalAircraftWeight(missionId: number): Promise<n
   }
 
   // 3. Get all cargo items for this mission
-  const cargoItemsResult = await getCargoItemsByMissionId(missionId);
+  const cargoItemsResult = await getOnDeckCargoItemsByMissionId(missionId);
   const cargoItems = cargoItemsResult.results.map(result => result.data).filter(Boolean);
 
   // 4. Calculate total cargo weight using each cargo item's own weight
