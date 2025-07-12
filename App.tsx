@@ -513,7 +513,8 @@ function App(): React.JSX.Element {
       <Graphs
         macPercent={macPercent ?? 0}
         weight={totalWeight ?? 0}
-        imageSource={Images.mac}
+        macGraphImgSrc={Images.mac}
+        areaGraphImgSrc={Images.area}
         onBack={() => setCurrentView('planning')}
       />
     ),
