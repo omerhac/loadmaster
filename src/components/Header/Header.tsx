@@ -79,7 +79,7 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
         {totalWeight !== null && totalWeight !== undefined && (
           <View style={styles.metricContainer}>
             <Text style={styles.metricLabel}>GROSS WEIGHT</Text>
-            <Text style={styles.metricValue}>{totalWeight.toFixed(0)} kg</Text>
+            <Text style={styles.metricValue}>{totalWeight.toFixed(0)} lbs</Text>
           </View>
         )}
       </View>

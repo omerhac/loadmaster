@@ -131,34 +131,39 @@ export async function calculateAdditionalWeightsMACIndex(missionId: number): Pro
   // 2. Define standard locations for different weight types
   // These are the x-coordinates (stations) where these weights are typically located
   // TODO: Update those values according to the TO
-  const CREW_STATION = 450.0;
   const CONFIG_STATION = 500.0;
   const CREW_GEAR_STATION = 520.0;
   const FOOD_STATION = 480.0;
-  const SAFETY_GEAR_STATION = 510.0;
-  const ETC_STATION = 490.0;
+  const SAFETY_GEAR_STATION = 733.46;
+  const ETC_STATION = 580.54;
 
   // 3. Calculate MAC index contributions for each weight type
   let totalAdditionalMAC = 0;
 
   // Crew weight
   const loadmasters_weight = mission.loadmasters * DEFAULT_LOADMASTER_WEIGHT;
-  totalAdditionalMAC += (CREW_STATION - 533.46) * loadmasters_weight / 50000;
+  const loadmasters_index = (mission.loadmasters_fs - 533.46) * loadmasters_weight / 50000;
+  totalAdditionalMAC += loadmasters_index;
 
   // Configuration weights
-  totalAdditionalMAC += (CONFIG_STATION - 533.46) * mission.configuration_weights / 50000;
+  const configuration_index = (CONFIG_STATION - 533.46) * mission.configuration_weights / 50000;
+  totalAdditionalMAC += configuration_index;
 
   // Crew gear weight
-  totalAdditionalMAC += (CREW_GEAR_STATION - 533.46) * mission.crew_gear_weight / 50000;
+  const crew_gear_index = (CREW_GEAR_STATION - 533.46) * mission.crew_gear_weight / 50000;
+  totalAdditionalMAC += crew_gear_index;
 
   // Food weight
-  totalAdditionalMAC += (FOOD_STATION - 533.46) * mission.food_weight / 50000;
+  const food_index = (FOOD_STATION - 533.46) * mission.food_weight / 50000;
+  totalAdditionalMAC += food_index;
 
   // Safety gear weight
-  totalAdditionalMAC += (SAFETY_GEAR_STATION - 533.46) * mission.safety_gear_weight / 50000;
+  const safety_gear_index = (SAFETY_GEAR_STATION - 533.46) * mission.safety_gear_weight / 50000;
+  totalAdditionalMAC += safety_gear_index;
 
   // ETC weight
-  totalAdditionalMAC += (ETC_STATION - 533.46) * mission.etc_weight / 50000;
+  const etc_index = (ETC_STATION - 533.46) * mission.etc_weight / 50000;
+  totalAdditionalMAC += etc_index;
 
   return totalAdditionalMAC;
 }
@@ -204,9 +209,11 @@ export async function calculateTotalAircraftWeight(missionId: number): Promise<n
   }
 
   // 5. Calculate total fuel weight from mission fuel fields
+  // TODO: enable passing the taxi fuel weight as a parameter
+  const TAXI_FUEL_WEIGHT = 1000;
   const totalFuelWeight = mission.outboard_fuel + mission.inboard_fuel +
                          mission.fuselage_fuel + mission.auxiliary_fuel +
-                         mission.external_fuel;
+                         mission.external_fuel - TAXI_FUEL_WEIGHT;
 
   // 6. Sum all weights to get gross weight
   const loadmasters_weight = mission.loadmasters * DEFAULT_LOADMASTER_WEIGHT;
@@ -216,7 +223,7 @@ export async function calculateTotalAircraftWeight(missionId: number): Promise<n
                       mission.crew_gear_weight +
                       mission.food_weight +
                       mission.safety_gear_weight +
-                      mission.etc_weight +
+                      mission.etc_weight  +
                       totalCargoWeight +
                       totalFuelWeight;
 

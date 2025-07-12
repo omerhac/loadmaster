@@ -11,6 +11,7 @@ import { Aircraft, CargoItem, Mission } from './services/db/operations/types';
 import { initializeLoadmasterDatabase } from './services/db/SchemaService';
 import { getAllCargoTypes } from './services/db/operations/CargoTypeOperations';
 import { getAllAircraft } from './services/db/operations/AircraftOperations';
+import { createFuelMacQuant } from './services';
 
 export default async function initAppDatabase() {
     try {
@@ -44,11 +45,22 @@ export default async function initAppDatabase() {
         throw error;
     }
 
+    // create excel fuel mac quant
+    // TODO: add all fuel mac quants here
+    await createFuelMacQuant({
+        outboard_fuel: 16000,
+        inboard_fuel: 15000,
+        fuselage_fuel: 0,
+        auxiliary_fuel: 4000,
+        external_fuel: 0,
+        mac_contribution: 11.7,
+      });
+
     const aircraft: Aircraft = {
         type: 'C-130',
         name: 'Hercules',
-        empty_weight: 75000,
-        empty_mac: 84,
+        empty_weight: 83288,
+        empty_mac: 84.3,
         cargo_bay_width: 10,
         treadways_width: 2,
         treadways_dist_from_center: 1,
@@ -77,18 +89,18 @@ export default async function initAppDatabase() {
         name: 'Default Mission',
         created_date: new Date().toISOString(),
         modified_date: new Date().toISOString(),
-        loadmasters: 2,
-        loadmasters_fs: 450,
-        configuration_weights: 500,
-        crew_gear_weight: 300,
-        food_weight: 200,
-        safety_gear_weight: 150,
-        etc_weight: 100,
-        outboard_fuel: 1000,
-        inboard_fuel: 2000,
-        fuselage_fuel: 1500,
-        auxiliary_fuel: 500,
-        external_fuel: 800,
+        loadmasters: 6,
+        loadmasters_fs: 239.34,
+        configuration_weights: 0,
+        crew_gear_weight: 0,
+        food_weight: 0,
+        safety_gear_weight: 250,
+        etc_weight: 637,
+        outboard_fuel: 16000,
+        inboard_fuel: 15000,
+        fuselage_fuel: 0,
+        auxiliary_fuel: 4000,
+        external_fuel: 0,
         aircraft_id: aircraftId as number,
     };
     const missionResult = await createMission(defaultMission);
