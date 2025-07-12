@@ -18,7 +18,7 @@ export const DEFAULT_INBOARD_FUEL = 2000;
 export const DEFAULT_FUSELAGE_FUEL = 1500;
 export const DEFAULT_AUXILIARY_FUEL = 500;
 export const DEFAULT_EXTERNAL_FUEL = 800;
-export const DEFAULT_LOADMASTER_WEIGHT = 100;
+export const DEFAULT_LOADMASTER_WEIGHT = 170;
 export const DEFAULT_NEW_MISSION: Mission = {
   id: DEFAULT_MISSION_ID,
   name: 'New Mission',
