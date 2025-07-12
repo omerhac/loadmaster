@@ -107,7 +107,7 @@ describe('SchemaService Integration Tests', () => {
 
       // Insert test mission
       await testDb.executeQuery(`
-        INSERT INTO mission (id, name, created_date, modified_date, front_crew_weight, back_crew_weight, configuration_weights,
+        INSERT INTO mission (id, name, created_date, modified_date, loadmasters, loadmasters_fs, configuration_weights,
                            crew_gear_weight, food_weight, safety_gear_weight,
                            etc_weight, outboard_fuel, inboard_fuel, fuselage_fuel, auxiliary_fuel, external_fuel, aircraft_id)
         VALUES (1, 'Test Mission', '2023-01-01T00:00:00.000Z', '2023-01-01T00:00:00.000Z', 

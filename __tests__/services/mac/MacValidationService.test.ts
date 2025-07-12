@@ -136,8 +136,8 @@ describe('MAC Validation Service', () => {
           name: 'Valid Mission',
           created_date: '2023-01-01',
           modified_date: '2023-01-01',
-          front_crew_weight: 0,
-          back_crew_weight: 0,
+          loadmasters: 2,
+          loadmasters_fs: 500,
           configuration_weights: 0,
           crew_gear_weight: 0,
           food_weight: 0,
@@ -157,8 +157,8 @@ describe('MAC Validation Service', () => {
           name: 'Invalid Mission',
           created_date: '2023-01-01',
           modified_date: '2023-01-01',
-          front_crew_weight: 0,
-          back_crew_weight: 0,
+          loadmasters: 2,
+          loadmasters_fs: 500,
           configuration_weights: 0,
           crew_gear_weight: 0,
           food_weight: 0,
@@ -210,7 +210,7 @@ describe('MAC Validation Service', () => {
         expect(result.isValid).toBeDefined();
         expect(result.currentMac).toBeDefined();
       } catch (error) {
-        fail('Should not throw an error for valid mission: ' + error);
+        throw new Error('Should not throw an error for valid mission: ' + error);
       }
     });
 

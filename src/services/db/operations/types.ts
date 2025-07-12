@@ -21,8 +21,8 @@ export interface Mission {
   name: string;
   created_date: string;
   modified_date: string;
-  front_crew_weight: number;
-  back_crew_weight: number;
+  loadmasters: number;
+  loadmasters_fs: number;
   configuration_weights: number;
   crew_gear_weight: number;
   food_weight: number;

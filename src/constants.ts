@@ -6,8 +6,8 @@ export const DEFAULT_MISSION_ID = 1;
 export const DEFAULT_AIRCRAFT_ID = 1;
 
 // Mission settings
-export const DEFAULT_FRONT_CREW_WEIGHT = 500;
-export const DEFAULT_BACK_CREW_WEIGHT = 500;
+export const DEFAULT_LOADMASTERS = 2;
+export const DEFAULT_LOADMASTERS_FS = 500;
 export const DEFAULT_CONFIGURATION_WEIGHTS = 500;
 export const DEFAULT_CREW_GEAR_WEIGHT = 300;
 export const DEFAULT_FOOD_WEIGHT = 200;
@@ -18,13 +18,14 @@ export const DEFAULT_INBOARD_FUEL = 2000;
 export const DEFAULT_FUSELAGE_FUEL = 1500;
 export const DEFAULT_AUXILIARY_FUEL = 500;
 export const DEFAULT_EXTERNAL_FUEL = 800;
+export const DEFAULT_LOADMASTER_WEIGHT = 100;
 export const DEFAULT_NEW_MISSION: Mission = {
   id: DEFAULT_MISSION_ID,
   name: 'New Mission',
   created_date: new Date().toISOString(),
   modified_date: new Date().toISOString(),
-  front_crew_weight: DEFAULT_FRONT_CREW_WEIGHT,
-  back_crew_weight: DEFAULT_BACK_CREW_WEIGHT,
+  loadmasters: DEFAULT_LOADMASTERS,
+  loadmasters_fs: DEFAULT_LOADMASTERS_FS,
   configuration_weights: DEFAULT_CONFIGURATION_WEIGHTS,
   crew_gear_weight: DEFAULT_CREW_GEAR_WEIGHT,
   food_weight: DEFAULT_FOOD_WEIGHT,

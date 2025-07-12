@@ -12,8 +12,6 @@ import AircraftConfigSection from './AircraftConfigSection';
 import ManualCargoInsertion from './ManualCargoInsertion';
 import NotesSection from './NotesSection';
 import {
-  DEFAULT_FRONT_CREW_WEIGHT,
-  DEFAULT_BACK_CREW_WEIGHT,
   DEFAULT_SAFETY_GEAR_WEIGHT,
   DEFAULT_FOOD_WEIGHT,
   DEFAULT_ETC_WEIGHT,
@@ -32,8 +30,8 @@ const DEFAULT_MISSION_SETTINGS: MissionSettings = {
   departureLocation: 'Nevatim',
   arrivalLocation: 'Ramat David',
   aircraftIndex: 0,
-  crewMembersFront: DEFAULT_FRONT_CREW_WEIGHT,
-  crewMembersBack: DEFAULT_BACK_CREW_WEIGHT,
+  loadmasters: 2,
+  loadmastersFs: 500,
   cockpit: 0,
   safetyGearWeight: DEFAULT_SAFETY_GEAR_WEIGHT,
   foodWeight: DEFAULT_FOOD_WEIGHT,
@@ -129,8 +127,8 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
 
         <AircraftConfigSection
           aircraftIndex={formData.aircraftIndex.toString()}
-          crewMembersFront={formData.crewMembersFront}
-          crewMembersBack={formData.crewMembersBack}
+          loadmasters={formData.loadmasters}
+          loadmastersFs={formData.loadmastersFs}
           cockpit={formData.cockpit}
           safetyGearWeight={formData.safetyGearWeight}
           fuelPods={formData.fuelPods}
