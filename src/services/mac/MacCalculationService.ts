@@ -223,7 +223,7 @@ export async function calculateTotalAircraftWeight(missionId: number): Promise<n
                       mission.crew_gear_weight +
                       mission.food_weight +
                       mission.safety_gear_weight +
-                      mission.etc_weight +
+                      mission.etc_weight  +
                       totalCargoWeight +
                       totalFuelWeight;
 

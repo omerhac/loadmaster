@@ -51,6 +51,7 @@ export type MissionSettings = {
     safetyGearWeight: number;
     fuelPods: boolean;
     fuelDistribution: FuelDistribution;
+    crewGearWeight: number;
     notes?: string;
     aircraftId: number;
     etcWeight: number;

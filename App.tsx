@@ -100,6 +100,7 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
     foodWeight: toNumber(mission.food_weight),
     etcWeight: toNumber(mission.etc_weight),
     configurationWeights: toNumber(mission.configuration_weights),
+    crewGearWeight: toNumber(mission.crew_gear_weight),
     fuelPods: false,
     fuelDistribution: {
       outbd: toNumber(mission.outboard_fuel),
@@ -390,7 +391,7 @@ function App(): React.JSX.Element {
       loadmasters: settings.loadmasters,
       loadmasters_fs: settings.loadmastersFs,
       configuration_weights: settings.configurationWeights,
-      crew_gear_weight: settings.safetyGearWeight,
+      crew_gear_weight: settings.crewGearWeight,
       food_weight: settings.foodWeight,
       safety_gear_weight: settings.safetyGearWeight,
       etc_weight: settings.etcWeight,

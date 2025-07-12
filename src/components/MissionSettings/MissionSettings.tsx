@@ -21,6 +21,8 @@ import {
   DEFAULT_AUXILIARY_FUEL,
   DEFAULT_EXTERNAL_FUEL,
   DEFAULT_AIRCRAFT_ID,
+  DEFAULT_LOADMASTER_WEIGHT,
+  DEFAULT_CREW_GEAR_WEIGHT,
 } from '../../constants';
 
 const DEFAULT_MISSION_SETTINGS: MissionSettings = {
@@ -30,11 +32,12 @@ const DEFAULT_MISSION_SETTINGS: MissionSettings = {
   departureLocation: 'Nevatim',
   arrivalLocation: 'Ramat David',
   aircraftIndex: 0,
-  loadmasters: 2,
-  loadmastersFs: 500,
+  loadmasters: 6,
+  loadmastersFs: DEFAULT_LOADMASTER_WEIGHT,
   cockpit: 0,
   safetyGearWeight: DEFAULT_SAFETY_GEAR_WEIGHT,
   foodWeight: DEFAULT_FOOD_WEIGHT,
+  crewGearWeight: DEFAULT_CREW_GEAR_WEIGHT,
   etcWeight: DEFAULT_ETC_WEIGHT,
   configurationWeights: 0,
   fuelPods: false,
