@@ -102,6 +102,7 @@ describe('MAC Calculation Service', () => {
       back_overhang: 0.5,
       x_start_position: 500,
       y_start_position: 2,
+      status: 'onDeck',
     };
     const cargoItemResult = await createCargoItem(cargoItem);
     cargoItemId = cargoItemResult.results[0].lastInsertId as number;
