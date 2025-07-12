@@ -11,6 +11,7 @@ import { Aircraft, CargoItem, Mission } from './services/db/operations/types';
 import { initializeLoadmasterDatabase } from './services/db/SchemaService';
 import { getAllCargoTypes } from './services/db/operations/CargoTypeOperations';
 import { getAllAircraft } from './services/db/operations/AircraftOperations';
+import { createFuelMacQuant } from './services';
 
 export default async function initAppDatabase() {
     try {
@@ -43,6 +44,17 @@ export default async function initAppDatabase() {
         console.error('Error initializing database schemas:', error);
         throw error;
     }
+
+    // create excel fuel mac quant
+    // TODO: add all fuel mac quants here
+    await createFuelMacQuant({
+        outboard_fuel: 16000,
+        inboard_fuel: 15000,
+        fuselage_fuel: 0,
+        auxiliary_fuel: 4000,
+        external_fuel: 0,
+        mac_contribution: 11.7,
+      });
 
     const aircraft: Aircraft = {
         type: 'C-130',
