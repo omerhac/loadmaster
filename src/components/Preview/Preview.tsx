@@ -26,7 +26,6 @@ const Preview = ({
   const [itemsWithMAC, setItemsWithMAC] = useState<CargoItemWithMAC[]>([]);
   const [missionMACPercent, setMissionMACPercent] = useState<number | null>(null);
   const [macValidation, setMacValidation] = useState<MacValidationResult | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   const itemsOnDeck = useMemo(() =>
     itemsWithMAC.filter(i => i.status === 'onDeck'),
@@ -50,7 +49,6 @@ const Preview = ({
         return;
       }
 
-      setIsLoading(true);
       try {
         // Calculate MAC index for each cargo item
         const itemsWithMACPromises = items.map(async (item) => {
@@ -83,7 +81,6 @@ const Preview = ({
         setMissionMACPercent(null);
         setMacValidation(null);
       } finally {
-        setIsLoading(false);
       }
     }
 
@@ -134,10 +131,75 @@ const Preview = ({
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Mission Settings Section */}
+        {/* Mission Info Section */}
         {missionSettings && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Mission Details</Text>
+            <Text style={styles.sectionTitle}>Mission Info</Text>
+            <View style={styles.detailsGrid}>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Liftoff Weight:</Text>
+                <Text style={styles.detailValue}>
+                  {(() => {
+                    const aircraftWeight = 0; // Need to get airplane weight from somewhere
+                    const crewWeight = (missionSettings.loadmasters * 180) +
+                                     (missionSettings.cockpit * 180) +
+                                     ((missionSettings.passengers || 0) * 180) +
+                                     ((missionSettings.etc || 0) * 180);
+                    const baseWeight = aircraftWeight + crewWeight + missionSettings.safetyGearWeight + missionSettings.etcWeight;
+                    const totalFuelWeight = missionSettings.fuelDistribution.outbd +
+                                          missionSettings.fuelDistribution.inbd +
+                                          missionSettings.fuelDistribution.aux +
+                                          missionSettings.fuelDistribution.ext +
+                                          missionSettings.fuelDistribution.fuselage;
+                    const overallWeight = baseWeight + totalFuelWeight;
+                    const liftoffWeight = overallWeight + totalWeight;
+                    return liftoffWeight;
+                  })()} lbs
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>MAC%:</Text>
+                <Text style={styles.detailValue}>
+                  {missionMACPercent !== null ? `${missionMACPercent.toFixed(2)}%` : 'N/A'}
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Total Fuel Weight:</Text>
+                <Text style={styles.detailValue}>
+                  {(missionSettings.fuelDistribution.outbd +
+                    missionSettings.fuelDistribution.inbd +
+                    missionSettings.fuelDistribution.aux +
+                    missionSettings.fuelDistribution.ext +
+                    missionSettings.fuelDistribution.fuselage)} lbs
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Z.F.W (Zero Fuel Weight):</Text>
+                <Text style={styles.detailValue}>
+                  {(() => {
+                    const aircraftWeight = 0; // Need to get airplane weight from somewhere
+                    const crewWeight = (missionSettings.loadmasters * 180) +
+                                     (missionSettings.cockpit * 180) +
+                                     ((missionSettings.passengers || 0) * 180) +
+                                     ((missionSettings.etc || 0) * 180);
+                    const baseWeight = aircraftWeight + crewWeight + missionSettings.safetyGearWeight + missionSettings.etcWeight;
+                    const zeroFuelWeight = baseWeight + totalWeight;
+                    return zeroFuelWeight;
+                  })()} lbs
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Total Cargo Weight:</Text>
+                <Text style={styles.detailValue}>{totalWeight} lbs</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Additional Info Section */}
+        {missionSettings && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Additional Info</Text>
             <View style={styles.detailsGrid}>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Mission Name:</Text>
@@ -159,21 +221,38 @@ const Preview = ({
                 <Text style={styles.detailLabel}>Aircraft Index:</Text>
                 <Text style={styles.detailValue}>{missionSettings.aircraftIndex}</Text>
               </View>
-            </View>
-          </View>
-        )}
-
-        {/* MAC Analysis Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>MAC Analysis</Text>
-          {isLoading ? (
-            <Text style={styles.loadingText}>Calculating MAC values...</Text>
-          ) : (
-            <View style={styles.detailsGrid}>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Mission MAC Percentage:</Text>
+                <Text style={styles.detailLabel}>Base Weight:</Text>
                 <Text style={styles.detailValue}>
-                  {missionMACPercent !== null ? `${missionMACPercent.toFixed(2)}%` : 'N/A'}
+                  {(() => {
+                    const aircraftWeight = 0; // Need to get airplane weight from somewhere
+                    const crewWeight = (missionSettings.loadmasters * 180) +
+                                     (missionSettings.cockpit * 180) +
+                                     ((missionSettings.passengers || 0) * 180) +
+                                     ((missionSettings.etc || 0) * 180);
+                    const baseWeight = aircraftWeight + crewWeight + missionSettings.safetyGearWeight + missionSettings.etcWeight;
+                    return baseWeight;
+                  })()} lbs
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Overall Weight:</Text>
+                <Text style={styles.detailValue}>
+                  {(() => {
+                    const aircraftWeight = 0; // Need to get airplane weight from somewhere
+                    const crewWeight = (missionSettings.loadmasters * 180) +
+                                     (missionSettings.cockpit * 180) +
+                                     ((missionSettings.passengers || 0) * 180) +
+                                     ((missionSettings.etc || 0) * 180);
+                    const baseWeight = aircraftWeight + crewWeight + missionSettings.safetyGearWeight + missionSettings.etcWeight;
+                    const totalFuelWeight = missionSettings.fuelDistribution.outbd +
+                                          missionSettings.fuelDistribution.inbd +
+                                          missionSettings.fuelDistribution.aux +
+                                          missionSettings.fuelDistribution.ext +
+                                          missionSettings.fuelDistribution.fuselage;
+                    const overallWeight = baseWeight + totalFuelWeight;
+                    return overallWeight;
+                  })()} lbs
                 </Text>
               </View>
               <View style={styles.detailRow}>
@@ -192,26 +271,21 @@ const Preview = ({
                   <Text style={styles.detailValue}>{macValidation.actualWeight.toFixed(0)} lbs</Text>
                 </View>
               )}
-            </View>
-          )}
-        </View>
-
-        {/* Crew and Weights Section */}
-        {missionSettings && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Crew & Configuration</Text>
-            <View style={styles.detailsGrid}>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Loadmasters:</Text>
                 <Text style={styles.detailValue}>{missionSettings.loadmasters} ({missionSettings.loadmastersFs} FS)</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Safety Gear Weight:</Text>
-                <Text style={styles.detailValue}>{missionSettings.safetyGearWeight} lbs</Text>
+                <Text style={styles.detailLabel}>Crew Weight:</Text>
+                <Text style={styles.detailValue}>{(missionSettings.cockpit + missionSettings.loadmasters) * 180} lbs</Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Food Weight:</Text>
                 <Text style={styles.detailValue}>{missionSettings.foodWeight} lbs</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Safety Gear Weight:</Text>
+                <Text style={styles.detailValue}>{missionSettings.safetyGearWeight} lbs</Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>ETC Weight:</Text>
@@ -220,35 +294,6 @@ const Preview = ({
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Configuration Weights:</Text>
                 <Text style={styles.detailValue}>{missionSettings.configurationWeights} lbs</Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Fuel Distribution Section */}
-        {missionSettings && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Fuel Distribution</Text>
-            <View style={styles.detailsGrid}>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Outboard:</Text>
-                <Text style={styles.detailValue}>{missionSettings.fuelDistribution.outbd} lbs</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Inboard:</Text>
-                <Text style={styles.detailValue}>{missionSettings.fuelDistribution.inbd} lbs</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Auxiliary:</Text>
-                <Text style={styles.detailValue}>{missionSettings.fuelDistribution.aux} lbs</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>External:</Text>
-                <Text style={styles.detailValue}>{missionSettings.fuelDistribution.ext} lbs</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Fuselage:</Text>
-                <Text style={styles.detailValue}>{missionSettings.fuelDistribution.fuselage} lbs</Text>
               </View>
             </View>
           </View>
