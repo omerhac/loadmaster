@@ -34,6 +34,9 @@ const DEFAULT_MISSION_SETTINGS: MissionSettings = {
   aircraftIndex: 0,
   loadmasters: 6,
   loadmastersFs: DEFAULT_LOADMASTER_WEIGHT,
+  passengers: 0,
+  etc: 0,
+  etcFs: 0,
   cockpit: 0,
   safetyGearWeight: DEFAULT_SAFETY_GEAR_WEIGHT,
   foodWeight: DEFAULT_FOOD_WEIGHT,
@@ -132,6 +135,9 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
           aircraftIndex={formData.aircraftIndex.toString()}
           loadmasters={formData.loadmasters}
           loadmastersFs={formData.loadmastersFs}
+          passengers={formData.passengers}
+          etc={formData.etc}
+          etcFs={formData.etcFs}
           cockpit={formData.cockpit}
           safetyGearWeight={formData.safetyGearWeight}
           fuelPods={formData.fuelPods}

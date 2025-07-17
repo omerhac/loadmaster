@@ -8,6 +8,9 @@ interface AircraftConfigSectionProps {
   aircraftIndex: string;
   loadmasters: number;
   loadmastersFs: number;
+  passengers: number;
+  etc: number;
+  etcFs: number;
   cockpit: number;
   safetyGearWeight: number;
   fuelPods: boolean;
@@ -19,6 +22,9 @@ const AircraftConfigSection = ({
   aircraftIndex,
   loadmasters,
   loadmastersFs,
+  passengers,
+  etc,
+  etcFs,
   cockpit,
   safetyGearWeight,
   fuelPods,
@@ -53,7 +59,7 @@ const AircraftConfigSection = ({
           <Text style={styles.labelSmall}>Loadmasters:</Text>
           <TextInput
             style={styles.numberInput}
-            value={loadmasters.toString()}
+            value={(loadmasters ?? 0).toString()}
             onChangeText={(value) => handleNumericChange('loadmasters', value)}
             keyboardType="numeric"
             placeholder="0"
@@ -64,7 +70,7 @@ const AircraftConfigSection = ({
           <Text style={styles.labelSmall}>Loadmasters FS:</Text>
           <TextInput
             style={styles.numberInput}
-            value={loadmastersFs.toString()}
+            value={(loadmastersFs ?? 0).toString()}
             onChangeText={(value) => handleNumericChange('loadmastersFs', value)}
             keyboardType="numeric"
             placeholder="0"
@@ -78,19 +84,57 @@ const AircraftConfigSection = ({
           <Text style={styles.labelSmall}>Cockpit:</Text>
           <TextInput
             style={styles.numberInput}
-            value={cockpit.toString()}
+            value={(cockpit ?? 0).toString()}
             onChangeText={(value) => handleNumericChange('cockpit', value)}
             keyboardType="numeric"
             placeholder="0"
             placeholderTextColor="#999"
           />
         </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.labelSmall}>Passengers:</Text>
+          <TextInput
+            style={styles.numberInput}
+            value={(passengers ?? 0).toString()}
+            onChangeText={(value) => handleNumericChange('passengers', value)}
+            keyboardType="numeric"
+            placeholder="0"
+            placeholderTextColor="#999"
+          />
+        </View>
+      </View>
 
+      <View style={styles.inputRow}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.labelSmall}>Etc:</Text>
+          <TextInput
+            style={styles.numberInput}
+            value={(etc ?? 0).toString()}
+            onChangeText={(value) => handleNumericChange('etc', value)}
+            keyboardType="numeric"
+            placeholder="0"
+            placeholderTextColor="#999"
+          />
+        </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.labelSmall}>Etc FS:</Text>
+          <TextInput
+            style={styles.numberInput}
+            value={(etcFs ?? 0).toString()}
+            onChangeText={(value) => handleNumericChange('etcFs', value)}
+            keyboardType="numeric"
+            placeholder="0"
+            placeholderTextColor="#999"
+          />
+        </View>
+      </View>
+
+      <View style={styles.inputRow}>
         <View style={styles.inputGroup}>
           <Text style={styles.labelSmall}>Safety Gear (lbs):</Text>
           <TextInput
             style={styles.numberInput}
-            value={safetyGearWeight.toString()}
+            value={(safetyGearWeight ?? 0).toString()}
             onChangeText={(value) => handleNumericChange('safetyGearWeight', value)}
             keyboardType="numeric"
             placeholder="250"

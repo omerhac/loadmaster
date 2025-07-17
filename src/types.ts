@@ -47,6 +47,9 @@ export type MissionSettings = {
     aircraftIndex: number;
     loadmasters: number;
     loadmastersFs: number;
+    passengers: number;
+    etc: number;
+    etcFs: number;
     cockpit: number;
     safetyGearWeight: number;
     fuelPods: boolean;
