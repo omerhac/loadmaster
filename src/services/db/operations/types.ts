@@ -34,6 +34,7 @@ export interface Mission {
   auxiliary_fuel: number;
   external_fuel: number;
   aircraft_id: number;
+  aircraft_empty_weight?: number;
 }
 
 export interface CargoType {

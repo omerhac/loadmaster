@@ -32,6 +32,7 @@ const DEFAULT_MISSION_SETTINGS: MissionSettings = {
   departureLocation: 'Nevatim',
   arrivalLocation: 'Ramat David',
   aircraftIndex: 0,
+  aircraftEmptyWeight: 83288,
   loadmasters: 6,
   loadmastersFs: DEFAULT_LOADMASTER_WEIGHT,
   passengers: 0,
@@ -133,6 +134,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
 
         <AircraftConfigSection
           aircraftIndex={formData.aircraftIndex.toString()}
+          aircraftEmptyWeight={formData.aircraftEmptyWeight}
           loadmasters={formData.loadmasters}
           loadmastersFs={formData.loadmastersFs}
           passengers={formData.passengers}

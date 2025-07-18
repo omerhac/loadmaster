@@ -93,6 +93,7 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
     departureLocation: 'Nevatim',
     arrivalLocation: 'Ramat David',
     aircraftIndex: toNumber(aircraft.empty_mac),
+    aircraftEmptyWeight: toNumber(mission.aircraft_empty_weight ?? aircraft.empty_weight),
     loadmasters: toNumber(mission.loadmasters),
     loadmastersFs: toNumber(mission.loadmasters_fs),
     passengers: 0, // TODO: Add passengers field to mission table
@@ -404,6 +405,7 @@ function App(): React.JSX.Element {
       auxiliary_fuel: settings.fuelDistribution.aux,
       external_fuel: settings.fuelDistribution.ext,
       aircraft_id: settings.aircraftId,
+      aircraft_empty_weight: settings.aircraftEmptyWeight,
     };
     updateMission(mission);
     setCurrentView('planning');

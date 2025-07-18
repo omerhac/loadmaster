@@ -1,8 +1,7 @@
-import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { CargoItem, MissionSettings } from '../../types';
 import { styles } from './Preview.styles';
-import { validateMac, MacValidationResult } from '../../services/mac/MacValidationService';
 import { calculateCargoItemMACIndex } from '../../utils/cargoUtils';
 
 interface PreviewProps {
@@ -20,7 +19,7 @@ const Preview = ({
   totalWeight,
   onReturn,
 }: PreviewProps) => {
-  const [macValidation, setMacValidation] = useState<MacValidationResult | null>(null);
+
 
   // Calculate MAC index for each item using utility function - no database calls needed
   const itemsWithMAC = useMemo(() => 
@@ -46,24 +45,7 @@ const Preview = ({
     [itemsOnDeck]
   );
 
-  // Validate MAC when values are available
-  useEffect(() => {
-    async function validateMACValues() {
-      if (totalWeight !== null && macPercent !== null) {
-        try {
-          const validation = await validateMac(totalWeight, macPercent);
-          setMacValidation(validation);
-        } catch (error) {
-          console.error('Error validating MAC:', error);
-          setMacValidation(null);
-        }
-      } else {
-        setMacValidation(null);
-      }
-    }
 
-    validateMACValues();
-  }, [totalWeight, macPercent]);
 
   const handleReturn = useCallback(() => {
     onReturn();
@@ -168,12 +150,17 @@ const Preview = ({
                 <Text style={styles.detailLabel}>Total Cargo MAC Index:</Text>
                 <Text style={styles.detailValue}>{formatMACIndex(totalMACIndex)}</Text>
               </View>
-              {macValidation && (
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Aircraft Weight:</Text>
-                  <Text style={styles.detailValue}>{macValidation.actualWeight.toFixed(0)} lbs</Text>
-                </View>
-              )}
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Base weight:</Text>
+                <Text style={styles.detailValue}>
+                  {(() => {
+                    const aircraftEmptyWeight = missionSettings.aircraftEmptyWeight;
+                    const crewWeight = (missionSettings.loadmasters * 180) + (missionSettings.cockpit * 180);
+                    const baseWeight = aircraftEmptyWeight + crewWeight + missionSettings.safetyGearWeight + missionSettings.etcWeight;
+                    return baseWeight.toFixed(0);
+                  })()} lbs
+                </Text>
+              </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Loadmasters:</Text>
                 <Text style={styles.detailValue}>{missionSettings.loadmasters} ({missionSettings.loadmastersFs} FS)</Text>
