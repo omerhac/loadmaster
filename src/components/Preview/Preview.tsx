@@ -125,7 +125,7 @@ const Preview = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.returnButton} onPress={handleReturn}>
-          <Text style={styles.returnButtonText}>← Return</Text>
+          <Text style={styles.returnButtonText}>Back</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Mission Preview</Text>
       </View>
@@ -253,12 +253,6 @@ const Preview = ({
                     const overallWeight = baseWeight + totalFuelWeight;
                     return overallWeight;
                   })()} lbs
-                </Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>MAC Status:</Text>
-                <Text style={[styles.detailValue, { color: getMACValidationColor() }]}>
-                  {getMACValidationText()}
                 </Text>
               </View>
               <View style={styles.detailRow}>

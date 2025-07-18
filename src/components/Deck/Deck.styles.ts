@@ -6,8 +6,8 @@ export const styles = StyleSheet.create({
   },
   deck: {
     flex: 1,
-    backgroundColor: '#e5e5e5',
-    borderRadius: 8,
+    backgroundColor: '#fff',
+    // borderRadius: 8,
     position: 'relative',
     overflow: 'hidden',
   },

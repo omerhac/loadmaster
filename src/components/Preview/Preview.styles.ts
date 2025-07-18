@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
@@ -7,19 +7,22 @@ export const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#0066cc',
-    paddingTop: 50,
-    paddingBottom: 15,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    height: Platform.OS === 'ios' ? 50 : 45,
+    zIndex: 100,
+    width: '100%',
   },
   title: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
     color: 'white',
     flex: 1,
     textAlign: 'center',
+    width: '100%',
   },
   returnButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
