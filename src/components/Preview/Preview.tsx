@@ -103,23 +103,23 @@ const Preview = ({
     return macIndex.toFixed(3);
   };
 
-  const getMACValidationColor = () => {
-    if (!macValidation) {
-      return '#666';
-    }
-    return macValidation.isValid ? '#28a745' : '#dc3545';
-  };
+  // const getMACValidationColor = () => {
+  //   if (!macValidation) {
+  //     return '#666';
+  //   }
+  //   return macValidation.isValid ? '#28a745' : '#dc3545';
+  // };
 
-  const getMACValidationText = () => {
-    if (!macValidation) {
-      return 'Unknown';
-    }
-    if (macValidation.isValid) {
-      return `✓ Valid (${macValidation.minAllowedMac}% - ${macValidation.maxAllowedMac}%)`;
-    } else {
-      return `✗ Invalid (${macValidation.minAllowedMac}% - ${macValidation.maxAllowedMac}%)`;
-    }
-  };
+  // const getMACValidationText = () => {
+  //   if (!macValidation) {
+  //     return 'Unknown';
+  //   }
+  //   if (macValidation.isValid) {
+  //     return `✓ Valid (${macValidation.minAllowedMac}% - ${macValidation.maxAllowedMac}%)`;
+  //   } else {
+  //     return `✗ Invalid (${macValidation.minAllowedMac}% - ${macValidation.maxAllowedMac}%)`;
+  //   }
+  // };
 
   return (
     <View style={styles.container}>
