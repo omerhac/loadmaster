@@ -95,6 +95,9 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
     aircraftIndex: toNumber(aircraft.empty_mac),
     loadmasters: toNumber(mission.loadmasters),
     loadmastersFs: toNumber(mission.loadmasters_fs),
+    passengers: 0, // TODO: Add passengers field to mission table
+    etc: 0, // TODO: Add etc field to mission table
+    etcFs: 0, // TODO: Add etcFs field to mission table
     cockpit: 0, // TODO: ??
     safetyGearWeight: toNumber(mission.safety_gear_weight),
     foodWeight: toNumber(mission.food_weight),
@@ -167,7 +170,7 @@ function App(): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    if ((currentView === 'graphs' || currentView === 'planning') && currentMissionId) {
+    if ((currentView === 'graphs' || currentView === 'planning' || currentView === 'preview') && currentMissionId) {
       (async () => {
         try {
           const mac = await calculateMACPercent(currentMissionId);
@@ -508,7 +511,8 @@ function App(): React.JSX.Element {
       <Preview
         items={cargoItems}
         missionSettings={missionSettings ?? null}
-        missionId={currentMissionId}
+        macPercent={macPercent}
+        totalWeight={totalWeight}
         onReturn={() => setCurrentView('planning')}
       />
     ),
