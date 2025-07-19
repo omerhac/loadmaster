@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import FloatingMenu from '../FloatingMenu/FloatingMenu';
 import {
   NewIcon,
@@ -11,6 +11,7 @@ import {
   GraphIcon,
 } from '../icons';
 import { styles } from './Header.styles';
+import { validateMac } from '../../services/mac';
 
 interface HeaderProps {
   onSettingsClick: () => void;
@@ -24,6 +25,50 @@ interface HeaderProps {
 
 const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onGraphsClick, macPercent, totalWeight }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMacOutOfLimits, setIsMacOutOfLimits] = useState(false);
+  const blinkAnimation = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const checkMacLimits = async () => {
+      if (macPercent !== null && macPercent !== undefined && totalWeight !== null && totalWeight !== undefined) {
+        try {
+          const validationResult = await validateMac(totalWeight, macPercent);
+          setIsMacOutOfLimits(!validationResult.isValid);
+        } catch (error) {
+          console.error('Error validating MAC:', error);
+          setIsMacOutOfLimits(false);
+        }
+      } else {
+        setIsMacOutOfLimits(false);
+      }
+    };
+
+    checkMacLimits();
+  }, [macPercent, totalWeight]);
+
+  // Blinking animation
+  useEffect(() => {
+    if (isMacOutOfLimits) {
+      const blinking = Animated.loop(
+        Animated.sequence([
+          Animated.timing(blinkAnimation, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: false,
+          }),
+          Animated.timing(blinkAnimation, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: false,
+          }),
+        ])
+      );
+      blinking.start();
+      return () => blinking.stop();
+    } else {
+      blinkAnimation.setValue(1);
+    }
+  }, [isMacOutOfLimits, blinkAnimation]);
 
   const menuItems = [
     {
@@ -71,10 +116,21 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
       <Text style={styles.title}>Loadmaster</Text>
       <View style={styles.metricsContainer}>
         {macPercent !== null && macPercent !== undefined && (
-          <View style={[styles.metricContainer, styles.firstMetric]}>
-            <Text style={styles.metricLabel}>MAC%</Text>
-            <Text style={styles.metricValue}>{macPercent.toFixed(1)}%</Text>
-          </View>
+          <Animated.View
+            style={[
+              styles.metricContainer,
+              styles.firstMetric,
+              isMacOutOfLimits && {
+                backgroundColor: blinkAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ['#ff0000', '#444'],
+                }),
+              },
+            ]}
+          >
+            <Text style={[styles.metricLabel, isMacOutOfLimits && styles.alertLabel]}>MAC%</Text>
+            <Text style={[styles.metricValue, isMacOutOfLimits && styles.alertValue]}>{macPercent.toFixed(1)}%</Text>
+          </Animated.View>
         )}
         {totalWeight !== null && totalWeight !== undefined && (
           <View style={styles.metricContainer}>

@@ -1,7 +1,9 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import React, { useMemo, useCallback, useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Animated, Platform } from 'react-native';
 import { CargoItem, MissionSettings } from '../../types';
 import { styles } from './Preview.styles';
+import { calculateCargoItemMACIndex } from '../../utils/cargoUtils';
+import { validateMac } from '../../services/mac';
 
 interface PreviewProps {
   missionSettings: MissionSettings | null;
@@ -81,6 +83,59 @@ const Preview = ({
   const updateState = useCallback((updates: Partial<PreviewState>) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
+  const [isMacOutOfLimits, setIsMacOutOfLimits] = useState(false);
+  const blinkAnimation = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const checkMacLimits = async () => {
+      if (macPercent !== null && macPercent !== undefined && totalWeight !== null && totalWeight !== undefined) {
+        try {
+          const validationResult = await validateMac(totalWeight, macPercent);
+          setIsMacOutOfLimits(!validationResult.isValid);
+        } catch (error) {
+          console.error('Error validating MAC:', error);
+          setIsMacOutOfLimits(false);
+        }
+      } else {
+        setIsMacOutOfLimits(false);
+      }
+    };
+
+    checkMacLimits();
+  }, [macPercent, totalWeight]);
+
+  // Blinking animation
+  useEffect(() => {
+    if (isMacOutOfLimits) {
+      const blinking = Animated.loop(
+        Animated.sequence([
+          Animated.timing(blinkAnimation, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: false,
+          }),
+          Animated.timing(blinkAnimation, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: false,
+          }),
+        ])
+      );
+      blinking.start();
+      return () => blinking.stop();
+    } else {
+      blinkAnimation.setValue(1);
+    }
+  }, [isMacOutOfLimits, blinkAnimation]);
+
+  // Calculate MAC index for each item using utility function - no database calls needed
+  const itemsWithMAC = useMemo(() =>
+    items.map(item => ({
+      ...item,
+      macIndex: calculateCargoItemMACIndex(item),
+    })),
+    [items]
+  );
 
   // Process data safely with error handling
   const processData = useCallback(() => {
@@ -255,6 +310,25 @@ const Preview = ({
                 <Text style={styles.detailLabel}>MAC%:</Text>
                 <Text style={styles.detailValue}>{formatMACPercent(macPercent)}</Text>
               </View>
+              <Animated.View
+                style={[
+                  styles.detailRow,
+                  isMacOutOfLimits && {
+                    backgroundColor: blinkAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['rgba(255, 0, 0, 0.3)', 'transparent'],
+                    }),
+                    borderRadius: 4,
+                    paddingHorizontal: 8,
+                    marginHorizontal: -8,
+                  },
+                ]}
+              >
+                <Text style={[styles.detailLabel, isMacOutOfLimits && styles.alertLabel]}>MAC%:</Text>
+                <Text style={[styles.detailValue, isMacOutOfLimits && styles.alertValue]}>
+                  {macPercent !== null ? `${macPercent.toFixed(2)}%` : 'Calculating...'}
+                </Text>
+              </Animated.View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Total Fuel Weight:</Text>
                 <Text style={styles.detailValue}>{Math.round(calculations.totalFuelWeight)} lbs</Text>
@@ -262,6 +336,16 @@ const Preview = ({
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Z.F.W (Zero Fuel Weight):</Text>
                 <Text style={styles.detailValue}>{formatWeight(calculations.zeroFuelWeight)}</Text>
+                <Text style={styles.detailValue}>
+                  {totalWeight !== null ?
+                    `${(totalWeight - (missionSettings.fuelDistribution.outbd +
+                      missionSettings.fuelDistribution.inbd +
+                      missionSettings.fuelDistribution.aux +
+                      missionSettings.fuelDistribution.ext +
+                      missionSettings.fuelDistribution.fuselage)).toFixed(0)} lbs` :
+                    'Calculating...'
+                  }
+                </Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Total Cargo Weight:</Text>
