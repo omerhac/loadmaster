@@ -24,12 +24,30 @@ interface AddCargoItemModalProps {
   savedPresets?: CargoItem[];
 }
 
-const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
-  initialItem,
-  onSave,
-  onCancel,
-  savedPresets = [],
-}) => {
+// Extract input field component to prevent re-renders
+const FormField = React.memo<{
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder: string;
+  keyboardType?: 'default' | 'numeric';
+  style?: any;
+}>(({ label, value, onChangeText, placeholder, keyboardType = 'default', style }) => (
+  <View style={[styles.formColumnBetter, style]}>
+    <Text style={styles.label}>{label}</Text>
+    <TextInput
+      style={styles.input}
+      value={value}
+      onChangeText={onChangeText}
+      keyboardType={keyboardType}
+      placeholder={placeholder}
+    />
+  </View>
+));
+
+FormField.displayName = 'FormField';
+
+const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }: AddCargoItemModalProps) => {
   const [name, setName] = useState('');
   const [length, setLength] = useState<string>('');
   const [width, setWidth] = useState<string>('');
@@ -38,6 +56,22 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
   const [cog, setCog] = useState<string>('');
   const [showPresets, setShowPresets] = useState(false);
   const [slideAnim] = useState(new Animated.Value(0));
+
+  // Stable callback references
+  const handleNameChange = useCallback((text: string) => setName(text), []);
+  const handleWidthChange = useCallback((text: string) => setWidth(text), []);
+  const handleHeightChange = useCallback((text: string) => setHeight(text), []);
+  const handleWeightChange = useCallback((text: string) => setWeight(text), []);
+
+  // Special handler for length that doesn't trigger COG update during user input
+  const handleLengthChange = useCallback((text: string) => {
+    setLength(text);
+  }, []);
+
+  // Special handler for COG that prevents auto-updates when user is editing
+  const handleCogChange = useCallback((text: string) => {
+    setCog(text);
+  }, []);
 
   // Set initial values if editing an existing item
   useEffect(() => {
@@ -58,15 +92,17 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     }
   }, [initialItem]);
 
-  // Update COG when length changes
+  // Update COG when length changes - but with debouncing to prevent loops
   useEffect(() => {
     const lengthValue = parseFloat(length || '0');
-    if (lengthValue > 0) {
+    if (lengthValue > 0 && cog === '') {
+      // Only auto-set COG if it's empty
       setCog((lengthValue / 2).toFixed(1));
     }
-  }, [length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [length]); // Intentionally excluding 'cog' to prevent render loop
 
-  // Check if form data is valid
+  // Memoized validation
   const isDataValid = useMemo(() => {
     return (
       name.trim() !== '' &&
@@ -77,9 +113,9 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     );
   }, [name, length, width, height, weight]);
 
-  // Handle form submission
+  // Stable submit handler
   const handleSubmit = useCallback(() => {
-    if (!isDataValid) {return;}
+    if (!isDataValid) return;
 
     const cogValue = parseFloat(cog || '0');
     const lengthValue = parseFloat(length);
@@ -92,8 +128,8 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
       width: parseFloat(width),
       height: parseFloat(height),
       weight: parseFloat(weight),
-      cog: cogValue > 0 ? cogValue : lengthValue / 2, // Default to half length if not set
-      fs: initialItem?.fs ?? 0, // keep previous FS, but not editable here
+      cog: cogValue > 0 ? cogValue : lengthValue / 2,
+      fs: initialItem?.fs ?? 0,
       dock: initialItem?.dock ?? 'CoG',
       status: initialItem?.status || 'inventory',
       position: initialItem?.position || { x: -1, y: -1 },
@@ -102,7 +138,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     onSave(itemToSave);
   }, [name, length, width, height, weight, cog, initialItem, isDataValid, onSave]);
 
-  // Handle loading a preset
+  // Stable preset handlers
   const handleLoadPreset = useCallback((preset: CargoItem) => {
     setName(preset.name);
     setLength(preset.length.toString());
@@ -113,7 +149,6 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     setShowPresets(false);
   }, []);
 
-  // Toggle preset dropdown visibility
   const togglePresetDropdown = useCallback(() => {
     if (savedPresets.length === 0) {
       Alert.alert(
@@ -126,7 +161,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     setShowPresets(prev => !prev);
   }, [savedPresets.length]);
 
-  // Render a preset item
+  // Stable preset item renderer
   const renderPresetItem = useCallback(({ item }: { item: CargoItem }) => (
     <TouchableOpacity
       style={styles.presetItem}
@@ -139,6 +174,15 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
     </TouchableOpacity>
   ), [handleLoadPreset]);
 
+  // Stable slider handler
+  const handleSliderChange = useCallback((value: number) => {
+    setCog(value.toFixed(1));
+  }, []);
+
+  // Check if Windows platform
+  const isWindows = Platform.OS === 'windows';
+  const keyboardBehavior = isWindows ? 'padding' : (Platform.OS === 'ios' ? 'padding' : 'height');
+
   return (
     <Portal>
       <View style={styles.modalOverlay}>
@@ -146,7 +190,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
           <View style={styles.backdrop} />
         </TouchableWithoutFeedback>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={keyboardBehavior}
           style={styles.keyboardAvoidingView}
         >
           <Animated.View
@@ -155,13 +199,18 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
               { transform: [{ translateX: slideAnim }] },
             ]}
           >
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              contentContainerStyle={{ flexGrow: 1 }} 
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               <TouchableOpacity style={styles.closeButton} onPress={onCancel}>
                 <Text style={styles.closeButtonText}>×</Text>
               </TouchableOpacity>
               <Text style={styles.modalTitle}>
                 {initialItem ? 'Edit Item' : 'Add New Item'}
               </Text>
+
               {/* Load Preset Button */}
               <View style={styles.presetContainer}>
                 <TouchableOpacity
@@ -170,7 +219,6 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
                 >
                   <Text style={styles.loadPresetText}>Load Preset</Text>
                 </TouchableOpacity>
-                {/* Preset Dropdown */}
                 {showPresets && savedPresets.length > 0 && (
                   <View style={styles.presetDropdown}>
                     <FlatList
@@ -182,6 +230,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
                   </View>
                 )}
               </View>
+
               {/* Compact Form Layout */}
               <View style={styles.compactFormContainer}>
                 {/* First Row: Name */}
@@ -191,18 +240,44 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
                     <TextInput
                       style={styles.input}
                       value={name}
-                      onChangeText={setName}
+                      onChangeText={handleNameChange}
                       placeholder="Item Name"
                     />
                   </View>
                 </View>
+
                 {/* Second Row: Dimensions and Weight */}
                 <View style={styles.formRow}>
-                  <View style={styles.formColumnBetter}><Text style={styles.label}>Length (in)</Text><TextInput style={styles.input} value={length} onChangeText={setLength} keyboardType="numeric" placeholder="Length" /></View>
-                  <View style={styles.formColumnBetter}><Text style={styles.label}>Width (in)</Text><TextInput style={styles.input} value={width} onChangeText={setWidth} keyboardType="numeric" placeholder="Width" /></View>
-                  <View style={styles.formColumnBetter}><Text style={styles.label}>Height (in)</Text><TextInput style={styles.input} value={height} onChangeText={setHeight} keyboardType="numeric" placeholder="Height" /></View>
-                  <View style={styles.formColumnBetter}><Text style={styles.label}>Weight (lbs)</Text><TextInput style={styles.input} value={weight} onChangeText={setWeight} keyboardType="numeric" placeholder="Weight" /></View>
+                  <FormField
+                    label="Length (in)"
+                    value={length}
+                    onChangeText={handleLengthChange}
+                    placeholder="Length"
+                    keyboardType="numeric"
+                  />
+                  <FormField
+                    label="Width (in)"
+                    value={width}
+                    onChangeText={handleWidthChange}
+                    placeholder="Width"
+                    keyboardType="numeric"
+                  />
+                  <FormField
+                    label="Height (in)"
+                    value={height}
+                    onChangeText={handleHeightChange}
+                    placeholder="Height"
+                    keyboardType="numeric"
+                  />
+                  <FormField
+                    label="Weight (lbs)"
+                    value={weight}
+                    onChangeText={handleWeightChange}
+                    placeholder="Weight"
+                    keyboardType="numeric"
+                  />
                 </View>
+
                 {/* Fourth Row: Center of Gravity */}
                 <View style={styles.formRow}>
                   <View style={styles.formFullWidth}>
@@ -213,7 +288,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
                         minimumValue={0}
                         maximumValue={parseFloat(length || '0') > 0 ? parseFloat(length) : 1}
                         value={parseFloat(cog || '0')}
-                        onValueChange={value => setCog(value.toFixed(1))}
+                        onValueChange={handleSliderChange}
                         minimumTrackTintColor="#0066cc"
                         maximumTrackTintColor="#d3d3d3"
                         thumbTintColor="#0066cc"
@@ -222,7 +297,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
                       <TextInput
                         style={styles.cogInput}
                         value={cog}
-                        onChangeText={setCog}
+                        onChangeText={handleCogChange}
                         keyboardType="numeric"
                         placeholder="COG"
                         editable={parseFloat(length || '0') > 0}
@@ -231,6 +306,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
                   </View>
                 </View>
               </View>
+
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={[styles.saveButton, !isDataValid && styles.saveButtonDisabled]}
@@ -248,7 +324,7 @@ const AddCargoItemModal: React.FC<AddCargoItemModalProps> = React.memo(({
       </View>
     </Portal>
   );
-});
+};
 
 AddCargoItemModal.displayName = 'AddCargoItemModal';
 
