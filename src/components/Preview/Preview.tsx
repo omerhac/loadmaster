@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { CargoItem, MissionSettings } from '../../types';
 import { styles } from './Preview.styles';
 import { calculateCargoItemMACIndex } from '../../utils/cargoUtils';
@@ -12,6 +12,65 @@ interface PreviewProps {
   onReturn: () => void;
 }
 
+// Memoized calculation functions to prevent recalculation on every render
+const calculateTotalFuelWeight = (fuelDistribution: any) => {
+  return fuelDistribution.outbd + 
+         fuelDistribution.inbd + 
+         fuelDistribution.aux + 
+         fuelDistribution.ext + 
+         fuelDistribution.fuselage;
+};
+
+const calculateBaseWeight = (missionSettings: MissionSettings) => {
+  const aircraftEmptyWeight = missionSettings.aircraftEmptyWeight;
+  const crewWeight = (missionSettings.loadmasters * 180) + (missionSettings.cockpit * 180);
+  return aircraftEmptyWeight + crewWeight + missionSettings.safetyGearWeight + missionSettings.etcWeight;
+};
+
+const calculateCrewWeight = (missionSettings: MissionSettings) => {
+  return (missionSettings.cockpit + missionSettings.loadmasters) * 180;
+};
+
+// Memoized table row component to prevent unnecessary re-renders
+const TableRow = React.memo<{
+  item: CargoItem & { macIndex: number };
+  index: number;
+}>(({ item, index }) => {
+  const formatMACIndex = useCallback((macIndex: number) => {
+    return macIndex.toFixed(3);
+  }, []);
+
+  return (
+    <View
+      style={[
+        styles.tableRow,
+        index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd,
+      ]}
+    >
+      <Text style={[styles.tableCellText, styles.nameColumn]} numberOfLines={2}>
+        {item.name}
+      </Text>
+      <Text style={[styles.tableCellText, styles.fsColumn]}>
+        {item.fs}
+      </Text>
+      <Text style={[styles.tableCellText, styles.weightColumn]}>
+        {item.weight}
+      </Text>
+      <Text style={[styles.tableCellText, styles.dimensionsColumn]}>
+        {item.length}"×{item.width}"×{item.height}"
+      </Text>
+      <Text style={[styles.tableCellText, styles.cogColumn]}>
+        {item.cog}"
+      </Text>
+      <Text style={[styles.tableCellText, styles.macColumn]}>
+        {formatMACIndex(item.macIndex)}
+      </Text>
+    </View>
+  );
+});
+
+TableRow.displayName = 'TableRow';
+
 const Preview = ({
   items,
   missionSettings,
@@ -19,49 +78,111 @@ const Preview = ({
   totalWeight,
   onReturn,
 }: PreviewProps) => {
+  // Check if Windows platform for optimizations
+  const isWindows = Platform.OS === 'windows';
 
+  // Optimized MAC calculation - only for items on deck, with memoization
+  const itemsOnDeckWithMAC = useMemo(() => {
+    if (!items || items.length === 0) return [];
+    
+    const onDeckItems = items.filter(item => item.status === 'onDeck');
+    
+    // Batch calculate MAC indices to reduce function call overhead
+    return onDeckItems.map(item => {
+      try {
+        return {
+          ...item,
+          macIndex: calculateCargoItemMACIndex(item)
+        };
+      } catch (error) {
+        console.warn('Error calculating MAC index for item:', item.id, error);
+        return {
+          ...item,
+          macIndex: 0
+        };
+      }
+    });
+  }, [items]);
 
-  // Calculate MAC index for each item using utility function - no database calls needed
-  const itemsWithMAC = useMemo(() => 
-    items.map(item => ({
-      ...item,
-      macIndex: calculateCargoItemMACIndex(item)
-    })),
-    [items]
-  );
+  // Combined calculations in single useMemo to reduce redundant operations
+  const cargoCalculations = useMemo(() => {
+    if (!itemsOnDeckWithMAC || itemsOnDeckWithMAC.length === 0) {
+      return {
+        totalCargoWeight: 0,
+        totalMACIndex: 0,
+        itemCount: 0
+      };
+    }
 
-  const itemsOnDeck = useMemo(() =>
-    itemsWithMAC.filter(i => i.status === 'onDeck'),
-    [itemsWithMAC]
-  );
+    let totalWeight = 0;
+    let totalMACIndex = 0;
 
-  const totalCargoWeight = useMemo(() =>
-    itemsOnDeck.reduce((sum, item) => sum + item.weight, 0),
-    [itemsOnDeck]
-  );
+    for (const item of itemsOnDeckWithMAC) {
+      totalWeight += item.weight;
+      totalMACIndex += item.macIndex;
+    }
 
-  const totalMACIndex = useMemo(() =>
-    itemsOnDeck.reduce((sum, item) => sum + item.macIndex, 0),
-    [itemsOnDeck]
-  );
+    return {
+      totalCargoWeight: totalWeight,
+      totalMACIndex: totalMACIndex,
+      itemCount: itemsOnDeckWithMAC.length
+    };
+  }, [itemsOnDeckWithMAC]);
 
+  // Memoized mission calculations
+  const missionCalculations = useMemo(() => {
+    if (!missionSettings) {
+      return {
+        totalFuelWeight: 0,
+        baseWeight: 0,
+        crewWeight: 0,
+        zeroFuelWeight: 0
+      };
+    }
 
+    const totalFuelWeight = calculateTotalFuelWeight(missionSettings.fuelDistribution);
+    const baseWeight = calculateBaseWeight(missionSettings);
+    const crewWeight = calculateCrewWeight(missionSettings);
+    const zeroFuelWeight = totalWeight !== null ? totalWeight - totalFuelWeight : 0;
 
+    return {
+      totalFuelWeight,
+      baseWeight,
+      crewWeight,
+      zeroFuelWeight
+    };
+  }, [missionSettings, totalWeight]);
+
+  // Stable callback references
   const handleReturn = useCallback(() => {
     onReturn();
   }, [onReturn]);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     try {
       return new Date(dateString).toLocaleDateString();
     } catch {
       return dateString;
     }
-  };
+  }, []);
 
-  const formatMACIndex = (macIndex: number) => {
+  const formatMACIndex = useCallback((macIndex: number) => {
     return macIndex.toFixed(3);
-  };
+  }, []);
+
+  const formatWeight = useCallback((weight: number | null) => {
+    return weight !== null ? `${weight.toFixed(0)} lbs` : 'Calculating...';
+  }, []);
+
+  const formatMACPercent = useCallback((percent: number | null) => {
+    return percent !== null ? `${percent.toFixed(2)}%` : 'Calculating...';
+  }, []);
+
+  // Performance optimization for Windows: limit rendering if too many items
+  const shouldLimitRendering = isWindows && itemsOnDeckWithMAC.length > 50;
+  const displayItems = shouldLimitRendering 
+    ? itemsOnDeckWithMAC.slice(0, 50)
+    : itemsOnDeckWithMAC;
 
   return (
     <View style={styles.container}>
@@ -72,7 +193,12 @@ const Preview = ({
         <Text style={styles.title}>Mission Preview</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews={isWindows}
+        scrollEventThrottle={isWindows ? 16 : undefined}
+      >
         {/* Mission Info Section */}
         {missionSettings && (
           <View style={styles.section}>
@@ -81,41 +207,30 @@ const Preview = ({
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Liftoff Weight:</Text>
                 <Text style={styles.detailValue}>
-                  {totalWeight !== null ? `${totalWeight.toFixed(0)} lbs` : 'Calculating...'}
+                  {formatWeight(totalWeight)}
                 </Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>MAC%:</Text>
                 <Text style={styles.detailValue}>
-                  {macPercent !== null ? `${macPercent.toFixed(2)}%` : 'Calculating...'}
+                  {formatMACPercent(macPercent)}
                 </Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Total Fuel Weight:</Text>
                 <Text style={styles.detailValue}>
-                  {(missionSettings.fuelDistribution.outbd +
-                    missionSettings.fuelDistribution.inbd +
-                    missionSettings.fuelDistribution.aux +
-                    missionSettings.fuelDistribution.ext +
-                    missionSettings.fuelDistribution.fuselage)} lbs
+                  {missionCalculations.totalFuelWeight} lbs
                 </Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Z.F.W (Zero Fuel Weight):</Text>
                 <Text style={styles.detailValue}>
-                  {totalWeight !== null ? 
-                    `${(totalWeight - (missionSettings.fuelDistribution.outbd +
-                      missionSettings.fuelDistribution.inbd +
-                      missionSettings.fuelDistribution.aux +
-                      missionSettings.fuelDistribution.ext +
-                      missionSettings.fuelDistribution.fuselage)).toFixed(0)} lbs` : 
-                    'Calculating...'
-                  }
+                  {formatWeight(missionCalculations.zeroFuelWeight)}
                 </Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Total Cargo Weight:</Text>
-                <Text style={styles.detailValue}>{totalCargoWeight} lbs</Text>
+                <Text style={styles.detailValue}>{cargoCalculations.totalCargoWeight} lbs</Text>
               </View>
             </View>
           </View>
@@ -148,17 +263,12 @@ const Preview = ({
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Total Cargo MAC Index:</Text>
-                <Text style={styles.detailValue}>{formatMACIndex(totalMACIndex)}</Text>
+                <Text style={styles.detailValue}>{formatMACIndex(cargoCalculations.totalMACIndex)}</Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Base weight:</Text>
                 <Text style={styles.detailValue}>
-                  {(() => {
-                    const aircraftEmptyWeight = missionSettings.aircraftEmptyWeight;
-                    const crewWeight = (missionSettings.loadmasters * 180) + (missionSettings.cockpit * 180);
-                    const baseWeight = aircraftEmptyWeight + crewWeight + missionSettings.safetyGearWeight + missionSettings.etcWeight;
-                    return baseWeight.toFixed(0);
-                  })()} lbs
+                  {missionCalculations.baseWeight.toFixed(0)} lbs
                 </Text>
               </View>
               <View style={styles.detailRow}>
@@ -167,7 +277,7 @@ const Preview = ({
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Crew Weight:</Text>
-                <Text style={styles.detailValue}>{(missionSettings.cockpit + missionSettings.loadmasters) * 180} lbs</Text>
+                <Text style={styles.detailValue}>{missionCalculations.crewWeight} lbs</Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Food Weight:</Text>
@@ -192,12 +302,17 @@ const Preview = ({
         {/* Cargo Items Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Cargo Items on Deck</Text>
-          {itemsOnDeck.length > 0 ? (
+          {itemsOnDeckWithMAC.length > 0 ? (
             <>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryText}>
-                  Total Items: {itemsOnDeck.length} | Total Weight: {totalCargoWeight} lbs | Total MAC Index: {formatMACIndex(totalMACIndex)}
+                  Total Items: {cargoCalculations.itemCount} | Total Weight: {cargoCalculations.totalCargoWeight} lbs | Total MAC Index: {formatMACIndex(cargoCalculations.totalMACIndex)}
                 </Text>
+                {shouldLimitRendering && (
+                  <Text style={styles.summaryText}>
+                    (Showing first 50 items for performance)
+                  </Text>
+                )}
               </View>
               <View style={styles.table}>
                 {/* Table Header */}
@@ -210,34 +325,13 @@ const Preview = ({
                   <Text style={[styles.tableHeaderText, styles.macColumn]}>MAC Index</Text>
                 </View>
 
-                {/* Table Rows */}
-                {itemsOnDeck.map((item, index) => (
-                  <View
+                {/* Table Rows - Using memoized component */}
+                {displayItems.map((item, index) => (
+                  <TableRow 
                     key={item.id}
-                    style={[
-                      styles.tableRow,
-                      index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd,
-                    ]}
-                  >
-                    <Text style={[styles.tableCellText, styles.nameColumn]} numberOfLines={2}>
-                      {item.name}
-                    </Text>
-                    <Text style={[styles.tableCellText, styles.fsColumn]}>
-                      {item.fs}
-                    </Text>
-                    <Text style={[styles.tableCellText, styles.weightColumn]}>
-                      {item.weight}
-                    </Text>
-                    <Text style={[styles.tableCellText, styles.dimensionsColumn]}>
-                      {item.length}"×{item.width}"×{item.height}"
-                    </Text>
-                    <Text style={[styles.tableCellText, styles.cogColumn]}>
-                      {item.cog}"
-                    </Text>
-                    <Text style={[styles.tableCellText, styles.macColumn]}>
-                      {formatMACIndex(item.macIndex)}
-                    </Text>
-                  </View>
+                    item={item}
+                    index={index}
+                  />
                 ))}
               </View>
             </>
