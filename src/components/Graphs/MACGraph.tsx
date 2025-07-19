@@ -39,7 +39,7 @@ export const MACGraph = ({
           numberOfLines={1}
           ellipsizeMode="clip"
         >
-          {`(${isNaN(x) ? '?' : Math.round(x)}, ${isNaN(y) ? '?' : Math.round(y)})`}
+          {`${isNaN(x) ? '?' : Math.round(x)} , ${isNaN(y) ? '?' : Math.round(y)}`}
         </Text>
       </View>
     </ImageBackground>
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     left: -30,
     borderColor: 'blue',
     borderWidth: 1,
-    width: 50,
+    width: 60,
     color: 'blue',
     fontSize: 10,
     backgroundColor: 'rgba(255,255,255,0.7)',
@@ -61,6 +61,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
     paddingVertical: 1,
     minWidth: 0,
+    textAlign: 'center',
   },
   cross: {
     position: 'absolute',

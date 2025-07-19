@@ -107,6 +107,7 @@ export function getMissionTableSchema(): SchemaDefinition {
         auxiliary_fuel REAL NOT NULL DEFAULT 0,
         external_fuel REAL NOT NULL DEFAULT 0,
         aircraft_id INTEGER NOT NULL,
+        aircraft_empty_weight REAL,
         FOREIGN KEY (aircraft_id) REFERENCES aircraft (id)
       );
     `,

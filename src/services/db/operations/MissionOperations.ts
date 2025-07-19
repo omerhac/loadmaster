@@ -16,9 +16,9 @@ export async function createMission(mission: Mission): Promise<DatabaseResponse>
       name, created_date, modified_date, loadmasters, loadmasters_fs,
       configuration_weights, crew_gear_weight, food_weight,
       safety_gear_weight, etc_weight, outboard_fuel, inboard_fuel,
-      fuselage_fuel, auxiliary_fuel, external_fuel, aircraft_id
+      fuselage_fuel, auxiliary_fuel, external_fuel, aircraft_id, aircraft_empty_weight
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
   return db.executeQuery(sql, [
     mission.name,
@@ -37,6 +37,7 @@ export async function createMission(mission: Mission): Promise<DatabaseResponse>
     mission.auxiliary_fuel,
     mission.external_fuel,
     mission.aircraft_id,
+    mission.aircraft_empty_weight,
   ]);
 }
 
@@ -79,7 +80,7 @@ export async function updateMission(mission: Mission): Promise<DatabaseResponse>
         loadmasters = ?, loadmasters_fs = ?, configuration_weights = ?,
         crew_gear_weight = ?, food_weight = ?, safety_gear_weight = ?,
         etc_weight = ?, outboard_fuel = ?, inboard_fuel = ?,
-        fuselage_fuel = ?, auxiliary_fuel = ?, external_fuel = ?, aircraft_id = ?
+        fuselage_fuel = ?, auxiliary_fuel = ?, external_fuel = ?, aircraft_id = ?, aircraft_empty_weight = ?
     WHERE id = ?;
   `;
   return db.executeQuery(sql, [
@@ -98,6 +99,7 @@ export async function updateMission(mission: Mission): Promise<DatabaseResponse>
     mission.auxiliary_fuel,
     mission.external_fuel,
     mission.aircraft_id,
+    mission.aircraft_empty_weight,
     mission.id,
   ]);
 }

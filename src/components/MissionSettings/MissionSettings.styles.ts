@@ -10,8 +10,11 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#333',
-    padding: 8,
-    paddingTop: Platform.OS === 'ios' ? 40 : 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    height: Platform.OS === 'ios' ? 50 : 45,
+    zIndex: 100,
+    width: '100%',
   },
   headerButton: {
     backgroundColor: '#007bff',

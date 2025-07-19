@@ -75,3 +75,23 @@ export function updateCargoItemCog(item: CargoItem, newCog: number): CargoItem {
   };
 }
 
+/**
+ * Calculate MAC index for a cargo item using the standard formula
+ * This matches the calculation in MacCalculationService but works with CargoItem data
+ * @param item - The cargo item to calculate MAC index for
+ * @returns The MAC index as a number
+ */
+export function calculateCargoItemMACIndex(item: CargoItem): number {
+  if (item.status !== 'onDeck') {
+    return 0;
+  }
+  
+  // Calculate center point using cargo item's dimensions
+  const centerX = item.position.x + (item.length / 2);
+  
+  // Use the same formula as MacCalculationService
+  const macIndex = (centerX - 533.46) * item.weight / 50000;
+  
+  return macIndex;
+}
+

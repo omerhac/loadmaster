@@ -6,6 +6,7 @@ import { FuelDistribution } from '../../types';
 
 interface AircraftConfigSectionProps {
   aircraftIndex: string;
+  aircraftEmptyWeight: number;
   loadmasters: number;
   loadmastersFs: number;
   passengers: number;
@@ -20,6 +21,7 @@ interface AircraftConfigSectionProps {
 
 const AircraftConfigSection = ({
   aircraftIndex,
+  aircraftEmptyWeight,
   loadmasters,
   loadmastersFs,
   passengers,
@@ -46,13 +48,30 @@ const AircraftConfigSection = ({
   return (
     <View style={styles.formGroup}>
       <Text style={styles.sectionTitle}>Aircraft Configuration</Text>
-      <TextInput
-        style={styles.input}
-        value={aircraftIndex}
-        onChangeText={(value) => handleTextChange('aircraftIndex', value)}
-        placeholder="Aircraft Index"
-        placeholderTextColor="#999"
-      />
+
+      <View style={styles.inputRow}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.labelSmall}>Aircraft Index:</Text>
+          <TextInput
+            style={styles.numberInput}
+            value={aircraftIndex}
+            onChangeText={(value) => handleTextChange('aircraftIndex', value)}
+            placeholder="Aircraft Index"
+            placeholderTextColor="#999"
+          />
+        </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.labelSmall}>Empty Weight (lbs):</Text>
+          <TextInput
+            style={styles.numberInput}
+            value={(aircraftEmptyWeight ?? 0).toString()}
+            onChangeText={(value) => handleNumericChange('aircraftEmptyWeight', value)}
+            keyboardType="numeric"
+            placeholder="0"
+            placeholderTextColor="#999"
+          />
+        </View>
+      </View>
 
       <View style={styles.inputRow}>
         <View style={styles.inputGroup}>
