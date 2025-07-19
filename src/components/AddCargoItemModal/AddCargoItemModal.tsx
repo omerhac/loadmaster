@@ -12,10 +12,10 @@ import {
   ScrollView,
   Animated,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
 import { CargoItem } from '../../types';
 import { styles } from './AddCargoItemModal.styles';
 import { Portal } from 'react-native-portalize';
+import PlatformSlider from '../shared/PlatformSlider';
 
 interface AddCargoItemModalProps {
   initialItem?: CargoItem;
@@ -283,16 +283,18 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
                   <View style={styles.formFullWidth}>
                     <Text style={styles.label}>Center of Gravity (inches from front)</Text>
                     <View style={styles.cogContainer}>
-                      <Slider
+                      <PlatformSlider
                         style={styles.slider}
                         minimumValue={0}
                         maximumValue={parseFloat(length || '0') > 0 ? parseFloat(length) : 1}
+                        step={0.1}
                         value={parseFloat(cog || '0')}
                         onValueChange={handleSliderChange}
                         minimumTrackTintColor="#0066cc"
                         maximumTrackTintColor="#d3d3d3"
                         thumbTintColor="#0066cc"
                         disabled={parseFloat(length || '0') <= 0}
+                        showValue={false}
                       />
                       <TextInput
                         style={styles.cogInput}

@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
 import { View, Text } from 'react-native';
-import Slider from '@react-native-community/slider';
 import { FuelDistribution } from '../../types';
 import { styles } from './MissionSettings.styles';
+import PlatformSlider from '../shared/PlatformSlider';
 
 interface FuelDistributionSectionProps {
   fuelDistribution: FuelDistribution;
@@ -24,7 +24,7 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
       <View style={styles.sliderContainer}>
         <View style={styles.sliderRow}>
           <Text style={styles.sliderLabel}>Outboard:</Text>
-          <Slider
+          <PlatformSlider
             style={styles.slider}
             minimumValue={0}
             maximumValue={20000}
@@ -34,13 +34,14 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
             minimumTrackTintColor="#007bff"
             maximumTrackTintColor="#ddd"
             thumbTintColor="#007bff"
+            showValue={false}
           />
           <Text style={styles.sliderValue}>{fuelDistribution.outbd}</Text>
         </View>
 
         <View style={styles.sliderRow}>
           <Text style={styles.sliderLabel}>Inboard:</Text>
-          <Slider
+          <PlatformSlider
             style={styles.slider}
             minimumValue={0}
             maximumValue={20000}
@@ -50,13 +51,14 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
             minimumTrackTintColor="#007bff"
             maximumTrackTintColor="#ddd"
             thumbTintColor="#007bff"
+            showValue={false}
           />
           <Text style={styles.sliderValue}>{fuelDistribution.inbd}</Text>
         </View>
 
         <View style={styles.sliderRow}>
           <Text style={styles.sliderLabel}>Auxiliary:</Text>
-          <Slider
+          <PlatformSlider
             style={styles.slider}
             minimumValue={0}
             maximumValue={20000}
@@ -66,13 +68,14 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
             minimumTrackTintColor="#007bff"
             maximumTrackTintColor="#ddd"
             thumbTintColor="#007bff"
+            showValue={false}
           />
           <Text style={styles.sliderValue}>{fuelDistribution.aux}</Text>
         </View>
 
         <View style={styles.sliderRow}>
           <Text style={styles.sliderLabel}>External:</Text>
-          <Slider
+          <PlatformSlider
             style={styles.slider}
             minimumValue={0}
             maximumValue={20000}
@@ -82,13 +85,14 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
             minimumTrackTintColor="#007bff"
             maximumTrackTintColor="#ddd"
             thumbTintColor="#007bff"
+            showValue={false}
           />
           <Text style={styles.sliderValue}>{fuelDistribution.ext}</Text>
         </View>
 
         <View style={styles.sliderRow}>
           <Text style={styles.sliderLabel}>Fuselage:</Text>
-          <Slider
+          <PlatformSlider
             style={styles.slider}
             minimumValue={0}
             maximumValue={20000}
@@ -98,8 +102,9 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
             minimumTrackTintColor="#007bff"
             maximumTrackTintColor="#ddd"
             thumbTintColor="#007bff"
+            showValue={false}
           />
-          <Text style={styles.sliderValue}>{fuelDistribution.ext}</Text>
+          <Text style={styles.sliderValue}>{fuelDistribution.fuselage}</Text>
         </View>
       </View>
     </View>
