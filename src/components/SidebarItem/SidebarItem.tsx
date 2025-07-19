@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, Platform, AlertButton } from 'react-native';
 import { CargoItem } from '../../types';
 import { styles } from './SidebarItem.styles';
 
@@ -36,17 +36,34 @@ const SidebarItem = ({
     }
   };
 
-  const showActionsMenu = () => {
+    const showActionsMenu = () => {
+    const isWindows = Platform.OS === 'windows';
+
+    // Create button configuration with Windows compatibility
+    const buttons: AlertButton[] = [
+      { text: 'Edit item', onPress: () => onEdit(item) },
+      { text: 'Duplicate item', onPress: () => onDuplicate(item.id) },
+      { text: 'Save as preset', onPress: () => onSaveAsPreset(item) },
+    ];
+
+    // Add delete button with conditional styling
+    if (isWindows) {
+      buttons.push({ text: 'Delete item', onPress: () => onDelete(item.id) });
+    } else {
+      buttons.push({ text: 'Delete item', style: 'destructive', onPress: () => onDelete(item.id) });
+    }
+
+    // Add cancel button with conditional styling
+    if (isWindows) {
+      buttons.push({ text: 'Cancel' });
+    } else {
+      buttons.push({ text: 'Cancel', style: 'cancel' });
+    }
+
     Alert.alert(
       'Item Actions',
       'Choose an action:',
-      [
-        { text: 'Edit item', onPress: () => onEdit(item) },
-        { text: 'Duplicate item', onPress: () => onDuplicate(item.id) },
-        { text: 'Save as preset', onPress: () => onSaveAsPreset(item) },
-        { text: 'Delete item', style: 'destructive', onPress: () => onDelete(item.id) },
-        { text: 'Cancel', style: 'cancel' },
-      ]
+      buttons
     );
   };
 

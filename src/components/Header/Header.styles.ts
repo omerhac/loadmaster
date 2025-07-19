@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    height: Platform.OS === 'ios' ? 50 : 45,
+    height: Platform.OS === 'ios' ? 60 : 55,
     zIndex: 100,
     width: '100%',
   },
