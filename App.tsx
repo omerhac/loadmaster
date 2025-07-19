@@ -150,7 +150,7 @@ function App(): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (!isDatabaseInitialized) return;
+    if (!isDatabaseInitialized) {return;}
 
     async function getDefaultCargoItems() {
       const defaultCargoItems = await getCargoItemsByMissionId(currentMissionId);

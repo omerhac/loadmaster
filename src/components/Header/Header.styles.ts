@@ -70,4 +70,13 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  alertLabel: {
+    color: '#ffcccc',
+  },
+  alertValue: {
+    color: 'white',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
 });

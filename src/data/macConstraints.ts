@@ -101,4 +101,4 @@ export const MAC_CONSTRAINTS_DATA: Omit<AllowedMacConstraint, 'id'>[] = [
   { gross_aircraft_weight: 173000, min_mac: 24.8, max_mac: 29.2 },
   { gross_aircraft_weight: 174000, min_mac: 24.9, max_mac: 29.2 },
   { gross_aircraft_weight: 175000, min_mac: 25, max_mac: 29.2 },
-]; 
+];

@@ -85,13 +85,13 @@ export function calculateCargoItemMACIndex(item: CargoItem): number {
   if (item.status !== 'onDeck') {
     return 0;
   }
-  
+
   // Calculate center point using cargo item's dimensions
   const centerX = item.position.x + (item.length / 2);
-  
+
   // Use the same formula as MacCalculationService
   const macIndex = (centerX - 533.46) * item.weight / 50000;
-  
+
   return macIndex;
 }
 
