@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, View, Platform, Dimensions } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Platform, Dimensions, Text, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Host } from 'react-native-portalize';
 import { CargoItem, MissionSettings, Position } from './src/types';
@@ -34,8 +34,6 @@ import { Images } from './src/assets';
 import { calculateMACPercent, calculateTotalAircraftWeight } from './src/services/mac';
 import AddCargoItemModal from './src/components/AddCargoItemModal/AddCargoItemModal';
 import { getAllCargoTypes } from './src/services/db/operations/CargoTypeOperations';
-
-initAppDatabase();
 
 function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
   if (!item.id) {
@@ -139,7 +137,6 @@ function App(): React.JSX.Element {
   const [editingItem, setEditingItem] = useState<CargoItem | null>(null);
   const [savedPresets, setSavedPresets] = useState<CargoItem[]>([]);
 
-  // Utility function to convert DbCargoType to CargoItem
   const convertDbCargoTypeToCargoItem = useCallback((dbCargoType: DbCargoType): CargoItem => {
     const cargoTypeId = typeof dbCargoType.id === 'number' ? dbCargoType.id : 1;
     return {
@@ -150,7 +147,7 @@ function App(): React.JSX.Element {
       width: dbCargoType.default_width,
       height: dbCargoType.default_height,
       weight: dbCargoType.default_weight,
-      cog: dbCargoType.default_cog,
+      cog: dbCargoType.default_cog || 0,
       fs: 0,
       dock: 'CoG',
       status: 'inventory',
@@ -167,8 +164,29 @@ function App(): React.JSX.Element {
     };
     fetchCargoTypes();
   }, [convertDbCargoTypeToCargoItem]);
+  const [isDatabaseInitialized, setIsDatabaseInitialized] = useState(false);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
+
+  // Initialize database before anything else
+  useEffect(() => {
+    const initDatabase = async () => {
+      try {
+        console.log('Starting database initialization...');
+        await initAppDatabase();
+        console.log('Database initialization completed successfully');
+        setIsDatabaseInitialized(true);
+      } catch (error) {
+        console.error('Failed to initialize database:', error);
+        setInitializationError(error instanceof Error ? error.message : 'Failed to initialize database');
+      }
+    };
+
+    initDatabase();
+  }, []);
 
   useEffect(() => {
+    if (!isDatabaseInitialized) return;
+
     async function getDefaultCargoItems() {
       const defaultCargoItems = await getCargoItemsByMissionId(currentMissionId);
       return defaultCargoItems;
@@ -191,7 +209,7 @@ function App(): React.JSX.Element {
     getDefaultMissionSettings().then(settings => {
       setMissionSettings(settings);
     });
-  }, [currentMissionId]);
+  }, [currentMissionId, isDatabaseInitialized]);
 
   useEffect(() => {
     const updateOrientation = () => {
@@ -529,6 +547,28 @@ function App(): React.JSX.Element {
     setIsAddModalVisible(false);
     setEditingItem(null);
   }, []);
+  // Show loading screen while database is initializing
+  if (!isDatabaseInitialized) {
+    return (
+      <GestureHandlerRootView style={styles.root}>
+        <SafeAreaView style={[styles.safeArea, styles.loadingContainer]}>
+          <View style={styles.loadingContent}>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <View style={styles.loadingTextContainer}>
+              {initializationError ? (
+                <>
+                  <Text style={styles.errorText}>Database initialization failed</Text>
+                  <Text style={styles.errorDetails}>{initializationError}</Text>
+                </>
+              ) : (
+                <Text style={styles.loadingText}>Initializing database...</Text>
+              )}
+            </View>
+          </View>
+        </SafeAreaView>
+      </GestureHandlerRootView>
+    );
+  }
 
   const views: Record<AppViewType, React.ReactNode> = {
     settings: (
@@ -643,6 +683,33 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     flexDirection: 'row',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContent: {
+    alignItems: 'center',
+  },
+  loadingTextContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#333',
+  },
+  errorText: {
+    fontSize: 18,
+    color: '#d32f2f',
+    marginBottom: 8,
+    fontWeight: 'bold',
+  },
+  errorDetails: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
 });
 
