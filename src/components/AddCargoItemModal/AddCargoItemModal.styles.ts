@@ -155,7 +155,7 @@ export const styles = StyleSheet.create({
   slider: {
     flex: 1,
     height: 38,
-    marginRight: 10,
+    marginBottom: 10,
   },
   cogInput: {
     borderWidth: 1,

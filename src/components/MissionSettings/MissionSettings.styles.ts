@@ -112,8 +112,10 @@ export const styles = StyleSheet.create({
     marginTop: 5,
   },
   sliderRow: {
+    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-evenly',
     marginBottom: 5,
   },
   sliderLabel: {
@@ -129,7 +131,7 @@ export const styles = StyleSheet.create({
   sliderValue: {
     fontSize: 12,
     color: '#333',
-    width: 40,
+    width: '40%',
     textAlign: 'right',
   },
   textArea: {

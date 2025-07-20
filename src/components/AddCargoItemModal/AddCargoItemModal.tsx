@@ -278,14 +278,6 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
                       disabled={parseFloat(formData.length || '0') <= 0}
                       showValue={false}
                     />
-                    <TextInput
-                      style={styles.cogInput}
-                      value={formData.cog}
-                      onChangeText={(value) => handleChange('cog', value)}
-                      keyboardType="numeric"
-                      placeholder="COG"
-                      editable={parseFloat(formData.length || '0') > 0}
-                    />
                   </View>
                 </View>
               </View>
