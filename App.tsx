@@ -139,22 +139,62 @@ function App(): React.JSX.Element {
     }
 
     async function getDefaultMissionSettings() {
-      const mission = await getMissionById(currentMissionId);
-      if (mission.results.length === 0) {
-        throw new Error('Mission not found');
+      try {
+        // Add Windows-specific delay for database stability
+        if (Platform.OS === 'windows') {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+
+        const mission = await getMissionById(currentMissionId);
+        if (mission.results.length === 0) {
+          console.warn(`Mission not found for ID: ${currentMissionId}`);
+          throw new Error('Mission not found');
+        }
+        return convertDbMissionToMissionSettings(mission.results[0].data as Mission);
+      } catch (error) {
+        console.error('Error loading mission settings:', error);
+        throw error;
       }
-      return convertDbMissionToMissionSettings(mission.results[0].data as Mission);
     }
 
-    getDefaultCargoItems().then(items => {
-      const dbCargoItems: DbCargoItem[] = items.results.map(item => item?.data as DbCargoItem);
-      const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
-      setCargoItems(convertedItems);
-    });
+    // Load cargo items
+    getDefaultCargoItems()
+      .then(items => {
+        const dbCargoItems: DbCargoItem[] = items.results.map(item => item?.data as DbCargoItem);
+        const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
+        setCargoItems(convertedItems);
+      })
+      .catch(error => console.error('Error loading cargo items:', error));
 
-    getDefaultMissionSettings().then(settings => {
-      setMissionSettings(settings);
-    });
+    // Load mission settings with retry for Windows
+    const loadMissionSettings = async () => {
+      try {
+        const settings = await getDefaultMissionSettings();
+        setMissionSettings(settings);
+        console.log('Mission settings loaded successfully:', settings.name);
+      } catch (error) {
+        console.error('Failed to load mission settings:', error);
+
+        // Windows retry logic
+        if (Platform.OS === 'windows') {
+          console.log('Retrying mission settings load for Windows...');
+          setTimeout(async () => {
+            try {
+              const retrySettings = await getDefaultMissionSettings();
+              setMissionSettings(retrySettings);
+              console.log('Mission settings loaded on retry:', retrySettings.name);
+            } catch (retryError) {
+              console.error('Retry failed for mission settings:', retryError);
+              setMissionSettings(null);
+            }
+          }, 500);
+        } else {
+          setMissionSettings(null);
+        }
+      }
+    };
+
+    loadMissionSettings();
   }, [currentMissionId]);
 
   useEffect(() => {

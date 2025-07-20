@@ -30,8 +30,8 @@ export const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     padding: 20,
-    width: '80%',
-    maxWidth: 800,
+    width: '100%',
+    maxWidth: 1200,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
