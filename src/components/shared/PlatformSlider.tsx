@@ -41,7 +41,7 @@ const WindowsSlider: React.FC<{
 }) => {
   const sliderWidth = 200; // Fixed width for calculation
   const thumbSize = 20;
-  
+
   const pan = useRef(new Animated.Value(0)).current;
   const [isDragging, setIsDragging] = useState(false);
 
@@ -58,7 +58,7 @@ const WindowsSlider: React.FC<{
     const percentage = Math.max(0, Math.min(1, position / (sliderWidth - thumbSize)));
     const range = maximumValue - minimumValue;
     const rawValue = minimumValue + (percentage * range);
-    
+
     // Snap to step
     const steppedValue = Math.round(rawValue / step) * step;
     return Math.max(minimumValue, Math.min(maximumValue, steppedValue));
@@ -67,21 +67,21 @@ const WindowsSlider: React.FC<{
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => !disabled,
     onMoveShouldSetPanResponder: () => !disabled,
-    
+
     onPanResponderGrant: () => {
       setIsDragging(true);
       pan.setOffset(getThumbPosition());
       pan.setValue(0);
     },
-    
+
     onPanResponderMove: (_, gestureState) => {
-      if (disabled) return;
-      
+      if (disabled) {return;}
+
       const newPosition = getThumbPosition() + gestureState.dx;
       const newValue = positionToValue(newPosition);
       onValueChange(newValue);
     },
-    
+
     onPanResponderRelease: () => {
       setIsDragging(false);
       pan.flattenOffset();
@@ -89,8 +89,8 @@ const WindowsSlider: React.FC<{
   });
 
   const handleTrackPress = useCallback((event: any) => {
-    if (disabled) return;
-    
+    if (disabled) {return;}
+
     const { locationX } = event.nativeEvent;
     const newValue = positionToValue(locationX - thumbSize / 2);
     onValueChange(newValue);
@@ -109,18 +109,18 @@ const WindowsSlider: React.FC<{
       >
         {/* Track Background */}
         <View style={[styles.windowsTrackBackground, { backgroundColor: maximumTrackTintColor }]} />
-        
+
         {/* Track Fill */}
-        <View 
+        <View
           style={[
             styles.windowsTrackFill,
             {
               width: fillWidth,
               backgroundColor: minimumTrackTintColor,
-            }
-          ]} 
+            },
+          ]}
         />
-        
+
         {/* Draggable Thumb */}
         <Animated.View
           style={[
@@ -131,7 +131,7 @@ const WindowsSlider: React.FC<{
               borderColor: isDragging ? minimumTrackTintColor : thumbTintColor,
               shadowOpacity: isDragging ? 0.3 : 0.1,
               transform: [{ scale: isDragging ? 1.2 : 1 }],
-            }
+            },
           ]}
           {...panResponder.panHandlers}
         >
@@ -149,9 +149,9 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
   step = 1,
   onValueChange,
   style,
-  minimumTrackTintColor = "#007bff",
-  maximumTrackTintColor = "#ddd",
-  thumbTintColor = "#007bff",
+  minimumTrackTintColor = '#007bff',
+  maximumTrackTintColor = '#ddd',
+  thumbTintColor = '#007bff',
   disabled = false,
   label,
   showValue = true,
@@ -159,19 +159,19 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
   const isWindows = Platform.OS === 'windows';
 
   const handleIncrement = useCallback(() => {
-    if (disabled) return;
+    if (disabled) {return;}
     const newValue = Math.min(value + step, maximumValue);
     onValueChange(newValue);
   }, [value, step, maximumValue, disabled, onValueChange]);
 
   const handleDecrement = useCallback(() => {
-    if (disabled) return;
+    if (disabled) {return;}
     const newValue = Math.max(value - step, minimumValue);
     onValueChange(newValue);
   }, [value, step, minimumValue, disabled, onValueChange]);
 
   const handleTextChange = useCallback((text: string) => {
-    if (disabled) return;
+    if (disabled) {return;}
     const numValue = parseFloat(text) || 0;
     const clampedValue = Math.max(minimumValue, Math.min(maximumValue, numValue));
     onValueChange(clampedValue);
@@ -186,7 +186,7 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
     return (
       <View style={[styles.windowsContainer, style]}>
         {label && <Text style={styles.windowsLabel}>{label}</Text>}
-        
+
         {/* Main Slider */}
         <View style={styles.windowsMainRow}>
           <WindowsSlider
@@ -200,14 +200,14 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
             thumbTintColor={thumbTintColor}
             disabled={disabled}
           />
-          
+
           {showValue && (
             <Text style={[styles.windowsValueDisplay, disabled && styles.windowsValueDisplayDisabled]}>
               {formatValue(value)}
             </Text>
           )}
         </View>
-        
+
         {/* Fine Control Buttons */}
         <View style={styles.windowsButtonRow}>
           <TouchableOpacity
@@ -217,7 +217,7 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
           >
             <Text style={[styles.windowsButtonText, disabled && styles.windowsButtonTextDisabled]}>-</Text>
           </TouchableOpacity>
-          
+
           <TextInput
             style={[styles.windowsInput, disabled && styles.windowsInputDisabled]}
             value={formatValue(value)}
@@ -226,7 +226,7 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
             editable={!disabled}
             selectTextOnFocus
           />
-          
+
           <TouchableOpacity
             style={[styles.windowsButton, disabled && styles.windowsButtonDisabled]}
             onPress={handleIncrement}
@@ -235,7 +235,7 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
             <Text style={[styles.windowsButtonText, disabled && styles.windowsButtonTextDisabled]}>+</Text>
           </TouchableOpacity>
         </View>
-        
+
         <View style={styles.windowsRangeInfo}>
           <Text style={styles.windowsRangeText}>
             Range: {formatValue(minimumValue)} - {formatValue(maximumValue)}
@@ -424,4 +424,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PlatformSlider; 
+export default PlatformSlider;

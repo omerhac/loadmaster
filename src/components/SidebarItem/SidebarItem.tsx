@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, Platform, AlertButton } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, AlertButton } from 'react-native';
 import { CargoItem } from '../../types';
 import { styles } from './SidebarItem.styles';
 

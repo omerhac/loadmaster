@@ -17,17 +17,17 @@ const safeCalculateMAC = (item: CargoItem): number => {
     if (!item || item.status !== 'onDeck' || !item.position || typeof item.position.x !== 'number') {
       return 0;
     }
-    
+
     const length = typeof item.length === 'number' ? item.length : 0;
     const weight = typeof item.weight === 'number' ? item.weight : 0;
-    
+
     if (length <= 0 || weight <= 0) {
       return 0;
     }
-    
+
     const centerX = item.position.x + (length / 2);
     const macIndex = (centerX - 533.46) * weight / 50000;
-    
+
     return isFinite(macIndex) ? macIndex : 0;
   } catch (error) {
     console.warn('MAC calculation error for item:', item?.id, error);
@@ -73,7 +73,7 @@ const Preview = ({
 }: PreviewProps) => {
   // Single state object like MissionSettings
   const [state, setState] = useState<PreviewState>(DEFAULT_STATE);
-  
+
   // Check if Windows platform for optimizations
   const isWindows = Platform.OS === 'windows';
 
@@ -86,21 +86,21 @@ const Preview = ({
   const processData = useCallback(() => {
     try {
       updateState({ isProcessing: true });
-      
+
       // Filter and process items safely
-      const onDeckItems = (items || []).filter(item => 
+      const onDeckItems = (items || []).filter(item =>
         item && typeof item === 'object' && item.status === 'onDeck'
       );
 
       // Limit items on Windows for performance
-      const itemsToProcess = isWindows && onDeckItems.length > 20 
-        ? onDeckItems.slice(0, 20) 
+      const itemsToProcess = isWindows && onDeckItems.length > 20
+        ? onDeckItems.slice(0, 20)
         : onDeckItems;
 
       // Process items with safe MAC calculation
       const processedItems = itemsToProcess.map(item => ({
         ...item,
-        macIndex: safeCalculateMAC(item)
+        macIndex: safeCalculateMAC(item),
       }));
 
       // Calculate totals safely
@@ -125,18 +125,18 @@ const Preview = ({
       if (missionSettings) {
         try {
           const fuel = missionSettings.fuelDistribution || {};
-          totalFuelWeight = (fuel.outbd || 0) + (fuel.inbd || 0) + (fuel.aux || 0) + 
+          totalFuelWeight = (fuel.outbd || 0) + (fuel.inbd || 0) + (fuel.aux || 0) +
                            (fuel.ext || 0) + (fuel.fuselage || 0);
-          
+
           const aircraftWeight = missionSettings.aircraftEmptyWeight || 0;
           const loadmasters = missionSettings.loadmasters || 0;
           const cockpit = missionSettings.cockpit || 0;
           crewWeight = (loadmasters + cockpit) * 180;
-          
-          baseWeight = aircraftWeight + crewWeight + 
-                      (missionSettings.safetyGearWeight || 0) + 
+
+          baseWeight = aircraftWeight + crewWeight +
+                      (missionSettings.safetyGearWeight || 0) +
                       (missionSettings.etcWeight || 0);
-          
+
           zeroFuelWeight = totalWeight !== null ? totalWeight - totalFuelWeight : 0;
         } catch (error) {
           console.warn('Mission calculations error:', error);
@@ -159,10 +159,10 @@ const Preview = ({
 
     } catch (error) {
       console.warn('Preview data processing error:', error);
-      updateState({ 
+      updateState({
         processedItems: [],
         calculations: DEFAULT_STATE.calculations,
-        isProcessing: false 
+        isProcessing: false,
       });
     }
   }, [items, missionSettings, totalWeight, isWindows, updateState]);
@@ -238,8 +238,8 @@ const Preview = ({
         <Text style={styles.title}>Mission Preview</Text>
       </View>
 
-      <ScrollView 
-        style={styles.content} 
+      <ScrollView
+        style={styles.content}
         showsVerticalScrollIndicator={false}
       >
         {/* Mission Info Section */}

@@ -52,7 +52,7 @@ const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
 
   const loadMissions = useCallback(async () => {
     updateState({ isLoading: true, hasError: false });
-    
+
     try {
       // Windows-specific timeout to prevent hangs
       const timeoutPromise = new Promise((_, reject) => {
@@ -69,8 +69,8 @@ const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
       if (Array.isArray(dbResponse)) {
         // Valid array response
         const validMissions = dbResponse.filter((mission): mission is Mission => {
-          return mission && 
-                 typeof mission === 'object' && 
+          return mission &&
+                 typeof mission === 'object' &&
                  typeof mission.name === 'string' &&
                  mission.name.trim().length > 0;
         });
@@ -86,10 +86,10 @@ const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
           }
         });
 
-        updateState({ 
-          missions: sortedMissions, 
-          isLoading: false, 
-          hasError: false 
+        updateState({
+          missions: sortedMissions,
+          isLoading: false,
+          hasError: false,
         });
       } else {
         throw new Error('Invalid response format');
@@ -97,10 +97,10 @@ const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
 
     } catch (error) {
       console.warn('LoadMissionModal: Failed to load missions:', error);
-      updateState({ 
-        missions: [], 
-        isLoading: false, 
-        hasError: true 
+      updateState({
+        missions: [],
+        isLoading: false,
+        hasError: true,
       });
 
       // Show Windows-specific error handling
@@ -133,7 +133,7 @@ const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
   }, [updateState]);
 
   const handleLoad = useCallback(() => {
-    if (!state.selectedMissionId) return;
+    if (!state.selectedMissionId) {return;}
 
     const selectedMission = state.missions.find(m => m.id === state.selectedMissionId);
     if (selectedMission) {
@@ -209,7 +209,7 @@ const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>Failed to load missions</Text>
                 <Text style={styles.emptySubtext}>
-                  {isWindows 
+                  {isWindows
                     ? 'Database error on Windows. Please restart the app.'
                     : 'Please check your connection and try again.'
                   }

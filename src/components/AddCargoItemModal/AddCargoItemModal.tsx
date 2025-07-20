@@ -84,7 +84,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
   }, [formData.length, formData.cog]);
 
   // Validation
-  const isDataValid = 
+  const isDataValid =
     formData.name.trim() !== '' &&
     parseFloat(formData.length || '0') > 0 &&
     parseFloat(formData.width || '0') > 0 &&
@@ -92,7 +92,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
     parseFloat(formData.weight || '0') > 0;
 
   const handleSubmit = useCallback(() => {
-    if (!isDataValid) return;
+    if (!isDataValid) {return;}
 
     const cogValue = parseFloat(formData.cog || '0');
     const lengthValue = parseFloat(formData.length);
@@ -169,8 +169,8 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
         style={styles.keyboardAvoidingView}
       >
         <View style={styles.modalContent}>
-          <ScrollView 
-            contentContainerStyle={{ flexGrow: 1 }} 
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
