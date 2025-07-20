@@ -64,7 +64,7 @@ const DEFAULT_STATE: PreviewState = {
   isProcessing: false,
 };
 
-  const Preview = ({
+const Preview = ({
   items,
   missionSettings,
   macPercent,
@@ -243,7 +243,7 @@ const DEFAULT_STATE: PreviewState = {
         showsVerticalScrollIndicator={false}
       >
         {/* Mission Info Section */}
-        {missionSettings ? (
+        {missionSettings && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Mission Info</Text>
             <View style={styles.detailsGrid}>
@@ -269,15 +269,10 @@ const DEFAULT_STATE: PreviewState = {
               </View>
             </View>
           </View>
-        ) : (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Mission Info</Text>
-            <Text style={styles.emptyState}>Mission settings not loaded</Text>
-          </View>
         )}
 
         {/* Additional Info Section */}
-        {missionSettings ? (
+        {missionSettings && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Additional Info</Text>
             <View style={styles.detailsGrid}>
@@ -336,11 +331,6 @@ const DEFAULT_STATE: PreviewState = {
                 <Text style={styles.detailValue}>{missionSettings.configurationWeights || 0} lbs</Text>
               </View>
             </View>
-          </View>
-        ) : (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Additional Info</Text>
-            <Text style={styles.emptyState}>Mission settings not loaded</Text>
           </View>
         )}
 
