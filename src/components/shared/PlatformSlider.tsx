@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Platform, StyleSheet } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, TextInput, Platform, StyleSheet, PanResponder, Animated } from 'react-native';
 import Slider from '@react-native-community/slider';
 
 interface PlatformSliderProps {
@@ -16,6 +16,131 @@ interface PlatformSliderProps {
   label?: string;
   showValue?: boolean;
 }
+
+// Custom Windows Slider Component
+const WindowsSlider: React.FC<{
+  value: number;
+  minimumValue: number;
+  maximumValue: number;
+  step: number;
+  onValueChange: (value: number) => void;
+  minimumTrackTintColor: string;
+  maximumTrackTintColor: string;
+  thumbTintColor: string;
+  disabled: boolean;
+}> = ({
+  value,
+  minimumValue,
+  maximumValue,
+  step,
+  onValueChange,
+  minimumTrackTintColor,
+  maximumTrackTintColor,
+  thumbTintColor,
+  disabled,
+}) => {
+  const sliderWidth = 200; // Fixed width for calculation
+  const thumbSize = 20;
+  
+  const pan = useRef(new Animated.Value(0)).current;
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Calculate thumb position based on value
+  const getThumbPosition = useCallback(() => {
+    const range = maximumValue - minimumValue;
+    const relativeValue = value - minimumValue;
+    const percentage = range > 0 ? relativeValue / range : 0;
+    return percentage * (sliderWidth - thumbSize);
+  }, [value, minimumValue, maximumValue, sliderWidth, thumbSize]);
+
+  // Convert position to value
+  const positionToValue = useCallback((position: number) => {
+    const percentage = Math.max(0, Math.min(1, position / (sliderWidth - thumbSize)));
+    const range = maximumValue - minimumValue;
+    const rawValue = minimumValue + (percentage * range);
+    
+    // Snap to step
+    const steppedValue = Math.round(rawValue / step) * step;
+    return Math.max(minimumValue, Math.min(maximumValue, steppedValue));
+  }, [minimumValue, maximumValue, step, sliderWidth, thumbSize]);
+
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => !disabled,
+    onMoveShouldSetPanResponder: () => !disabled,
+    
+    onPanResponderGrant: () => {
+      setIsDragging(true);
+      pan.setOffset(getThumbPosition());
+      pan.setValue(0);
+    },
+    
+    onPanResponderMove: (_, gestureState) => {
+      if (disabled) return;
+      
+      const newPosition = getThumbPosition() + gestureState.dx;
+      const newValue = positionToValue(newPosition);
+      onValueChange(newValue);
+    },
+    
+    onPanResponderRelease: () => {
+      setIsDragging(false);
+      pan.flattenOffset();
+    },
+  });
+
+  const handleTrackPress = useCallback((event: any) => {
+    if (disabled) return;
+    
+    const { locationX } = event.nativeEvent;
+    const newValue = positionToValue(locationX - thumbSize / 2);
+    onValueChange(newValue);
+  }, [disabled, positionToValue, onValueChange, thumbSize]);
+
+  const currentThumbPosition = getThumbPosition();
+  const fillWidth = currentThumbPosition + thumbSize / 2;
+
+  return (
+    <View style={styles.windowsSliderContainer}>
+      {/* Slider Track */}
+      <TouchableOpacity
+        style={[styles.windowsTrack, { width: sliderWidth }]}
+        onPress={handleTrackPress}
+        activeOpacity={0.8}
+      >
+        {/* Track Background */}
+        <View style={[styles.windowsTrackBackground, { backgroundColor: maximumTrackTintColor }]} />
+        
+        {/* Track Fill */}
+        <View 
+          style={[
+            styles.windowsTrackFill,
+            {
+              width: fillWidth,
+              backgroundColor: minimumTrackTintColor,
+            }
+          ]} 
+        />
+        
+        {/* Draggable Thumb */}
+        <Animated.View
+          style={[
+            styles.windowsThumb,
+            {
+              left: currentThumbPosition,
+              backgroundColor: thumbTintColor,
+              borderColor: isDragging ? minimumTrackTintColor : thumbTintColor,
+              shadowOpacity: isDragging ? 0.3 : 0.1,
+              transform: [{ scale: isDragging ? 1.2 : 1 }],
+            }
+          ]}
+          {...panResponder.panHandlers}
+        >
+          <View style={styles.windowsThumbInner} />
+        </Animated.View>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 const PlatformSlider: React.FC<PlatformSliderProps> = ({
   value,
@@ -57,11 +182,34 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
   }, [step]);
 
   if (isWindows) {
-    // Windows fallback: TextInput with +/- buttons
+    // Windows: Custom slider with visual track and draggable thumb
     return (
       <View style={[styles.windowsContainer, style]}>
         {label && <Text style={styles.windowsLabel}>{label}</Text>}
-        <View style={styles.windowsSliderRow}>
+        
+        {/* Main Slider */}
+        <View style={styles.windowsMainRow}>
+          <WindowsSlider
+            value={value}
+            minimumValue={minimumValue}
+            maximumValue={maximumValue}
+            step={step}
+            onValueChange={onValueChange}
+            minimumTrackTintColor={minimumTrackTintColor}
+            maximumTrackTintColor={maximumTrackTintColor}
+            thumbTintColor={thumbTintColor}
+            disabled={disabled}
+          />
+          
+          {showValue && (
+            <Text style={[styles.windowsValueDisplay, disabled && styles.windowsValueDisplayDisabled]}>
+              {formatValue(value)}
+            </Text>
+          )}
+        </View>
+        
+        {/* Fine Control Buttons */}
+        <View style={styles.windowsButtonRow}>
           <TouchableOpacity
             style={[styles.windowsButton, disabled && styles.windowsButtonDisabled]}
             onPress={handleDecrement}
@@ -86,12 +234,6 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
           >
             <Text style={[styles.windowsButtonText, disabled && styles.windowsButtonTextDisabled]}>+</Text>
           </TouchableOpacity>
-          
-          {showValue && (
-            <Text style={[styles.windowsValueDisplay, disabled && styles.windowsValueDisplayDisabled]}>
-              {formatValue(value)}
-            </Text>
-          )}
         </View>
         
         <View style={styles.windowsRangeInfo}>
@@ -134,60 +276,112 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
 const styles = StyleSheet.create({
   // Windows-specific styles
   windowsContainer: {
-    marginVertical: 5,
+    marginVertical: 8,
   },
   windowsLabel: {
     fontSize: 12,
     color: '#555',
-    marginBottom: 5,
+    marginBottom: 8,
   },
-  windowsSliderRow: {
+  windowsMainRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  windowsSliderContainer: {
+    flex: 1,
+    height: 40,
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  windowsTrack: {
+    height: 40,
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  windowsTrackBackground: {
+    height: 4,
+    borderRadius: 2,
+    position: 'absolute',
+    left: 10,
+    right: 10,
+  },
+  windowsTrackFill: {
+    height: 4,
+    borderRadius: 2,
+    position: 'absolute',
+    left: 10,
+  },
+  windowsThumb: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    position: 'absolute',
+    borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowRadius: 2,
+    elevation: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  windowsThumbInner: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  },
+  windowsButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 5,
   },
   windowsButton: {
     backgroundColor: '#007bff',
     borderRadius: 4,
-    width: 32,
-    height: 32,
+    width: 28,
+    height: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 5,
+    marginHorizontal: 3,
   },
   windowsButtonDisabled: {
     backgroundColor: '#ccc',
   },
   windowsButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   windowsButtonTextDisabled: {
     color: '#999',
   },
   windowsInput: {
-    flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 4,
     paddingHorizontal: 8,
-    paddingVertical: 6,
+    paddingVertical: 4,
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 12,
     marginHorizontal: 5,
     backgroundColor: '#fff',
+    minWidth: 60,
   },
   windowsInputDisabled: {
     backgroundColor: '#f5f5f5',
     color: '#999',
   },
   windowsValueDisplay: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#333',
     minWidth: 50,
     textAlign: 'right',
-    marginLeft: 5,
+    fontWeight: '600',
   },
   windowsValueDisplayDisabled: {
     color: '#999',

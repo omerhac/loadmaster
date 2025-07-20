@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,9 @@ import {
   FlatList,
   Alert,
   ScrollView,
-  Animated,
 } from 'react-native';
 import { CargoItem } from '../../types';
 import { styles } from './AddCargoItemModal.styles';
-import { Portal } from 'react-native-portalize';
 import PlatformSlider from '../shared/PlatformSlider';
 
 interface AddCargoItemModalProps {
@@ -24,110 +22,89 @@ interface AddCargoItemModalProps {
   savedPresets?: CargoItem[];
 }
 
-// Extract input field component to prevent re-renders
-const FormField = React.memo<{
-  label: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder: string;
-  keyboardType?: 'default' | 'numeric';
-  style?: any;
-}>(({ label, value, onChangeText, placeholder, keyboardType = 'default', style }) => (
-  <View style={[styles.formColumnBetter, style]}>
-    <Text style={styles.label}>{label}</Text>
-    <TextInput
-      style={styles.input}
-      value={value}
-      onChangeText={onChangeText}
-      keyboardType={keyboardType}
-      placeholder={placeholder}
-    />
-  </View>
-));
+// Form data type matching the pattern from MissionSettings
+type CargoFormData = {
+  name: string;
+  length: string;
+  width: string;
+  height: string;
+  weight: string;
+  cog: string;
+  showPresets: boolean;
+};
 
-FormField.displayName = 'FormField';
+const DEFAULT_FORM_DATA: CargoFormData = {
+  name: '',
+  length: '',
+  width: '',
+  height: '',
+  weight: '',
+  cog: '',
+  showPresets: false,
+};
 
 const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }: AddCargoItemModalProps) => {
-  const [name, setName] = useState('');
-  const [length, setLength] = useState<string>('');
-  const [width, setWidth] = useState<string>('');
-  const [height, setHeight] = useState<string>('');
-  const [weight, setWeight] = useState<string>('');
-  const [cog, setCog] = useState<string>('');
-  const [showPresets, setShowPresets] = useState(false);
-  const [slideAnim] = useState(new Animated.Value(0));
+  // Single state object like MissionSettings
+  const [formData, setFormData] = useState<CargoFormData>(DEFAULT_FORM_DATA);
 
-  // Stable callback references
-  const handleNameChange = useCallback((text: string) => setName(text), []);
-  const handleWidthChange = useCallback((text: string) => setWidth(text), []);
-  const handleHeightChange = useCallback((text: string) => setHeight(text), []);
-  const handleWeightChange = useCallback((text: string) => setWeight(text), []);
-
-  // Special handler for length that doesn't trigger COG update during user input
-  const handleLengthChange = useCallback((text: string) => {
-    setLength(text);
+  // Single onChange handler like MissionSettings
+  const handleChange = useCallback((name: string, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
   }, []);
 
-  // Special handler for COG that prevents auto-updates when user is editing
-  const handleCogChange = useCallback((text: string) => {
-    setCog(text);
-  }, []);
-
-  // Set initial values if editing an existing item
+  // Initialize form data when initialItem changes
   useEffect(() => {
     if (initialItem) {
-      setName(initialItem.name);
-      setLength(initialItem.length.toString());
-      setWidth(initialItem.width.toString());
-      setHeight(initialItem.height.toString());
-      setWeight(initialItem.weight.toString());
-      setCog(initialItem.cog.toString());
+      setFormData({
+        name: initialItem.name,
+        length: initialItem.length.toString(),
+        width: initialItem.width.toString(),
+        height: initialItem.height.toString(),
+        weight: initialItem.weight.toString(),
+        cog: initialItem.cog.toString(),
+        showPresets: false,
+      });
     } else {
-      setName('');
-      setLength('');
-      setWidth('');
-      setHeight('');
-      setWeight('');
-      setCog('');
+      setFormData(DEFAULT_FORM_DATA);
     }
   }, [initialItem]);
 
-  // Update COG when length changes - but with debouncing to prevent loops
+  // Auto-set COG when length changes and COG is empty (simplified, no loop)
   useEffect(() => {
-    const lengthValue = parseFloat(length || '0');
-    if (lengthValue > 0 && cog === '') {
-      // Only auto-set COG if it's empty
-      setCog((lengthValue / 2).toFixed(1));
+    const lengthValue = parseFloat(formData.length || '0');
+    if (lengthValue > 0 && formData.cog === '') {
+      setFormData(prev => ({
+        ...prev,
+        cog: (lengthValue / 2).toFixed(1),
+      }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [length]); // Intentionally excluding 'cog' to prevent render loop
+  }, [formData.length, formData.cog]);
 
-  // Memoized validation
-  const isDataValid = useMemo(() => {
-    return (
-      name.trim() !== '' &&
-      parseFloat(length || '0') > 0 &&
-      parseFloat(width || '0') > 0 &&
-      parseFloat(height || '0') > 0 &&
-      parseFloat(weight || '0') > 0
-    );
-  }, [name, length, width, height, weight]);
+  // Validation
+  const isDataValid = 
+    formData.name.trim() !== '' &&
+    parseFloat(formData.length || '0') > 0 &&
+    parseFloat(formData.width || '0') > 0 &&
+    parseFloat(formData.height || '0') > 0 &&
+    parseFloat(formData.weight || '0') > 0;
 
-  // Stable submit handler
   const handleSubmit = useCallback(() => {
     if (!isDataValid) return;
 
-    const cogValue = parseFloat(cog || '0');
-    const lengthValue = parseFloat(length);
+    const cogValue = parseFloat(formData.cog || '0');
+    const lengthValue = parseFloat(formData.length);
 
     const itemToSave: CargoItem = {
       id: initialItem?.id || '',
-      name,
+      name: formData.name,
       cargo_type_id: initialItem?.cargo_type_id || 1,
-      length: parseFloat(length),
-      width: parseFloat(width),
-      height: parseFloat(height),
-      weight: parseFloat(weight),
+      length: parseFloat(formData.length),
+      width: parseFloat(formData.width),
+      height: parseFloat(formData.height),
+      weight: parseFloat(formData.weight),
       cog: cogValue > 0 ? cogValue : lengthValue / 2,
       fs: initialItem?.fs ?? 0,
       dock: initialItem?.dock ?? 'CoG',
@@ -136,17 +113,18 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
     };
 
     onSave(itemToSave);
-  }, [name, length, width, height, weight, cog, initialItem, isDataValid, onSave]);
+  }, [formData, initialItem, isDataValid, onSave]);
 
-  // Stable preset handlers
   const handleLoadPreset = useCallback((preset: CargoItem) => {
-    setName(preset.name);
-    setLength(preset.length.toString());
-    setWidth(preset.width.toString());
-    setHeight(preset.height.toString());
-    setWeight(preset.weight.toString());
-    setCog(preset.cog.toString());
-    setShowPresets(false);
+    setFormData({
+      name: preset.name,
+      length: preset.length.toString(),
+      width: preset.width.toString(),
+      height: preset.height.toString(),
+      weight: preset.weight.toString(),
+      cog: preset.cog.toString(),
+      showPresets: false,
+    });
   }, []);
 
   const togglePresetDropdown = useCallback(() => {
@@ -158,10 +136,9 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
       );
       return;
     }
-    setShowPresets(prev => !prev);
-  }, [savedPresets.length]);
+    handleChange('showPresets', !formData.showPresets);
+  }, [savedPresets.length, formData.showPresets, handleChange]);
 
-  // Stable preset item renderer
   const renderPresetItem = useCallback(({ item }: { item: CargoItem }) => (
     <TouchableOpacity
       style={styles.presetItem}
@@ -174,160 +151,162 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
     </TouchableOpacity>
   ), [handleLoadPreset]);
 
-  // Stable slider handler
   const handleSliderChange = useCallback((value: number) => {
-    setCog(value.toFixed(1));
-  }, []);
+    handleChange('cog', value.toFixed(1));
+  }, [handleChange]);
 
-  // Check if Windows platform
+  // Remove Portal wrapper and animations - use simple modal structure like MissionSettings
   const isWindows = Platform.OS === 'windows';
   const keyboardBehavior = isWindows ? 'padding' : (Platform.OS === 'ios' ? 'padding' : 'height');
 
   return (
-    <Portal>
-      <View style={styles.modalOverlay}>
-        <TouchableWithoutFeedback onPress={onCancel}>
-          <View style={styles.backdrop} />
-        </TouchableWithoutFeedback>
-        <KeyboardAvoidingView
-          behavior={keyboardBehavior}
-          style={styles.keyboardAvoidingView}
-        >
-          <Animated.View
-            style={[
-              styles.animatedModalContent,
-              { transform: [{ translateX: slideAnim }] },
-            ]}
+    <View style={styles.modalOverlay}>
+      <TouchableWithoutFeedback onPress={onCancel}>
+        <View style={styles.backdrop} />
+      </TouchableWithoutFeedback>
+      <KeyboardAvoidingView
+        behavior={keyboardBehavior}
+        style={styles.keyboardAvoidingView}
+      >
+        <View style={styles.modalContent}>
+          <ScrollView 
+            contentContainerStyle={{ flexGrow: 1 }} 
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            <ScrollView 
-              contentContainerStyle={{ flexGrow: 1 }} 
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              <TouchableOpacity style={styles.closeButton} onPress={onCancel}>
-                <Text style={styles.closeButtonText}>×</Text>
+            <TouchableOpacity style={styles.closeButton} onPress={onCancel}>
+              <Text style={styles.closeButtonText}>×</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>
+              {initialItem ? 'Edit Item' : 'Add New Item'}
+            </Text>
+
+            {/* Load Preset Button */}
+            <View style={styles.presetContainer}>
+              <TouchableOpacity
+                style={styles.loadPresetButton}
+                onPress={togglePresetDropdown}
+              >
+                <Text style={styles.loadPresetText}>Load Preset</Text>
               </TouchableOpacity>
-              <Text style={styles.modalTitle}>
-                {initialItem ? 'Edit Item' : 'Add New Item'}
-              </Text>
+              {formData.showPresets && savedPresets.length > 0 && (
+                <View style={styles.presetDropdown}>
+                  <FlatList
+                    data={savedPresets}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderPresetItem}
+                    style={styles.presetList}
+                  />
+                </View>
+              )}
+            </View>
 
-              {/* Load Preset Button */}
-              <View style={styles.presetContainer}>
-                <TouchableOpacity
-                  style={styles.loadPresetButton}
-                  onPress={togglePresetDropdown}
-                >
-                  <Text style={styles.loadPresetText}>Load Preset</Text>
-                </TouchableOpacity>
-                {showPresets && savedPresets.length > 0 && (
-                  <View style={styles.presetDropdown}>
-                    <FlatList
-                      data={savedPresets}
-                      keyExtractor={(item) => item.id}
-                      renderItem={renderPresetItem}
-                      style={styles.presetList}
-                    />
-                  </View>
-                )}
+            {/* Form Layout - Following MissionSettings pattern */}
+            <View style={styles.compactFormContainer}>
+              {/* Name Field */}
+              <View style={styles.formRow}>
+                <View style={styles.formFullWidth}>
+                  <Text style={styles.label}>Name</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.name}
+                    onChangeText={(value) => handleChange('name', value)}
+                    placeholder="Item Name"
+                  />
+                </View>
               </View>
 
-              {/* Compact Form Layout */}
-              <View style={styles.compactFormContainer}>
-                {/* First Row: Name */}
-                <View style={styles.formRow}>
-                  <View style={styles.formFullWidth}>
-                    <Text style={styles.label}>Name</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={name}
-                      onChangeText={handleNameChange}
-                      placeholder="Item Name"
-                    />
-                  </View>
-                </View>
-
-                {/* Second Row: Dimensions and Weight */}
-                <View style={styles.formRow}>
-                  <FormField
-                    label="Length (in)"
-                    value={length}
-                    onChangeText={handleLengthChange}
+              {/* Dimensions and Weight */}
+              <View style={styles.formRow}>
+                <View style={styles.formColumnBetter}>
+                  <Text style={styles.label}>Length (in)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.length}
+                    onChangeText={(value) => handleChange('length', value)}
+                    keyboardType="numeric"
                     placeholder="Length"
-                    keyboardType="numeric"
-                  />
-                  <FormField
-                    label="Width (in)"
-                    value={width}
-                    onChangeText={handleWidthChange}
-                    placeholder="Width"
-                    keyboardType="numeric"
-                  />
-                  <FormField
-                    label="Height (in)"
-                    value={height}
-                    onChangeText={handleHeightChange}
-                    placeholder="Height"
-                    keyboardType="numeric"
-                  />
-                  <FormField
-                    label="Weight (lbs)"
-                    value={weight}
-                    onChangeText={handleWeightChange}
-                    placeholder="Weight"
-                    keyboardType="numeric"
                   />
                 </View>
+                <View style={styles.formColumnBetter}>
+                  <Text style={styles.label}>Width (in)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.width}
+                    onChangeText={(value) => handleChange('width', value)}
+                    keyboardType="numeric"
+                    placeholder="Width"
+                  />
+                </View>
+                <View style={styles.formColumnBetter}>
+                  <Text style={styles.label}>Height (in)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.height}
+                    onChangeText={(value) => handleChange('height', value)}
+                    keyboardType="numeric"
+                    placeholder="Height"
+                  />
+                </View>
+                <View style={styles.formColumnBetter}>
+                  <Text style={styles.label}>Weight (lbs)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.weight}
+                    onChangeText={(value) => handleChange('weight', value)}
+                    keyboardType="numeric"
+                    placeholder="Weight"
+                  />
+                </View>
+              </View>
 
-                {/* Fourth Row: Center of Gravity */}
-                <View style={styles.formRow}>
-                  <View style={styles.formFullWidth}>
-                    <Text style={styles.label}>Center of Gravity (inches from front)</Text>
-                    <View style={styles.cogContainer}>
-                      <PlatformSlider
-                        style={styles.slider}
-                        minimumValue={0}
-                        maximumValue={parseFloat(length || '0') > 0 ? parseFloat(length) : 1}
-                        step={0.1}
-                        value={parseFloat(cog || '0')}
-                        onValueChange={handleSliderChange}
-                        minimumTrackTintColor="#0066cc"
-                        maximumTrackTintColor="#d3d3d3"
-                        thumbTintColor="#0066cc"
-                        disabled={parseFloat(length || '0') <= 0}
-                        showValue={false}
-                      />
-                      <TextInput
-                        style={styles.cogInput}
-                        value={cog}
-                        onChangeText={handleCogChange}
-                        keyboardType="numeric"
-                        placeholder="COG"
-                        editable={parseFloat(length || '0') > 0}
-                      />
-                    </View>
+              {/* Center of Gravity */}
+              <View style={styles.formRow}>
+                <View style={styles.formFullWidth}>
+                  <Text style={styles.label}>Center of Gravity (inches from front)</Text>
+                  <View style={styles.cogContainer}>
+                    <PlatformSlider
+                      style={styles.slider}
+                      minimumValue={0}
+                      maximumValue={parseFloat(formData.length || '0') > 0 ? parseFloat(formData.length) : 1}
+                      step={0.1}
+                      value={parseFloat(formData.cog || '0')}
+                      onValueChange={handleSliderChange}
+                      minimumTrackTintColor="#0066cc"
+                      maximumTrackTintColor="#d3d3d3"
+                      thumbTintColor="#0066cc"
+                      disabled={parseFloat(formData.length || '0') <= 0}
+                      showValue={false}
+                    />
+                    <TextInput
+                      style={styles.cogInput}
+                      value={formData.cog}
+                      onChangeText={(value) => handleChange('cog', value)}
+                      keyboardType="numeric"
+                      placeholder="COG"
+                      editable={parseFloat(formData.length || '0') > 0}
+                    />
                   </View>
                 </View>
               </View>
+            </View>
 
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.saveButton, !isDataValid && styles.saveButtonDisabled]}
-                  onPress={handleSubmit}
-                  disabled={!isDataValid}
-                >
-                  <Text style={styles.saveButtonText}>
-                    {initialItem ? 'Update Item' : 'Add Item'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          </Animated.View>
-        </KeyboardAvoidingView>
-      </View>
-    </Portal>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.saveButton, !isDataValid && styles.saveButtonDisabled]}
+                onPress={handleSubmit}
+                disabled={!isDataValid}
+              >
+                <Text style={styles.saveButtonText}>
+                  {initialItem ? 'Update Item' : 'Add Item'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
-
-AddCargoItemModal.displayName = 'AddCargoItemModal';
 
 export default AddCargoItemModal;
