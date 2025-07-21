@@ -56,10 +56,12 @@ export const styles = StyleSheet.create({
     paddingBottom: 5,
   },
   subsectionTitle: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#2c3e50',
+    marginBottom: 16,
+    borderBottomWidth: 0.5,
+    paddingBottom: 8,
   },
   input: {
     borderWidth: 1,
@@ -106,10 +108,25 @@ export const styles = StyleSheet.create({
     color: '#555',
   },
   fuelDistribution: {
-    marginTop: 5,
+    marginTop: 10,
+    marginBottom: 20,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
   },
   sliderContainer: {
     marginTop: 5,
+  },
+  modernSliderContainer: {
+    marginTop: 15,
+    paddingHorizontal: 10,
   },
   sliderRow: {
     display: 'flex',

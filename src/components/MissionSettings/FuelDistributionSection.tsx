@@ -21,91 +21,71 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
     <View style={styles.fuelDistribution}>
       <Text style={styles.subsectionTitle}>Fuel Distribution (lbs)</Text>
 
-      <View style={styles.sliderContainer}>
-        <View style={styles.sliderRow}>
-          <Text style={styles.sliderLabel}>Outboard:</Text>
-          <PlatformSlider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={20000}
-            step={100}
-            value={fuelDistribution.outbd}
-            onValueChange={(value) => handleFuelChange('outbd', value)}
-            minimumTrackTintColor="#007bff"
-            maximumTrackTintColor="#ddd"
-            thumbTintColor="#007bff"
-            showValue={false}
-          />
-          <Text style={styles.sliderValue}>{fuelDistribution.outbd}</Text>
-        </View>
+      <View style={styles.modernSliderContainer}>
+        <PlatformSlider
+          label="Outboard"
+          minimumValue={0}
+          maximumValue={20000}
+          step={100}
+          value={fuelDistribution.outbd}
+          onValueChange={(value) => handleFuelChange('outbd', value)}
+          minimumTrackTintColor="#0066cc"
+          maximumTrackTintColor="#e8e8e8"
+          thumbTintColor="#0066cc"
+          showValue={true}
+        />
 
-        <View style={styles.sliderRow}>
-          <Text style={styles.sliderLabel}>Inboard:</Text>
-          <PlatformSlider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={20000}
-            step={100}
-            value={fuelDistribution.inbd}
-            onValueChange={(value) => handleFuelChange('inbd', value)}
-            minimumTrackTintColor="#007bff"
-            maximumTrackTintColor="#ddd"
-            thumbTintColor="#007bff"
-            showValue={false}
-          />
-          <Text style={styles.sliderValue}>{fuelDistribution.inbd}</Text>
-        </View>
+        <PlatformSlider
+          label="Inboard"
+          minimumValue={0}
+          maximumValue={20000}
+          step={100}
+          value={fuelDistribution.inbd}
+          onValueChange={(value) => handleFuelChange('inbd', value)}
+          minimumTrackTintColor="#0066cc"
+          maximumTrackTintColor="#e8e8e8"
+          thumbTintColor="#0066cc"
+          showValue={true}
+        />
 
-        <View style={styles.sliderRow}>
-          <Text style={styles.sliderLabel}>Auxiliary:</Text>
-          <PlatformSlider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={20000}
-            step={100}
-            value={fuelDistribution.aux}
-            onValueChange={(value) => handleFuelChange('aux', value)}
-            minimumTrackTintColor="#007bff"
-            maximumTrackTintColor="#ddd"
-            thumbTintColor="#007bff"
-            showValue={false}
-          />
-          <Text style={styles.sliderValue}>{fuelDistribution.aux}</Text>
-        </View>
+        <PlatformSlider
+          label="Auxiliary"
+          minimumValue={0}
+          maximumValue={20000}
+          step={100}
+          value={fuelDistribution.aux}
+          onValueChange={(value) => handleFuelChange('aux', value)}
+          minimumTrackTintColor="#0066cc"
+          maximumTrackTintColor="#e8e8e8"
+          thumbTintColor="#0066cc"
+          showValue={true}
+        />
 
-        <View style={styles.sliderRow}>
-          <Text style={styles.sliderLabel}>External:</Text>
-          <PlatformSlider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={20000}
-            step={100}
-            value={fuelDistribution.ext}
-            onValueChange={(value) => handleFuelChange('ext', value)}
-            minimumTrackTintColor="#007bff"
-            maximumTrackTintColor="#ddd"
-            thumbTintColor="#007bff"
-            showValue={false}
-          />
-          <Text style={styles.sliderValue}>{fuelDistribution.ext}</Text>
-        </View>
+        <PlatformSlider
+          label="External"
+          minimumValue={0}
+          maximumValue={20000}
+          step={100}
+          value={fuelDistribution.ext}
+          onValueChange={(value) => handleFuelChange('ext', value)}
+          minimumTrackTintColor="#0066cc"
+          maximumTrackTintColor="#e8e8e8"
+          thumbTintColor="#0066cc"
+          showValue={true}
+        />
 
-        <View style={styles.sliderRow}>
-          <Text style={styles.sliderLabel}>Fuselage:</Text>
-          <PlatformSlider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={20000}
-            step={100}
-            value={fuelDistribution.fuselage}
-            onValueChange={(value) => handleFuelChange('fuselage', value)}
-            minimumTrackTintColor="#007bff"
-            maximumTrackTintColor="#ddd"
-            thumbTintColor="#007bff"
-            showValue={false}
-          />
-          <Text style={styles.sliderValue}>{fuelDistribution.fuselage}</Text>
-        </View>
+        <PlatformSlider
+          label="Fuselage"
+          minimumValue={0}
+          maximumValue={20000}
+          step={100}
+          value={fuelDistribution.fuselage}
+          onValueChange={(value) => handleFuelChange('fuselage', value)}
+          minimumTrackTintColor="#0066cc"
+          maximumTrackTintColor="#e8e8e8"
+          thumbTintColor="#0066cc"
+          showValue={true}
+        />
       </View>
     </View>
   );
