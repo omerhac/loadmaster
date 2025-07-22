@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,116 +19,163 @@ interface LoadMissionModalProps {
   onCancel: () => void;
 }
 
+// Single state object following MissionSettings pattern
+type LoadModalState = {
+  missions: Mission[];
+  selectedMissionId: number | null;
+  isLoading: boolean;
+  hasError: boolean;
+};
+
+const DEFAULT_STATE: LoadModalState = {
+  missions: [],
+  selectedMissionId: null,
+  isLoading: false,
+  hasError: false,
+};
+
 const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
   visible,
   onLoad,
   onCancel,
 }) => {
-  const [missions, setMissions] = useState<Mission[]>([]);
-  const [selectedMissionId, setSelectedMissionId] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // Single state object like MissionSettings
+  const [state, setState] = useState<LoadModalState>(DEFAULT_STATE);
+
+  // Check if Windows platform for special handling
+  const isWindows = Platform.OS === 'windows';
+
+  // Single update handler like MissionSettings
+  const updateState = useCallback((updates: Partial<LoadModalState>) => {
+    setState(prev => ({ ...prev, ...updates }));
+  }, []);
 
   const loadMissions = useCallback(async () => {
-    setIsLoading(true);
+    updateState({ isLoading: true, hasError: false });
+
     try {
-      const response = await getAllMissions();
-      const missionsData: Mission[] = response.results.map(item => item.data as Mission);
-      // Sort by modified date (most recent first)
-      const sortedMissions = missionsData.sort((a, b) =>
-        new Date(b.modified_date).getTime() - new Date(a.modified_date).getTime()
-      );
-      setMissions(sortedMissions);
-      console.log('Loaded missions:', sortedMissions.length);
+      // Windows-specific timeout to prevent hangs
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database timeout')), isWindows ? 5000 : 15000);
+      });
+
+      // Race the database call against the timeout
+      const databasePromise = getAllMissions();
+      const response = await Promise.race([databasePromise, timeoutPromise]);
+
+      // Type assertion needed due to Promise.race
+      const dbResponse = response as any;
+
+      if (Array.isArray(dbResponse)) {
+        // Valid array response
+        const validMissions = dbResponse.filter((mission): mission is Mission => {
+          return mission &&
+                 typeof mission === 'object' &&
+                 typeof mission.name === 'string' &&
+                 mission.name.trim().length > 0;
+        });
+
+        // Sort by modified_date (newest first) with safe date handling
+        const sortedMissions = validMissions.sort((a, b) => {
+          try {
+            const dateA = a.modified_date ? new Date(a.modified_date).getTime() : 0;
+            const dateB = b.modified_date ? new Date(b.modified_date).getTime() : 0;
+            return dateB - dateA; // Newest first
+          } catch {
+            return 0; // Keep original order if date parsing fails
+          }
+        });
+
+        updateState({
+          missions: sortedMissions,
+          isLoading: false,
+          hasError: false,
+        });
+      } else {
+        throw new Error('Invalid response format');
+      }
+
     } catch (error) {
-      console.error('Error loading missions:', error);
-      Alert.alert('Error', 'Failed to load missions. Please try again.');
-    } finally {
-      setIsLoading(false);
+      console.warn('LoadMissionModal: Failed to load missions:', error);
+      updateState({
+        missions: [],
+        isLoading: false,
+        hasError: true,
+      });
+
+      // Show Windows-specific error handling
+      if (isWindows) {
+        Alert.alert(
+          'Database Error',
+          'Failed to load missions on Windows. Please restart the app if this continues.',
+          [{ text: 'OK' }]
+        );
+      }
     }
-  }, []);
+  }, [isWindows, updateState]);
 
   // Load missions when modal becomes visible
   useEffect(() => {
-    if (visible) {
+    if (visible && state.missions.length === 0 && !state.isLoading) {
       loadMissions();
-      setSelectedMissionId(null); // Reset selection when modal opens
     }
-  }, [visible, loadMissions]);
+  }, [visible, state.missions.length, state.isLoading, loadMissions]);
 
-  const selectedMission = useMemo(() =>
-    missions.find(mission => mission.id === selectedMissionId) || null,
-    [missions, selectedMissionId]
-  );
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!visible) {
+      setState(DEFAULT_STATE);
+    }
+  }, [visible]);
 
-  const handleMissionSelect = useCallback((mission: Mission) => {
-    console.log('Mission selected:', mission.name, 'ID:', mission.id);
-    setSelectedMissionId(mission.id || null);
-  }, []);
+  const handleSelectMission = useCallback((missionId: number) => {
+    updateState({ selectedMissionId: missionId });
+  }, [updateState]);
 
   const handleLoad = useCallback(() => {
-    console.log('Load button clicked, selected mission:', selectedMission?.name);
-    if (!selectedMission) {
-      Alert.alert('No Mission Selected', 'Please select a mission to load.');
-      return;
+    if (!state.selectedMissionId) {return;}
+
+    const selectedMission = state.missions.find(m => m.id === state.selectedMissionId);
+    if (selectedMission) {
+      onLoad(selectedMission);
     }
-    onLoad(selectedMission);
-    setSelectedMissionId(null);
-  }, [selectedMission, onLoad]);
+  }, [state.selectedMissionId, state.missions, onLoad]);
 
   const handleCancel = useCallback(() => {
-    setSelectedMissionId(null);
     onCancel();
   }, [onCancel]);
 
+  const handleRetry = useCallback(() => {
+    loadMissions();
+  }, [loadMissions]);
+
   const handleOverlayPress = useCallback(() => {
-    // Only close on overlay press, not when clicking inside the modal
     handleCancel();
   }, [handleCancel]);
 
-  const formatDate = useCallback((dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch {
-      return 'Invalid Date';
-    }
-  }, []);
-
-  const renderMissionItem = useCallback(({ item: mission }: { item: Mission }) => {
-    const isSelected = selectedMissionId === mission.id;
-
-    console.log('Rendering mission item:', mission.name, 'ID:', mission.id, 'Selected:', isSelected);
+  // Simplified mission item renderer
+  const renderMissionItem = useCallback(({ item }: { item: Mission }) => {
+    const isSelected = state.selectedMissionId === item.id;
+    const displayDate = item.modified_date || 'No date';
+    const displayName = item.name || 'Unnamed Mission';
 
     return (
       <TouchableOpacity
         style={[styles.missionItem, isSelected && styles.missionItemSelected]}
-        onPress={() => {
-          console.log('TouchableOpacity pressed for mission:', mission.name);
-          handleMissionSelect(mission);
-        }}
-        activeOpacity={0.7}
+        onPress={() => handleSelectMission(item.id || 0)}
       >
-        <View style={styles.missionHeader}>
-          <Text style={[styles.missionName, isSelected && styles.missionNameSelected]}>
-            {mission.name}
-          </Text>
-          <Text style={[styles.missionDate, isSelected && styles.missionDateSelected]}>
-            {formatDate(mission.modified_date)}
-          </Text>
-        </View>
-        <Text style={[styles.missionDetails, isSelected && styles.missionDetailsSelected]}>
-          Created: {formatDate(mission.created_date)} | ID: {mission.id}
+        <Text style={[styles.missionName, isSelected && styles.missionNameSelected]}>
+          {displayName}
+        </Text>
+        <Text style={[styles.missionDate, isSelected && styles.missionDateSelected]}>
+          {displayDate}
         </Text>
       </TouchableOpacity>
     );
-  }, [selectedMissionId, handleMissionSelect, formatDate]);
+  }, [state.selectedMissionId, handleSelectMission]);
 
-  const isLoadButtonEnabled = selectedMission !== null;
-
-  console.log('LoadMissionModal render - selectedMissionId:', selectedMissionId, 'isLoadButtonEnabled:', isLoadButtonEnabled);
+  // Validation
+  const isLoadButtonEnabled = state.selectedMissionId !== null && !state.isLoading;
 
   if (!visible) {
     return null;
@@ -141,7 +188,7 @@ const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
       </TouchableWithoutFeedback>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={isWindows ? 'padding' : (Platform.OS === 'ios' ? 'padding' : 'height')}
         style={styles.keyboardAvoidingView}
       >
         <View style={styles.modalContent}>
@@ -152,26 +199,41 @@ const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
           <Text style={styles.modalTitle}>Load Mission</Text>
 
           <View style={styles.contentContainer}>
-            {isLoading ? (
+            {state.isLoading ? (
               <View style={styles.loadingContainer}>
-                <Text style={styles.loadingText}>Loading missions...</Text>
+                <Text style={styles.loadingText}>
+                  {isWindows ? 'Loading missions (this may take a moment on Windows)...' : 'Loading missions...'}
+                </Text>
               </View>
-            ) : missions.length === 0 ? (
+            ) : state.hasError ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>Failed to load missions</Text>
+                <Text style={styles.emptySubtext}>
+                  {isWindows
+                    ? 'Database error on Windows. Please restart the app.'
+                    : 'Please check your connection and try again.'
+                  }
+                </Text>
+                <TouchableOpacity
+                  style={[styles.loadButton, { marginTop: 10, alignSelf: 'center' }]}
+                  onPress={handleRetry}
+                >
+                  <Text style={styles.loadButtonText}>Retry</Text>
+                </TouchableOpacity>
+              </View>
+            ) : state.missions.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>No missions found</Text>
                 <Text style={styles.emptySubtext}>Create a new mission to get started</Text>
               </View>
             ) : (
               <FlatList
-                data={missions}
-                keyExtractor={(item) => item.id?.toString() || ''}
+                data={state.missions}
+                keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
                 renderItem={renderMissionItem}
                 style={styles.missionList}
                 showsVerticalScrollIndicator={true}
-                extraData={selectedMissionId}
                 bounces={false}
-                scrollEnabled={true}
-                nestedScrollEnabled={true}
               />
             )}
           </View>

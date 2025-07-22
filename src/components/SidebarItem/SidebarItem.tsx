@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, AlertButton } from 'react-native';
 import { CargoItem } from '../../types';
 import { styles } from './SidebarItem.styles';
 
@@ -36,17 +36,21 @@ const SidebarItem = ({
     }
   };
 
-  const showActionsMenu = () => {
+    const showActionsMenu = () => {
+
+    // Create button configuration with Windows compatibility
+    const buttons: AlertButton[] = [
+      { text: 'Edit item', onPress: () => onEdit(item) },
+      { text: 'Duplicate item', onPress: () => onDuplicate(item.id) },
+      { text: 'Save as preset', onPress: () => onSaveAsPreset(item) },
+      { text: 'Delete item', onPress: () => onDelete(item.id) },
+      { text: 'Cancel', onPress: () => {} },
+    ];
+
     Alert.alert(
       'Item Actions',
       'Choose an action:',
-      [
-        { text: 'Edit item', onPress: () => onEdit(item) },
-        { text: 'Duplicate item', onPress: () => onDuplicate(item.id) },
-        { text: 'Save as preset', onPress: () => onSaveAsPreset(item) },
-        { text: 'Delete item', style: 'destructive', onPress: () => onDelete(item.id) },
-        { text: 'Cancel', style: 'cancel' },
-      ]
+      buttons
     );
   };
 

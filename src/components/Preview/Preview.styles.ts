@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: Platform.OS === 'ios' ? 50 : 45,
+    height: Platform.OS === 'ios' ? 60 : 55,
     zIndex: 100,
     width: '100%',
   },
