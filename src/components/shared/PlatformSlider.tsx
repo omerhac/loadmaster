@@ -176,12 +176,20 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
   // Use custom slider for ALL platforms (previously Windows-only)
   return (
     <View style={[styles.windowsContainer, style]}>
-      {/* Single Row: Title | Slider | - Button | + Button | Value */}
-      <View style={styles.windowsMainRow}>
-        {label && (
-          <Text style={styles.windowsLabel}>{label}:</Text>
-        )}
+      {/* Top Row: Label and Value */}
+      {label && (
+        <View style={styles.windowsLabelRow}>
+          <Text style={styles.windowsLabel}>{label}</Text>
+          {showValue && (
+            <Text style={[styles.windowsValueDisplay, disabled && styles.windowsValueDisplayDisabled]}>
+              {formatValue(value)}
+            </Text>
+          )}
+        </View>
+      )}
 
+      {/* Middle Row: Slider */}
+      <View style={styles.windowsSliderRow}>
         <WindowsSlider
           value={value}
           minimumValue={minimumValue}
@@ -193,7 +201,10 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
           thumbTintColor={thumbTintColor}
           disabled={disabled}
         />
+      </View>
 
+      {/* Bottom Row: Buttons and Value */}
+      <View style={styles.windowsButtonRow}>
         <TouchableOpacity
           style={[styles.windowsButton, disabled && styles.windowsButtonDisabled]}
           onPress={handleDecrement}
@@ -202,6 +213,12 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
           <Text style={[styles.windowsButtonText, disabled && styles.windowsButtonTextDisabled]}>-</Text>
         </TouchableOpacity>
 
+        {showValue && (
+          <Text style={[styles.windowsValueDisplayCenter, disabled && styles.windowsValueDisplayDisabled]}>
+            {formatValue(value)}
+          </Text>
+        )}
+
         <TouchableOpacity
           style={[styles.windowsButton, disabled && styles.windowsButtonDisabled]}
           onPress={handleIncrement}
@@ -209,23 +226,7 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
         >
           <Text style={[styles.windowsButtonText, disabled && styles.windowsButtonTextDisabled]}>+</Text>
         </TouchableOpacity>
-
-        {showValue && (
-          <Text style={[styles.windowsValueDisplay, disabled && styles.windowsValueDisplayDisabled]}>
-            {formatValue(value)}
-          </Text>
-        )}
       </View>
-
-      {/* Compact range info - only show when needed */}
-      {(minimumValue !== 0 || maximumValue !== 20000 || step !== 100) && (
-        <View style={styles.windowsRangeInfo}>
-          <Text style={styles.windowsRangeText}>
-            Range: {formatValue(minimumValue)} - {formatValue(maximumValue)}
-            {step !== 1 && step !== 100 && ` (step: ${formatValue(step)})`}
-          </Text>
-        </View>
-      )}
     </View>
   );
 };
@@ -242,20 +243,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     textAlign: 'left',
-    minWidth: 80,
-    maxWidth: 80,
-  },
-  windowsMainRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
   },
   windowsSliderContainer: {
-    flex: 2,
     height: 40,
     justifyContent: 'center',
-    marginHorizontal: 8,
   },
   windowsTrack: {
     height: 40,
@@ -301,8 +292,8 @@ const styles = StyleSheet.create({
   windowsButton: {
     backgroundColor: '#0066cc',
     borderRadius: 6,
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -310,14 +301,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
-    marginHorizontal: 4,
   },
   windowsButtonDisabled: {
     backgroundColor: '#ccc',
   },
   windowsButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   windowsButtonTextDisabled: {
@@ -338,17 +328,16 @@ const styles = StyleSheet.create({
   windowsValueDisplayDisabled: {
     color: '#999',
   },
-  windowsRangeInfo: {
-    marginTop: 4,
-    paddingTop: 4,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-  },
-  windowsRangeText: {
-    fontSize: 11,
-    color: '#999',
+  windowsValueDisplayCenter: {
+    fontSize: 16,
+    color: '#0066cc',
+    fontWeight: '700',
+    backgroundColor: '#f0f8ff',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 60,
     textAlign: 'center',
-    fontStyle: 'italic',
   },
 
   // Native (iOS/Android) styles
@@ -377,6 +366,22 @@ const styles = StyleSheet.create({
   },
   nativeValueDisplayDisabled: {
     color: '#999',
+  },
+  windowsLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  windowsSliderRow: {
+    marginBottom: 8,
+  },
+  windowsButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 16,
   },
 });
 
