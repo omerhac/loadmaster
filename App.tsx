@@ -149,32 +149,38 @@ function App(): React.JSX.Element {
     initDatabase();
   }, []);
 
+  // Load mission data only after database is initialized
   useEffect(() => {
-    if (!isDatabaseInitialized) {return;}
-
-    async function getDefaultCargoItems() {
-      const defaultCargoItems = await getCargoItemsByMissionId(currentMissionId);
-      return defaultCargoItems;
+    if (!isDatabaseInitialized) {
+      return;
     }
 
-    async function getDefaultMissionSettings() {
-      const mission = await getMissionById(currentMissionId);
-      if (mission.results.length === 0) {
-        throw new Error('Mission not found');
+    const loadMissionData = async () => {
+      try {
+        console.log('Loading mission data for mission ID:', currentMissionId);
+        
+        // Load mission settings
+        const mission = await getMissionById(currentMissionId);
+        if (mission.results.length === 0) {
+          throw new Error('Mission not found');
+        }
+        const settings = await convertDbMissionToMissionSettings(mission.results[0].data as Mission);
+        setMissionSettings(settings);
+
+        // Load cargo items
+        const cargoResponse = await getCargoItemsByMissionId(currentMissionId);
+        const dbCargoItems: DbCargoItem[] = cargoResponse.results.map(item => item?.data as DbCargoItem);
+        const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
+        setCargoItems(convertedItems);
+        
+        console.log('Mission data loaded successfully');
+      } catch (error) {
+        console.error('Error loading mission data:', error);
       }
-      return convertDbMissionToMissionSettings(mission.results[0].data as Mission);
-    }
+    };
 
-    getDefaultCargoItems().then(items => {
-      const dbCargoItems: DbCargoItem[] = items.results.map(item => item?.data as DbCargoItem);
-      const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
-      setCargoItems(convertedItems);
-    });
-
-    getDefaultMissionSettings().then(settings => {
-      setMissionSettings(settings);
-    });
-  }, [currentMissionId, isDatabaseInitialized]);
+    loadMissionData();
+  }, [isDatabaseInitialized, currentMissionId]); // Wait for BOTH database init AND mission ID
 
   useEffect(() => {
     const updateOrientation = () => {
