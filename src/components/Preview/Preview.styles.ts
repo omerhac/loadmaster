@@ -166,6 +166,14 @@ export const styles = StyleSheet.create({
     fontStyle: 'italic',
     paddingVertical: 20,
   },
+  alertLabel: {
+    color: '#d32f2f',
+    fontWeight: 'bold',
+  },
+  alertValue: {
+    color: '#d32f2f',
+    fontWeight: 'bold',
+  },
   // Legacy styles (keeping for compatibility)
   backButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',

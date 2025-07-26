@@ -6,3 +6,4 @@ export { default as SettingsIcon } from './SettingsIcon';
 export { default as PreviewIcon } from './PreviewIcon';
 export { default as GraphIcon } from './GraphIcon';
 export { default as PencilIcon } from './PencilIcon';
+export { default as DeleteIcon } from './DeleteIcon';

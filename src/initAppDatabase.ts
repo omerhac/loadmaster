@@ -12,6 +12,8 @@ import { initializeLoadmasterDatabase } from './services/db/SchemaService';
 import { getAllCargoTypes } from './services/db/operations/CargoTypeOperations';
 import { getAllAircraft } from './services/db/operations/AircraftOperations';
 import { createFuelMacQuant } from './services';
+import { createAllowedMacConstraint, getAllAllowedMacConstraints } from './services/db/operations/AllowedMacConstraintOperations';
+import { MAC_CONSTRAINTS_DATA } from './data/macConstraints';
 
 export default async function initAppDatabase() {
     try {
@@ -43,6 +45,23 @@ export default async function initAppDatabase() {
     } catch (error) {
         console.error('Error initializing database schemas:', error);
         throw error;
+    }
+
+    // Insert MAC constraints data
+    try {
+        const existingConstraints = await getAllAllowedMacConstraints();
+        if (existingConstraints.count === 0) {
+            console.log('Inserting MAC constraints data...');
+            for (const constraint of MAC_CONSTRAINTS_DATA) {
+                await createAllowedMacConstraint(constraint);
+            }
+            console.log(`Successfully inserted ${MAC_CONSTRAINTS_DATA.length} MAC constraints`);
+        } else {
+            console.log('MAC constraints already exist in database');
+        }
+    } catch (error) {
+        console.error('Error inserting MAC constraints:', error);
+        // Continue with initialization even if MAC constraints fail
     }
 
     // create excel fuel mac quant

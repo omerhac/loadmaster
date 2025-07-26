@@ -66,6 +66,21 @@ export class DatabaseFactory {
   static resetInstance(): void {
     this.instance = null;
   }
+
+  static async deleteDatabase(): Promise<void> {
+    try {
+      this.resetInstance();
+
+      await SQLite.deleteDatabase({
+        name: NativeDatabaseService.DATABASE_NAME,
+        location: 'default',
+      });
+      console.log('Database deleted successfully');
+    } catch (error) {
+      console.error('Error deleting database:', error);
+      throw error;
+    }
+  }
 }
 
 // Native implementation using react-native-sqlite-storage

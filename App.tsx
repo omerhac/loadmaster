@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, View, Platform, Dimensions } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Platform, Dimensions, Text, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Host } from 'react-native-portalize';
 import { CargoItem, MissionSettings, Position } from './src/types';
@@ -32,8 +32,6 @@ import { xPositionToFs, fsToXPosition, updateCargoItemPosition } from './src/uti
 import { Graphs } from './src/components/Graphs/Graphs';
 import { Images } from './src/assets';
 import { calculateMACPercent, calculateTotalAircraftWeight } from './src/services/mac';
-
-initAppDatabase();
 
 function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
   if (!item.id) {
@@ -131,31 +129,58 @@ function App(): React.JSX.Element {
   const [currentMissionId, setCurrentMissionId] = useState<number>(DEFAULT_MISSION_ID);
   const [macPercent, setMacPercent] = useState<number | null>(null);
   const [totalWeight, setTotalWeight] = useState<number | null>(null);
+  const [isDatabaseInitialized, setIsDatabaseInitialized] = useState(false);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
 
+  // Initialize database before anything else
   useEffect(() => {
-    async function getDefaultCargoItems() {
-      const defaultCargoItems = await getCargoItemsByMissionId(currentMissionId);
-      return defaultCargoItems;
-    }
-
-    async function getDefaultMissionSettings() {
-      const mission = await getMissionById(currentMissionId);
-      if (mission.results.length === 0) {
-        throw new Error('Mission not found');
+    const initDatabase = async () => {
+      try {
+        console.log('Starting database initialization...');
+        await initAppDatabase();
+        console.log('Database initialization completed successfully');
+        setIsDatabaseInitialized(true);
+      } catch (error) {
+        console.error('Failed to initialize database:', error);
+        setInitializationError(error instanceof Error ? error.message : 'Failed to initialize database');
       }
-      return convertDbMissionToMissionSettings(mission.results[0].data as Mission);
+    };
+
+    initDatabase();
+  }, []);
+
+  // Load mission data only after database is initialized
+  useEffect(() => {
+    if (!isDatabaseInitialized) {
+      return;
     }
 
-    getDefaultCargoItems().then(items => {
-      const dbCargoItems: DbCargoItem[] = items.results.map(item => item?.data as DbCargoItem);
-      const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
-      setCargoItems(convertedItems);
-    });
+    const loadMissionData = async () => {
+      try {
+        console.log('Loading mission data for mission ID:', currentMissionId);
+        
+        // Load mission settings
+        const mission = await getMissionById(currentMissionId);
+        if (mission.results.length === 0) {
+          throw new Error('Mission not found');
+        }
+        const settings = await convertDbMissionToMissionSettings(mission.results[0].data as Mission);
+        setMissionSettings(settings);
 
-    getDefaultMissionSettings().then(settings => {
-      setMissionSettings(settings);
-    });
-  }, [currentMissionId]);
+        // Load cargo items
+        const cargoResponse = await getCargoItemsByMissionId(currentMissionId);
+        const dbCargoItems: DbCargoItem[] = cargoResponse.results.map(item => item?.data as DbCargoItem);
+        const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
+        setCargoItems(convertedItems);
+        
+        console.log('Mission data loaded successfully');
+      } catch (error) {
+        console.error('Error loading mission data:', error);
+      }
+    };
+
+    loadMissionData();
+  }, [isDatabaseInitialized, currentMissionId]); // Wait for BOTH database init AND mission ID
 
   useEffect(() => {
     const updateOrientation = () => {
@@ -468,6 +493,29 @@ function App(): React.JSX.Element {
     setShowLoadMissionModal(false);
   }, []);
 
+  // Show loading screen while database is initializing
+  if (!isDatabaseInitialized) {
+    return (
+      <GestureHandlerRootView style={styles.root}>
+        <SafeAreaView style={[styles.safeArea, styles.loadingContainer]}>
+          <View style={styles.loadingContent}>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <View style={styles.loadingTextContainer}>
+              {initializationError ? (
+                <>
+                  <Text style={styles.errorText}>Database initialization failed</Text>
+                  <Text style={styles.errorDetails}>{initializationError}</Text>
+                </>
+              ) : (
+                <Text style={styles.loadingText}>Initializing database...</Text>
+              )}
+            </View>
+          </View>
+        </SafeAreaView>
+      </GestureHandlerRootView>
+    );
+  }
+
   const views: Record<AppViewType, React.ReactNode> = {
     settings: (
       <MissionSettingsComponent
@@ -573,6 +621,33 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     flexDirection: 'row',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContent: {
+    alignItems: 'center',
+  },
+  loadingTextContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#333',
+  },
+  errorText: {
+    fontSize: 18,
+    color: '#d32f2f',
+    marginBottom: 8,
+    fontWeight: 'bold',
+  },
+  errorDetails: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
 });
 

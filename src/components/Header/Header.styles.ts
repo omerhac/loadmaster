@@ -3,12 +3,12 @@ import { StyleSheet, Platform } from 'react-native';
 export const styles = StyleSheet.create({
   header: {
     backgroundColor: '#333',
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    height: Platform.OS === 'ios' ? 50 : 45,
+    height: Platform.OS === 'ios' ? 60 : 55,
     zIndex: 100,
     width: '100%',
   },
@@ -69,5 +69,14 @@ export const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  alertLabel: {
+    color: '#ffcccc',
+  },
+  alertValue: {
+    color: 'white',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
 });

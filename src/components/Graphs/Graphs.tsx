@@ -1,5 +1,7 @@
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, Image as RNImage } from 'react-native';
 import { MACGraph, AREAGraph } from './index';
+import { validateMac } from '../../services/mac';
 
 export type GraphsProps = {
   macPercent: number;
@@ -10,6 +12,27 @@ export type GraphsProps = {
 };
 
 export const Graphs = ({ macPercent, weight, macGraphImgSrc, areaGraphImgSrc, onBack }: GraphsProps) => {
+  const [isMacOutOfLimits, setIsMacOutOfLimits] = useState(false);
+  const [macLimits, setMacLimits] = useState({ min: 0, max: 0 });
+
+  useEffect(() => {
+    const checkMacLimits = async () => {
+      try {
+        const validationResult = await validateMac(weight, macPercent);
+        setIsMacOutOfLimits(!validationResult.isValid);
+        setMacLimits({
+          min: validationResult.minAllowedMac,
+          max: validationResult.maxAllowedMac,
+        });
+      } catch (error) {
+        console.error('Error validating MAC:', error);
+        setIsMacOutOfLimits(false);
+      }
+    };
+
+    checkMacLimits();
+  }, [macPercent, weight]);
+
   const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
   const resolved1 = RNImage.resolveAssetSource(macGraphImgSrc);
   const resolved2 = RNImage.resolveAssetSource(areaGraphImgSrc);
@@ -25,6 +48,13 @@ export const Graphs = ({ macPercent, weight, macGraphImgSrc, areaGraphImgSrc, on
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.backButton} onPress={onBack}>{'< Back'}</Text>
+        {isMacOutOfLimits && (
+          <View style={styles.warningContainer}>
+            <Text style={styles.warningText}>
+              ⚠️ MAC OUT OF LIMITS ({macLimits.min.toFixed(1)}% - {macLimits.max.toFixed(1)}%)
+            </Text>
+          </View>
+        )}
       </View>
       <View style={styles.graphsRow}>
         <View style={styles.graphWrapper}>
@@ -49,10 +79,41 @@ export const Graphs = ({ macPercent, weight, macGraphImgSrc, areaGraphImgSrc, on
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', backgroundColor: '#fff', paddingVertical: 8 },
-  header: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingHorizontal: 16 },
-  backButton: { fontSize: 16, color: '#007AFF', marginRight: 16, paddingVertical: 4, paddingHorizontal: 8 },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 16 },
-  graphsRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', width: '100%', gap: 8 },
-  graphWrapper: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 },
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#333',
+  },
+  backButton: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  warningContainer: {
+    backgroundColor: '#ff0000',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 4,
+  },
+  warningText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  graphsRow: {
+    flexDirection: 'row',
+    flex: 1,
+    padding: 16,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  graphWrapper: {
+    marginHorizontal: 8,
+  },
 });
