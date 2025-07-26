@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, Alert } from 'react-native';
 import FloatingMenu from '../FloatingMenu/FloatingMenu';
 import {
   NewIcon,
@@ -9,9 +9,11 @@ import {
   PreviewIcon,
   BurgerMenuIcon,
   GraphIcon,
+  DeleteIcon,
 } from '../icons';
 import { styles } from './Header.styles';
 import { validateMac } from '../../services/mac';
+import { DatabaseFactory } from '../../services/db/DatabaseService';
 
 interface HeaderProps {
   onSettingsClick: () => void;
@@ -27,6 +29,32 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMacOutOfLimits, setIsMacOutOfLimits] = useState(false);
   const blinkAnimation = useRef(new Animated.Value(1)).current;
+
+  const handleDeleteDatabase = () => {
+    Alert.alert(
+      'Delete Database',
+      'Are you sure you want to delete the database? This action cannot be undone and will remove all missions, cargo items, and settings.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await DatabaseFactory.deleteDatabase();
+              Alert.alert('Success', 'Database deleted successfully. The app will restart with fresh data.');
+            } catch (error) {
+              console.error('Error deleting database:', error);
+              Alert.alert('Error', 'Failed to delete database. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   useEffect(() => {
     const checkMacLimits = async () => {
@@ -108,6 +136,18 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
       label: 'Preview Mission',
       icon: <PreviewIcon />,
       onClick: onPreviewClick,
+    },
+    {
+      label: 'Delete Database',
+      icon: <DeleteIcon />,
+      onClick: handleDeleteDatabase,
+      style: {
+        borderTopWidth: 1,
+        borderTopColor: '#ff4444',
+        borderTopStyle: 'dashed',
+        marginTop: 5,
+        paddingTop: 10,
+      },
     },
   ];
 
