@@ -1,8 +1,7 @@
-import React, { useMemo, useCallback, useState, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Animated, Platform } from 'react-native';
 import { CargoItem, MissionSettings } from '../../types';
 import { styles } from './Preview.styles';
-import { calculateCargoItemMACIndex } from '../../utils/cargoUtils';
 import { validateMac } from '../../services/mac';
 
 interface PreviewProps {
@@ -127,15 +126,6 @@ const Preview = ({
       blinkAnimation.setValue(1);
     }
   }, [isMacOutOfLimits, blinkAnimation]);
-
-  // Calculate MAC index for each item using utility function - no database calls needed
-  const itemsWithMAC = useMemo(() =>
-    items.map(item => ({
-      ...item,
-      macIndex: calculateCargoItemMACIndex(item),
-    })),
-    [items]
-  );
 
   // Process data safely with error handling
   const processData = useCallback(() => {

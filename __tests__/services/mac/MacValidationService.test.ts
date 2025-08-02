@@ -14,7 +14,6 @@ import {
 } from '../../../src/services/db/operations/AllowedMacConstraintOperations';
 import { createAircraft } from '../../../src/services/db/operations/AircraftOperations';
 import { createMission } from '../../../src/services/db/operations/MissionOperations';
-import { createFuelMacQuant } from '../../../src/services/db/operations/FuelOperations';
 
 describe('MAC Validation Service', () => {
   beforeEach(async () => {
@@ -52,15 +51,7 @@ describe('MAC Validation Service', () => {
         ramp_min_incline: 15,
       });
 
-      // Create fuel MAC quantities using createFuelMacQuant operation
-      await createFuelMacQuant({
-        outboard_fuel: 0,
-        inboard_fuel: 0,
-        fuselage_fuel: 0,
-        auxiliary_fuel: 0,
-        external_fuel: 0,
-        mac_contribution: 0,
-      });
+      // Fuel MAC is now calculated directly from mission data
 
     } catch (error) {
       console.error('Error in test setup:', error);
@@ -172,24 +163,7 @@ describe('MAC Validation Service', () => {
           aircraft_id: 1,
         });
 
-        // Create fuel MAC quantities for the different fuel distributions
-        await createFuelMacQuant({
-          outboard_fuel: 1000,
-          inboard_fuel: 1000,
-          fuselage_fuel: 1000,
-          auxiliary_fuel: 1000,
-          external_fuel: 0,
-          mac_contribution: 5.0,
-        });
-
-        await createFuelMacQuant({
-          outboard_fuel: 2000,
-          inboard_fuel: 2000,
-          fuselage_fuel: 2000,
-          auxiliary_fuel: 2000,
-          external_fuel: 0,
-          mac_contribution: 8.0,
-        });
+        // Fuel MAC quantities are now calculated directly from mission data
 
       } catch (error) {
         console.error('Error setting up mission data:', error);

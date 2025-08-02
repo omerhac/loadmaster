@@ -35,7 +35,6 @@ describe('SchemaService Integration Tests', () => {
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS mission');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS cargo_type');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS cargo_item');
-    expect(schema).toContain('CREATE TABLE IF NOT EXISTS fuel_mac_quants');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS compartment');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS load_constraints');
     expect(schema).toContain('CREATE TABLE IF NOT EXISTS allowed_mac_constraints');
@@ -45,7 +44,7 @@ describe('SchemaService Integration Tests', () => {
     const schemas = getSchemaDefinitions();
 
     // Check if all expected schemas are returned
-    expect(schemas.length).toBe(9);
+    expect(schemas.length).toBe(8);
 
     // Check for specific table names
     const tableNames = schemas.map(schema => schema.tableName);
@@ -54,7 +53,6 @@ describe('SchemaService Integration Tests', () => {
     expect(tableNames).toContain('mission');
     expect(tableNames).toContain('cargo_type');
     expect(tableNames).toContain('cargo_item');
-    expect(tableNames).toContain('fuel_mac_quants');
     expect(tableNames).toContain('compartment');
     expect(tableNames).toContain('load_constraints');
     expect(tableNames).toContain('allowed_mac_constraints');
@@ -80,7 +78,6 @@ describe('SchemaService Integration Tests', () => {
     expect(tableNames).toContain('mission');
     expect(tableNames).toContain('cargo_type');
     expect(tableNames).toContain('cargo_item');
-    expect(tableNames).toContain('fuel_mac_quants');
     expect(tableNames).toContain('compartment');
     expect(tableNames).toContain('load_constraints');
     expect(tableNames).toContain('allowed_mac_constraints');

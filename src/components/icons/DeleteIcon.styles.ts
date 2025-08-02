@@ -33,4 +33,4 @@ export const styles = StyleSheet.create({
     top: 1,
     backgroundColor: 'transparent',
   },
-}); 
+});

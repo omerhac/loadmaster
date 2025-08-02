@@ -131,7 +131,7 @@ function App(): React.JSX.Element {
   const [currentMissionId, setCurrentMissionId] = useState<number>(DEFAULT_MISSION_ID);
   const [macPercent, setMacPercent] = useState<number | null>(null);
   const [totalWeight, setTotalWeight] = useState<number | null>(null);
-  
+
   // Add item modal state
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<CargoItem | null>(null);
@@ -159,8 +159,8 @@ function App(): React.JSX.Element {
   useEffect(() => {
     const fetchCargoTypes = async () => {
       const dbCargoTypes = (await getAllCargoTypes()).results.map(item => item.data) as DbCargoType[];
-      const cargoItems = dbCargoTypes.map(convertDbCargoTypeToCargoItem);
-      setSavedPresets(cargoItems);
+      const cargoItemsLocal = dbCargoTypes.map(convertDbCargoTypeToCargoItem);
+      setSavedPresets(cargoItemsLocal);
     };
     fetchCargoTypes();
   }, [convertDbCargoTypeToCargoItem]);
@@ -193,7 +193,7 @@ function App(): React.JSX.Element {
     const loadMissionData = async () => {
       try {
         console.log('Loading mission data for mission ID:', currentMissionId);
-        
+
         // Load mission settings
         const mission = await getMissionById(currentMissionId);
         if (mission.results.length === 0) {
@@ -207,7 +207,7 @@ function App(): React.JSX.Element {
         const dbCargoItems: DbCargoItem[] = cargoResponse.results.map(item => item?.data as DbCargoItem);
         const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
         setCargoItems(convertedItems);
-        
+
         console.log('Mission data loaded successfully');
       } catch (error) {
         console.error('Error loading mission data:', error);
