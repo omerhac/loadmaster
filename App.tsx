@@ -192,7 +192,7 @@ function App(): React.JSX.Element {
     const loadMissionData = async () => {
       try {
         console.log('Loading mission data for mission ID:', currentMissionId);
-        
+
         // Load mission settings
         const mission = await getMissionById(currentMissionId);
         if (mission.results.length === 0) {
@@ -206,7 +206,7 @@ function App(): React.JSX.Element {
         const dbCargoItems: DbCargoItem[] = cargoResponse.results.map(item => item?.data as DbCargoItem);
         const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
         setCargoItems(convertedItems);
-        
+
         console.log('Mission data loaded successfully');
       } catch (error) {
         console.error('Error loading mission data:', error);
