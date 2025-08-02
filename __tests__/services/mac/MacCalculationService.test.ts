@@ -17,7 +17,6 @@ import {
   createMission,
   createCargoType,
   createCargoItem,
-  createFuelMacQuant,
 } from '../../../src/services/db/operations';
 
 describe('MAC Calculation Service', () => {
@@ -106,19 +105,7 @@ describe('MAC Calculation Service', () => {
     const cargoItemResult = await createCargoItem(cargoItem);
     cargoItemId = cargoItemResult.results[0].lastInsertId as number;
 
-    // Create fuel MAC configurations for testing
-    // This matches the fuel distribution in our test mission
-    await createFuelMacQuant({
-      outboard_fuel: 16000,
-      inboard_fuel: 15000,
-      fuselage_fuel: 0,
-      auxiliary_fuel: 4000,
-      external_fuel: 0,
-      mac_contribution: 11.7,
-    });
-
-    // Note: We removed the fuel state creation since fuel_state table no longer exists
-    // Fuel data is now stored directly in the mission table
+    // Note: Fuel MAC is now calculated directly using formulas instead of table lookup
   });
 
   describe('calculateMACIndex', () => {
@@ -157,7 +144,7 @@ describe('MAC Calculation Service', () => {
       const fuelMAC = await calculateFuelMAC(missionId);
 
 
-      expect(fuelMAC).toBeCloseTo(11.7, 2);
+      expect(fuelMAC).toBeCloseTo(11.738, 2);
     });
 
     it('should return 0 for mission with no fuel state', async () => {
@@ -182,16 +169,6 @@ describe('MAC Calculation Service', () => {
       };
       const missionResult = await createMission(mission);
       const noFuelMissionId = missionResult.results[0].lastInsertId as number;
-
-      // Create a fuel MAC configuration for zero fuel
-      await createFuelMacQuant({
-        outboard_fuel: 0,
-        inboard_fuel: 0,
-        fuselage_fuel: 0,
-        auxiliary_fuel: 0,
-        external_fuel: 0,
-        mac_contribution: 0,
-      });
 
       const fuelMAC = await calculateFuelMAC(noFuelMissionId);
       expect(fuelMAC).toBe(0);

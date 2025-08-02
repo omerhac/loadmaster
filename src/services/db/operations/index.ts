@@ -11,6 +11,5 @@ export * from './AllowedMacConstraintOperations';
 export * from './CargoItemOperations';
 export * from './CargoTypeOperations';
 export * from './CompartmentOperations';
-export * from './FuelOperations';
 export * from './MissionOperations';
 export * from './UserOperations';

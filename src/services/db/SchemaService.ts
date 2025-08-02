@@ -35,7 +35,6 @@ export function getSchemaDefinitions(): SchemaDefinition[] {
     getMissionTableSchema(),
     getCargoTypeTableSchema(),
     getCargoItemTableSchema(),
-    getFuelMacQuantsTableSchema(),
     getCompartmentTableSchema(),
     getLoadConstraintsTableSchema(),
     getAllowedMacConstraintsTableSchema(),
@@ -163,25 +162,6 @@ export function getCargoItemTableSchema(): SchemaDefinition {
         status TEXT CHECK (status IN ('inventory', 'onStage', 'onDeck')) NOT NULL,
         FOREIGN KEY (mission_id) REFERENCES mission (id),
         FOREIGN KEY (cargo_type_id) REFERENCES cargo_type (id)
-      );
-    `,
-  };
-}
-
-/**
- * Fuel MAC quantities table schema definition
- */
-export function getFuelMacQuantsTableSchema(): SchemaDefinition {
-  return {
-    tableName: 'fuel_mac_quants',
-    createStatement: `
-      CREATE TABLE IF NOT EXISTS fuel_mac_quants (
-        outboard_fuel REAL NOT NULL,
-        inboard_fuel REAL NOT NULL,
-        fuselage_fuel REAL NOT NULL,
-        auxiliary_fuel REAL NOT NULL,
-        external_fuel REAL NOT NULL,
-        mac_contribution REAL NOT NULL
       );
     `,
   };

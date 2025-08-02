@@ -24,7 +24,7 @@ import { createCargoType } from './src/services/db/operations/CargoTypeOperation
 import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
 import { updateCargoItem } from './src/services/db/operations/CargoItemOperations';
 import { deleteCargoItem } from './src/services/db/operations/CargoItemOperations';
-import { getAircraftById } from './src/services/db/operations/AircraftOperations';
+import { getAircraftById, updateAircraft } from './src/services/db/operations/AircraftOperations';
 import { getMissionById, createMission } from './src/services/db/operations/MissionOperations';
 import { DEFAULT_MISSION_ID, DEFAULT_NEW_MISSION, DEFAULT_Y_POS } from './src/constants';
 import { updateMission } from './src/services/db/operations/MissionOperations';
@@ -32,6 +32,8 @@ import { xPositionToFs, fsToXPosition, updateCargoItemPosition } from './src/uti
 import { Graphs } from './src/components/Graphs/Graphs';
 import { Images } from './src/assets';
 import { calculateMACPercent, calculateTotalAircraftWeight } from './src/services/mac';
+import AddCargoItemModal from './src/components/AddCargoItemModal/AddCargoItemModal';
+import { getAllCargoTypes } from './src/services/db/operations/CargoTypeOperations';
 
 function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
   if (!item.id) {
@@ -132,7 +134,39 @@ function App(): React.JSX.Element {
   const [isDatabaseInitialized, setIsDatabaseInitialized] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
 
-  // Initialize database before anything else
+  // Add item modal state
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState<CargoItem | null>(null);
+  const [savedPresets, setSavedPresets] = useState<CargoItem[]>([]);
+
+  const convertDbCargoTypeToCargoItem = useCallback((dbCargoType: DbCargoType): CargoItem => {
+    const cargoTypeId = typeof dbCargoType.id === 'number' ? dbCargoType.id : 1;
+    return {
+      id: `preset-${dbCargoType.id || Math.random()}`,
+      name: dbCargoType.name,
+      cargo_type_id: cargoTypeId,
+      length: dbCargoType.default_length,
+      width: dbCargoType.default_width,
+      height: dbCargoType.default_height,
+      weight: dbCargoType.default_weight,
+      cog: dbCargoType.default_cog || 0,
+      fs: 0,
+      dock: 'CoG',
+      status: 'inventory',
+      position: { x: -1, y: -1 },
+    };
+  }, []);
+
+  // Load saved presets from cargo types
+  useEffect(() => {
+    const fetchCargoTypes = async () => {
+      const dbCargoTypes = (await getAllCargoTypes()).results.map(item => item.data) as DbCargoType[];
+      const cargoItemsLocal = dbCargoTypes.map(convertDbCargoTypeToCargoItem);
+      setSavedPresets(cargoItemsLocal);
+    };
+    fetchCargoTypes();
+  }, [convertDbCargoTypeToCargoItem]);
+
   useEffect(() => {
     const initDatabase = async () => {
       try {
@@ -158,7 +192,7 @@ function App(): React.JSX.Element {
     const loadMissionData = async () => {
       try {
         console.log('Loading mission data for mission ID:', currentMissionId);
-        
+
         // Load mission settings
         const mission = await getMissionById(currentMissionId);
         if (mission.results.length === 0) {
@@ -172,7 +206,7 @@ function App(): React.JSX.Element {
         const dbCargoItems: DbCargoItem[] = cargoResponse.results.map(item => item?.data as DbCargoItem);
         const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
         setCargoItems(convertedItems);
-        
+
         console.log('Mission data loaded successfully');
       } catch (error) {
         console.error('Error loading mission data:', error);
@@ -410,7 +444,7 @@ function App(): React.JSX.Element {
     handleUpdateItemStatus(id, 'inventory');
   }, [handleUpdateItemStatus]);
 
-  const handleMissionSave = useCallback((settings: MissionSettings) => {
+  const handleMissionSave = useCallback(async (settings: MissionSettings) => {
     setMissionSettings(settings);
     const mission: Mission = {
       id: parseInt(settings.id, 10),
@@ -432,7 +466,25 @@ function App(): React.JSX.Element {
       aircraft_id: settings.aircraftId,
       aircraft_empty_weight: settings.aircraftEmptyWeight,
     };
-    updateMission(mission);
+    try {
+    await updateMission(mission);
+
+      const aircraftResult = await getAircraftById(settings.aircraftId);
+      if (aircraftResult.results.length > 0 && aircraftResult.results[0].data) {
+        const aircraft = aircraftResult.results[0].data as Aircraft;
+
+        const updatedAircraft: Aircraft = {
+          ...aircraft,
+          empty_weight: settings.aircraftEmptyWeight,
+          empty_mac: settings.aircraftIndex,
+        };
+
+        await updateAircraft(updatedAircraft);
+      }
+    } catch (error) {
+      console.error('Error updating mission:', error);
+    }
+
     setCurrentView('planning');
   }, []);
 
@@ -493,6 +545,31 @@ function App(): React.JSX.Element {
     setShowLoadMissionModal(false);
   }, []);
 
+  // Add item modal handlers
+  const handleAddItemModal = useCallback(() => {
+    setEditingItem(null);
+    setIsAddModalVisible(true);
+  }, []);
+
+  const handleEditItemModal = useCallback((item: CargoItem) => {
+    setEditingItem(item);
+    setIsAddModalVisible(true);
+  }, []);
+
+  const handleSaveItemModal = useCallback((item: CargoItem) => {
+    if (editingItem) {
+      handleEditItem(item);
+    } else {
+      handleAddItem(item);
+    }
+    setIsAddModalVisible(false);
+    setEditingItem(null);
+  }, [editingItem, handleEditItem, handleAddItem]);
+
+  const handleCancelItemModal = useCallback(() => {
+    setIsAddModalVisible(false);
+    setEditingItem(null);
+  }, []);
   // Show loading screen while database is initializing
   if (!isDatabaseInitialized) {
     return (
@@ -541,8 +618,8 @@ function App(): React.JSX.Element {
         <View style={styles.contentContainer}>
           <Sidebar
             items={cargoItems}
-            onAddItem={handleAddItem}
-            onEditItem={handleEditItem}
+            onAddItem={handleAddItemModal}
+            onEditItem={handleEditItemModal}
             onDeleteItem={handleDeleteItem}
             onDuplicateItem={handleDuplicateItem}
             onSaveAsPreset={handleSaveAsPreset}
@@ -592,6 +669,14 @@ function App(): React.JSX.Element {
             onLoad={handleLoadMission}
             onCancel={handleCancelLoadMission}
           />
+          {isAddModalVisible && (
+            <AddCargoItemModal
+              initialItem={editingItem || undefined}
+              onSave={handleSaveItemModal}
+              onCancel={handleCancelItemModal}
+              savedPresets={savedPresets}
+            />
+          )}
         </SafeAreaView>
       </GestureHandlerRootView>
     </Host>

@@ -68,15 +68,6 @@ export interface CargoItem {
   status?: 'inventory' | 'onStage' | 'onDeck';
 }
 
-export interface FuelMacQuant {
-  outboard_fuel: number;
-  inboard_fuel: number;
-  fuselage_fuel: number;
-  auxiliary_fuel: number;
-  external_fuel: number;
-  mac_contribution: number;
-}
-
 export interface Compartment {
   id?: number;
   aircraft_id: number;

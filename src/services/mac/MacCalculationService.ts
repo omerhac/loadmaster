@@ -11,7 +11,6 @@ import {
   getOnDeckCargoItemsByMissionId,
   getCargoItemById,
   getAircraftById,
-  findClosestFuelMacConfiguration,
 } from '../db/operations';
 import { DEFAULT_LOADMASTER_WEIGHT } from '../../constants';
 
@@ -247,23 +246,17 @@ export async function calculateFuelMAC(missionId: number): Promise<number> {
     throw new Error(`Mission data is undefined for mission ID ${missionId}`);
   }
 
-  // 2. Use the fuel fields from the mission to find MAC configuration
-  try {
-    const fuelMacQuantResult = await findClosestFuelMacConfiguration(
-      mission.outboard_fuel,
-      mission.inboard_fuel,
-      mission.fuselage_fuel,
-      mission.auxiliary_fuel,
-      mission.external_fuel
-    );
+  // 2. Calculate MAC contributions using the provided formulas
+  const outboardMAC = (545 - 533.46) * mission.outboard_fuel / 50000;
+  const inboardMAC = (554 - 533.46) * mission.inboard_fuel / 50000;
+  const auxiliaryMAC = (557 - 533.46) * mission.auxiliary_fuel / 50000;
+  const externalMAC = (552 - 533.46) * mission.external_fuel / 50000;
+  const fuselageMAC = (545 - 533.46) * mission.fuselage_fuel / 50000;
 
-    // 3. Return the MAC contribution from the reference table
-    return fuelMacQuantResult.mac_contribution;
-  } catch (error) {
-    // If no matching fuel configuration found, return 0
-    console.warn(`No matching fuel configuration found for mission ${missionId}:`, error);
-    return 0;
-  }
+  // 3. Sum all fuel MAC contributions
+  const totalFuelMAC = outboardMAC + inboardMAC + auxiliaryMAC + externalMAC + fuselageMAC;
+
+  return totalFuelMAC;
 }
 
 /**
