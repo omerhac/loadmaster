@@ -128,15 +128,6 @@ const Preview = ({
     }
   }, [isMacOutOfLimits, blinkAnimation]);
 
-  // Calculate MAC index for each item using utility function - no database calls needed
-  const itemsWithMAC = useMemo(() =>
-    items.map(item => ({
-      ...item,
-      macIndex: calculateCargoItemMACIndex(item),
-    })),
-    [items]
-  );
-
   useEffect(() => {
     const checkMacLimits = async () => {
       if (macPercent !== null && macPercent !== undefined && totalWeight !== null && totalWeight !== undefined) {

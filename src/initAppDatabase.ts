@@ -11,10 +11,6 @@ import { Aircraft, CargoItem, Mission } from './services/db/operations/types';
 import { initializeLoadmasterDatabase } from './services/db/SchemaService';
 import { getAllCargoTypes } from './services/db/operations/CargoTypeOperations';
 import { getAllAircraft } from './services/db/operations/AircraftOperations';
-<<<<<<< HEAD
-=======
-import { createFuelMacQuant } from './services';
->>>>>>> main
 import { createAllowedMacConstraint, getAllAllowedMacConstraints } from './services/db/operations/AllowedMacConstraintOperations';
 import { MAC_CONSTRAINTS_DATA } from './data/macConstraints';
 
