@@ -1,4 +1,5 @@
-import React, { useCallback, useState, useEffect, useRef } from 'react';
+
+import React, { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Animated, Platform } from 'react-native';
 import { CargoItem, MissionSettings } from '../../types';
 import { styles } from './Preview.styles';
@@ -84,6 +85,57 @@ const Preview = ({
   }, []);
   const [isMacOutOfLimits, setIsMacOutOfLimits] = useState(false);
   const blinkAnimation = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const checkMacLimits = async () => {
+      if (macPercent !== null && macPercent !== undefined && totalWeight !== null && totalWeight !== undefined) {
+        try {
+          const validationResult = await validateMac(totalWeight, macPercent);
+          setIsMacOutOfLimits(!validationResult.isValid);
+        } catch (error) {
+          console.error('Error validating MAC:', error);
+          setIsMacOutOfLimits(false);
+        }
+      } else {
+        setIsMacOutOfLimits(false);
+      }
+    };
+
+    checkMacLimits();
+  }, [macPercent, totalWeight]);
+
+  // Blinking animation
+  useEffect(() => {
+    if (isMacOutOfLimits) {
+      const blinking = Animated.loop(
+        Animated.sequence([
+          Animated.timing(blinkAnimation, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: false,
+          }),
+          Animated.timing(blinkAnimation, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: false,
+          }),
+        ])
+      );
+      blinking.start();
+      return () => blinking.stop();
+    } else {
+      blinkAnimation.setValue(1);
+    }
+  }, [isMacOutOfLimits, blinkAnimation]);
+
+  // Calculate MAC index for each item using utility function - no database calls needed
+  const itemsWithMAC = useMemo(() =>
+    items.map(item => ({
+      ...item,
+      macIndex: calculateCargoItemMACIndex(item),
+    })),
+    [items]
+  );
 
   useEffect(() => {
     const checkMacLimits = async () => {
