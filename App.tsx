@@ -24,7 +24,7 @@ import { createCargoType } from './src/services/db/operations/CargoTypeOperation
 import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
 import { updateCargoItem } from './src/services/db/operations/CargoItemOperations';
 import { deleteCargoItem } from './src/services/db/operations/CargoItemOperations';
-import { getAircraftById } from './src/services/db/operations/AircraftOperations';
+import { getAircraftById, updateAircraft } from './src/services/db/operations/AircraftOperations';
 import { getMissionById, createMission } from './src/services/db/operations/MissionOperations';
 import { DEFAULT_MISSION_ID, DEFAULT_NEW_MISSION, DEFAULT_Y_POS } from './src/constants';
 import { updateMission } from './src/services/db/operations/MissionOperations';
@@ -444,7 +444,7 @@ function App(): React.JSX.Element {
     handleUpdateItemStatus(id, 'inventory');
   }, [handleUpdateItemStatus]);
 
-  const handleMissionSave = useCallback((settings: MissionSettings) => {
+  const handleMissionSave = useCallback(async (settings: MissionSettings) => {
     setMissionSettings(settings);
     const mission: Mission = {
       id: parseInt(settings.id, 10),
@@ -466,7 +466,25 @@ function App(): React.JSX.Element {
       aircraft_id: settings.aircraftId,
       aircraft_empty_weight: settings.aircraftEmptyWeight,
     };
-    updateMission(mission);
+    try {
+    await updateMission(mission);
+    
+      const aircraftResult = await getAircraftById(settings.aircraftId);
+      if (aircraftResult.results.length > 0 && aircraftResult.results[0].data) {
+        const aircraft = aircraftResult.results[0].data as Aircraft;
+        
+        const updatedAircraft: Aircraft = {
+          ...aircraft,
+          empty_weight: settings.aircraftEmptyWeight,
+          empty_mac: settings.aircraftIndex,
+        };
+        
+        await updateAircraft(updatedAircraft);
+      }
+    } catch (error) {
+      console.error('Error updating mission:', error);
+    }
+    
     setCurrentView('planning');
   }, []);
 

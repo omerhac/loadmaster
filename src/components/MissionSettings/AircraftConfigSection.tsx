@@ -55,7 +55,8 @@ const AircraftConfigSection = ({
           <TextInput
             style={styles.numberInput}
             value={aircraftIndex}
-            onChangeText={(value) => handleTextChange('aircraftIndex', value)}
+            onChangeText={(value) => handleNumericChange('aircraftIndex', value)}
+            keyboardType="numeric"
             placeholder="Aircraft Index"
             placeholderTextColor="#999"
           />
