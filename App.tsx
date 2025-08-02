@@ -468,23 +468,23 @@ function App(): React.JSX.Element {
     };
     try {
     await updateMission(mission);
-    
+
       const aircraftResult = await getAircraftById(settings.aircraftId);
       if (aircraftResult.results.length > 0 && aircraftResult.results[0].data) {
         const aircraft = aircraftResult.results[0].data as Aircraft;
-        
+
         const updatedAircraft: Aircraft = {
           ...aircraft,
           empty_weight: settings.aircraftEmptyWeight,
           empty_mac: settings.aircraftIndex,
         };
-        
+
         await updateAircraft(updatedAircraft);
       }
     } catch (error) {
       console.error('Error updating mission:', error);
     }
-    
+
     setCurrentView('planning');
   }, []);
 

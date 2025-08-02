@@ -33,12 +33,25 @@ const AircraftConfigSection = ({
   fuelDistribution,
   onChange,
 }: AircraftConfigSectionProps) => {
-  const handleTextChange = useCallback((name: string, value: string) => {
-    onChange(name, value);
-  }, [onChange]);
-
   const handleNumericChange = useCallback((name: string, value: string) => {
     onChange(name, parseInt(value, 10) || 0);
+  }, [onChange]);
+
+  const handleFloatChange = useCallback((name: string, value: string) => {
+    if (value === '') {
+      onChange(name, '');
+      return;
+    }
+
+    if (value === '.' || (value.endsWith('.') && value.split('.').length <= 2)) {
+      onChange(name, value);
+      return;
+    }
+
+    const floatValue = parseFloat(value);
+    if (!isNaN(floatValue)) {
+      onChange(name, value);
+    }
   }, [onChange]);
 
   const handleSwitchChange = useCallback((name: string, value: boolean) => {
@@ -55,8 +68,8 @@ const AircraftConfigSection = ({
           <TextInput
             style={styles.numberInput}
             value={aircraftIndex}
-            onChangeText={(value) => handleNumericChange('aircraftIndex', value)}
-            keyboardType="numeric"
+            onChangeText={(value) => handleFloatChange('aircraftIndex', value)}
+            keyboardType="decimal-pad"
             placeholder="Aircraft Index"
             placeholderTextColor="#999"
           />

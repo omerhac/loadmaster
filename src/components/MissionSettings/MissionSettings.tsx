@@ -108,7 +108,13 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   }, []);
 
   const handleSubmit = useCallback(() => {
-    onSave(formData);
+    const dataToSave = {
+      ...formData,
+      aircraftIndex: typeof formData.aircraftIndex === 'string'
+        ? parseFloat(formData.aircraftIndex) || 0
+        : formData.aircraftIndex,
+    };
+    onSave(dataToSave);
   }, [formData, onSave]);
 
   return (
