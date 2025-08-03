@@ -391,7 +391,6 @@ function App(): React.JSX.Element {
         ? (position || i.position)
         : { x: -1, y: -1 };
 
-      console.log('newPosition', newPosition, status);
       updateCargoItem({
         id: parseInt(id, 10),
         status: status as 'onStage' | 'onDeck' | 'inventory',

@@ -4,7 +4,7 @@ import { Position } from '../../types';
 import { styles } from './Deck.styles';
 
 // Toggle this to true to show corner debug coordinates
-export const SHOW_DEBUG_COORDS = true;
+export const SHOW_DEBUG_COORDS = false;
 
 interface DebugCoordinatesProps {
   corners: {
