@@ -78,16 +78,16 @@ const LoadingArea: React.FC<LoadingAreaProps> = React.memo(({ items, onUpdateIte
   }, [onUpdateItemStatus]);
 
   // Handle dragging an item from stage to deck
-  const handleDragToDeck = useCallback((id: string, position: { x: number, y: number }) => {
+  const handleDragToDeck = useCallback((id: string, _position: { x: number, y: number }) => {
     // Note: This function receives drop position in screen pixels
     // and needs to convert to deck coordinates in inches
-    
+
     // For now, just pass a default position in the center of the deck
     // The proper conversion requires knowing the deck image bounds which
     // are calculated in DeckItem
     const defaultPosition = {
       x: 400, // Middle of loading area (250 to 849)
-      y: 100, // Center of deck (assuming 200 inch height)
+      y: 35,
     };
 
     onUpdateItemStatus(id, 'onDeck', defaultPosition);
