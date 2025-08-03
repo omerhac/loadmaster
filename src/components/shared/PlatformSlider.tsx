@@ -176,20 +176,11 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
   // Use custom slider for ALL platforms (previously Windows-only)
   return (
     <View style={[styles.windowsContainer, style]}>
-      {/* Top Row: Label and Value */}
-      {label && (
-        <View style={styles.windowsLabelRow}>
-          <Text style={styles.windowsLabel}>{label}</Text>
-          {showValue && (
-            <Text style={[styles.windowsValueDisplay, disabled && styles.windowsValueDisplayDisabled]}>
-              {formatValue(value)}
-            </Text>
-          )}
-        </View>
-      )}
+      {/* Label Section */}
+      <Text style={styles.windowsLabel}>{label}</Text>
 
-      {/* Middle Row: Slider */}
-      <View style={styles.windowsSliderRow}>
+      {/* Slider Section */}
+      <View style={styles.windowsSliderContainer}>
         <WindowsSlider
           value={value}
           minimumValue={minimumValue}
@@ -203,8 +194,8 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
         />
       </View>
 
-      {/* Bottom Row: Buttons and Value */}
-      <View style={styles.windowsButtonRow}>
+      {/* Button and Value Section */}
+      <View style={styles.windowsButtonSection}>
         <TouchableOpacity
           style={[styles.windowsButton, disabled && styles.windowsButtonDisabled]}
           onPress={handleDecrement}
@@ -234,24 +225,33 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
 const styles = StyleSheet.create({
   // Windows-specific styles
   windowsContainer: {
-
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-
+    width: '100%',
+    minHeight: 50,
   },
   windowsLabel: {
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
     textAlign: 'left',
+    width: 80,
+    flexShrink: 0,
   },
   windowsSliderContainer: {
     height: 40,
     justifyContent: 'center',
+    flex: 1,
+    marginHorizontal: 16,
   },
   windowsTrack: {
     height: 40,
     justifyContent: 'center',
     position: 'relative',
+    minWidth: 200,
   },
   windowsTrackBackground: {
     height: 4,
@@ -314,17 +314,6 @@ const styles = StyleSheet.create({
     color: '#999',
   },
 
-  windowsValueDisplay: {
-    fontSize: 14,
-    color: '#0066cc',
-    minWidth: 60,
-    textAlign: 'center',
-    fontWeight: '700',
-    // backgroundColor: '#f0f8ff',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 4,
-  },
   windowsValueDisplayDisabled: {
     color: '#999',
   },
@@ -336,8 +325,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    minWidth: 60,
+    width: 90,
     textAlign: 'center',
+    flexShrink: 0,
+  },
+  windowsButtonSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    width: 180,
+    flexShrink: 0,
   },
 
   // Native (iOS/Android) styles
@@ -366,22 +364,6 @@ const styles = StyleSheet.create({
   },
   nativeValueDisplayDisabled: {
     color: '#999',
-  },
-  windowsLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  windowsSliderRow: {
-    marginBottom: 8,
-  },
-  windowsButtonRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 16,
   },
 });
 
