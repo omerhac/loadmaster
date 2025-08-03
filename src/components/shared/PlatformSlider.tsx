@@ -14,6 +14,7 @@ interface PlatformSliderProps {
   disabled?: boolean;
   label?: string;
   showValue?: boolean;
+  multiline?: boolean;
 }
 
 // Custom Windows Slider Component
@@ -154,6 +155,7 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
   disabled = false,
   label,
   showValue = true,
+  multiline = false,
 }) => {
   const handleIncrement = useCallback(() => {
     if (disabled) {return;}
@@ -175,49 +177,97 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
 
   // Use custom slider for ALL platforms (previously Windows-only)
   return (
-    <View style={[styles.windowsContainer, style]}>
-      {/* Label Section */}
-      <Text style={styles.windowsLabel}>{label}</Text>
+    <View style={[multiline ? styles.multilineContainer : styles.windowsContainer, style]}>
+      {multiline ? (
+        <>
+          {/* Multiline Layout (Original) */}
+          {/* Slider Row */}
+          <View style={styles.multilineSliderRow}>
+            <WindowsSlider
+              value={value}
+              minimumValue={minimumValue}
+              maximumValue={maximumValue}
+              step={step}
+              onValueChange={onValueChange}
+              minimumTrackTintColor={minimumTrackTintColor}
+              maximumTrackTintColor={maximumTrackTintColor}
+              thumbTintColor={thumbTintColor}
+              disabled={disabled}
+            />
+          </View>
 
-      {/* Slider Section */}
-      <View style={styles.windowsSliderContainer}>
-        <WindowsSlider
-          value={value}
-          minimumValue={minimumValue}
-          maximumValue={maximumValue}
-          step={step}
-          onValueChange={onValueChange}
-          minimumTrackTintColor={minimumTrackTintColor}
-          maximumTrackTintColor={maximumTrackTintColor}
-          thumbTintColor={thumbTintColor}
-          disabled={disabled}
-        />
-      </View>
+          {/* Button Row */}
+          <View style={styles.multilineButtonRow}>
+            <TouchableOpacity
+              style={[styles.windowsButton, disabled && styles.windowsButtonDisabled]}
+              onPress={handleDecrement}
+              disabled={disabled || value <= minimumValue}
+            >
+              <Text style={[styles.windowsButtonText, disabled && styles.windowsButtonTextDisabled]}>-</Text>
+            </TouchableOpacity>
 
-      {/* Button and Value Section */}
-      <View style={styles.windowsButtonSection}>
-        <TouchableOpacity
-          style={[styles.windowsButton, disabled && styles.windowsButtonDisabled]}
-          onPress={handleDecrement}
-          disabled={disabled || value <= minimumValue}
-        >
-          <Text style={[styles.windowsButtonText, disabled && styles.windowsButtonTextDisabled]}>-</Text>
-        </TouchableOpacity>
+            {showValue && (
+              <Text style={[styles.windowsValueDisplayCenter, disabled && styles.windowsValueDisplayDisabled]}>
+                {formatValue(value)}
+              </Text>
+            )}
 
-        {showValue && (
-          <Text style={[styles.windowsValueDisplayCenter, disabled && styles.windowsValueDisplayDisabled]}>
-            {formatValue(value)}
-          </Text>
-        )}
+            <TouchableOpacity
+              style={[styles.windowsButton, disabled && styles.windowsButtonDisabled]}
+              onPress={handleIncrement}
+              disabled={disabled || value >= maximumValue}
+            >
+              <Text style={[styles.windowsButtonText, disabled && styles.windowsButtonTextDisabled]}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      ) : (
+        <>
+          {/* Horizontal Layout (New) */}
+          {/* Label Section */}
+          <Text style={styles.windowsLabel}>{label}</Text>
 
-        <TouchableOpacity
-          style={[styles.windowsButton, disabled && styles.windowsButtonDisabled]}
-          onPress={handleIncrement}
-          disabled={disabled || value >= maximumValue}
-        >
-          <Text style={[styles.windowsButtonText, disabled && styles.windowsButtonTextDisabled]}>+</Text>
-        </TouchableOpacity>
-      </View>
+          {/* Slider Section */}
+          <View style={styles.windowsSliderContainer}>
+            <WindowsSlider
+              value={value}
+              minimumValue={minimumValue}
+              maximumValue={maximumValue}
+              step={step}
+              onValueChange={onValueChange}
+              minimumTrackTintColor={minimumTrackTintColor}
+              maximumTrackTintColor={maximumTrackTintColor}
+              thumbTintColor={thumbTintColor}
+              disabled={disabled}
+            />
+          </View>
+
+          {/* Button and Value Section */}
+          <View style={styles.windowsButtonSection}>
+            <TouchableOpacity
+              style={[styles.windowsButton, disabled && styles.windowsButtonDisabled]}
+              onPress={handleDecrement}
+              disabled={disabled || value <= minimumValue}
+            >
+              <Text style={[styles.windowsButtonText, disabled && styles.windowsButtonTextDisabled]}>-</Text>
+            </TouchableOpacity>
+
+            {showValue && (
+              <Text style={[styles.windowsValueDisplayCenter, disabled && styles.windowsValueDisplayDisabled]}>
+                {formatValue(value)}
+              </Text>
+            )}
+
+            <TouchableOpacity
+              style={[styles.windowsButton, disabled && styles.windowsButtonDisabled]}
+              onPress={handleIncrement}
+              disabled={disabled || value >= maximumValue}
+            >
+              <Text style={[styles.windowsButtonText, disabled && styles.windowsButtonTextDisabled]}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </View>
   );
 };
@@ -364,6 +414,24 @@ const styles = StyleSheet.create({
   },
   nativeValueDisplayDisabled: {
     color: '#999',
+  },
+
+  // Multiline styles (for multiline prop)
+  multilineContainer: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    width: '100%',
+  },
+  multilineSliderRow: {
+    marginBottom: 10,
+    marginLeft: -10,
+  },
+  multilineButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 8,
   },
 });
 
