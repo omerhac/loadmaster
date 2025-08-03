@@ -275,6 +275,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
                     thumbTintColor="#0066cc"
                     disabled={parseFloat(formData.length || '0') <= 0}
                     showValue={true}
+                    multiline={true}
                   />
                 </View>
               </View>

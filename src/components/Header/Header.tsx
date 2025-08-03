@@ -119,6 +119,7 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
         setIsMenuOpen(false);
         onLoadMissionClick();
       },
+      disabled: true,
     },
     {
       label: 'Mission Settings',
@@ -136,6 +137,7 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
       label: 'Preview Mission',
       icon: <PreviewIcon />,
       onClick: onPreviewClick,
+      disabled: true,
     },
     {
       label: 'Delete Database',

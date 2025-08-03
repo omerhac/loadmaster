@@ -33,9 +33,18 @@ export const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 4,
   },
+  menuItemDisabled: {
+    opacity: 0.5,
+  },
   menuItemText: {
     marginLeft: 8,
     fontSize: 14,
     color: '#333',
+  },
+  menuItemTextDisabled: {
+    color: '#999',
+  },
+  disabledIcon: {
+    opacity: 0.5,
   },
 });

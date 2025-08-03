@@ -7,6 +7,7 @@ type MenuItem = {
   icon?: React.ReactNode;
   onClick: () => void;
   style?: any;
+  disabled?: boolean;
 };
 
 interface FloatingMenuProps {
@@ -51,14 +52,28 @@ const FloatingMenu = ({
         {items.map((item, index) => (
           <TouchableOpacity
             key={index}
-            style={[styles.menuItem, item.style]}
+            style={[
+              styles.menuItem, 
+              item.style,
+              item.disabled && styles.menuItemDisabled
+            ]}
             onPress={() => {
-              item.onClick();
-              onClose();
+              if (!item.disabled) {
+                item.onClick();
+                onClose();
+              }
             }}
+            disabled={item.disabled}
           >
-            {item.icon}
-            <Text style={styles.menuItemText}>{item.label}</Text>
+            <View style={item.disabled && styles.disabledIcon}>
+              {item.icon}
+            </View>
+            <Text style={[
+              styles.menuItemText,
+              item.disabled && styles.menuItemTextDisabled
+            ]}>
+              {item.label}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
