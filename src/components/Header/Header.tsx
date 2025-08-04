@@ -14,6 +14,7 @@ import {
 import { styles } from './Header.styles';
 import { validateMac } from '../../services/mac';
 import { DatabaseFactory } from '../../services/db/DatabaseService';
+import { MissionSettings } from '../../types';
 
 interface HeaderProps {
   onSettingsClick: () => void;
@@ -23,12 +24,29 @@ interface HeaderProps {
   onGraphsClick: () => void;
   macPercent?: number | null;
   totalWeight?: number | null;
+  missionSettings?: MissionSettings | null;
 }
 
-const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onGraphsClick, macPercent, totalWeight }: HeaderProps) => {
+const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onGraphsClick, macPercent, totalWeight, missionSettings }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMacOutOfLimits, setIsMacOutOfLimits] = useState(false);
   const blinkAnimation = useRef(new Animated.Value(1)).current;
+
+  // Calculate fuel weight and ZFW like in Preview.tsx
+  let totalFuelWeight = 0;
+  let zeroFuelWeight = 0;
+
+  if (missionSettings && missionSettings.fuelDistribution) {
+    try {
+      const fuel = missionSettings.fuelDistribution;
+      totalFuelWeight = (fuel.outbd || 0) + (fuel.inbd || 0) + (fuel.aux || 0) +
+                       (fuel.ext || 0) + (fuel.fuselage || 0);
+
+      zeroFuelWeight = totalWeight !== null ? totalWeight - totalFuelWeight : 0;
+    } catch (error) {
+      console.warn('Header fuel calculations error:', error);
+    }
+  }
 
   const handleDeleteDatabase = () => {
     Alert.alert(
@@ -176,8 +194,20 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
         )}
         {totalWeight !== null && totalWeight !== undefined && (
           <View style={styles.metricContainer}>
-            <Text style={styles.metricLabel}>GROSS WEIGHT</Text>
+            <Text style={styles.metricLabel}>TAKEOFF WEIGHT</Text>
             <Text style={styles.metricValue}>{totalWeight.toFixed(0)} lbs</Text>
+          </View>
+        )}
+        {missionSettings && totalFuelWeight > 0 && (
+          <View style={styles.metricContainer}>
+            <Text style={styles.metricLabel}>FUEL WEIGHT</Text>
+            <Text style={styles.metricValue}>{totalFuelWeight.toFixed(0)} lbs</Text>
+          </View>
+        )}
+        {missionSettings && zeroFuelWeight > 0 && (
+          <View style={styles.metricContainer}>
+            <Text style={styles.metricLabel}>ZFW</Text>
+            <Text style={styles.metricValue}>{zeroFuelWeight.toFixed(0)} lbs</Text>
           </View>
         )}
       </View>

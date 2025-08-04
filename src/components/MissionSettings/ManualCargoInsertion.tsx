@@ -17,7 +17,7 @@ const DEFAULT_DIMENSIONS = {
   height: 50,
 };
 
-const DOCK_OPTIONS = ['Front', 'Back', 'CoG'] as const;
+const DOCK_OPTIONS = ['Front', 'Back', 'CG'] as const;
 type DockType = typeof DOCK_OPTIONS[number];
 
 const calculateChange = (_fs: number, _weight: number): number => {
@@ -40,7 +40,7 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
   const [fs, setFs] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [weight, setWeight] = useState<string>('');
-  const [dock, setDock] = useState<DockType>('CoG');
+  const [dock, setDock] = useState<DockType>('CG');
 
   const handleToggleDock = () => {
     const currentIndex = DOCK_OPTIONS.indexOf(dock);
@@ -87,7 +87,7 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
     setFs('');
     setName('');
     setWeight('');
-    setDock('CoG');
+    setDock('CG');
   };
 
   const handleRemoveItem = (id: string) => {
@@ -192,7 +192,7 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
                       <Text style={styles.tableCellText}>{item.fs}</Text>
                     </View>
                     <View style={[styles.tableCell, { flex: 1 }]}>
-                        <Text>{item.dock || 'CoG'}</Text>
+                        <Text>{item.dock || 'CG'}</Text>
                     </View>
                     <View style={[styles.tableCell, { flex: 2 }]}>
                       <Text style={styles.tableCellText}>{item.name}</Text>

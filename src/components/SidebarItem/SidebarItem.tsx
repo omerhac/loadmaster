@@ -106,7 +106,7 @@ const SidebarItem = ({
             <Text style={styles.detailValue}>{item.weight} lbs</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>CoG:</Text>
+            <Text style={styles.detailLabel}>CG:</Text>
             <Text style={styles.detailValue}>{item.cog}"</Text>
           </View>
         </View>

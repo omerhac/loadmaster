@@ -19,7 +19,7 @@ export type CargoItem = {
     status: Status;
     position: Position;
     fs: number;
-    dock: 'Front' | 'Back' | 'CoG';
+    dock: 'Front' | 'Back' | 'CG';
 }
 
 export type Cargo = {

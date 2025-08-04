@@ -63,7 +63,7 @@ function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
     status,
     position,
     fs,
-    dock: 'CoG',
+    dock: 'CG',
   };
 }
 
@@ -151,7 +151,7 @@ function App(): React.JSX.Element {
       weight: dbCargoType.default_weight,
       cog: dbCargoType.default_cog || 0,
       fs: 0,
-      dock: 'CoG',
+      dock: 'CG',
       status: 'inventory',
       position: { x: -1, y: -1 },
     };
@@ -275,7 +275,7 @@ function App(): React.JSX.Element {
         newItem.id = response.results[0].lastInsertId;
         const newItemForState = {
           ...convertDbCargoItemToCargoItem(newItem),
-          dock: item.dock || 'CoG', // preserve dock from input item
+          dock: item.dock || 'CG', // preserve dock from input item
         };
         setCargoItems(prev => [...prev, newItemForState]);
       } else {
@@ -613,6 +613,7 @@ function App(): React.JSX.Element {
           onGraphsClick={() => setCurrentView('graphs')}
           macPercent={macPercent}
           totalWeight={totalWeight}
+          missionSettings={missionSettings}
         />
         <View style={styles.contentContainer}>
           <Sidebar

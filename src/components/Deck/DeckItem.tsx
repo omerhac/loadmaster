@@ -26,9 +26,9 @@ const DECK_HEIGHT_IN_INCHES = 124;
 
 const DECK_IMAGE_ASPECT_RATIO = 2.649;
 
-const DOCK_OPTIONS = ['Back', 'CoG', 'Front'] as const;
+const DOCK_OPTIONS = ['Back', 'CG', 'Front'] as const;
 type DockType = typeof DOCK_OPTIONS[number];
-const DOCK_DISPLAY_MAP: Record<DockType, string> = { Back: 'B', CoG: 'C', Front: 'F' };
+const DOCK_DISPLAY_MAP: Record<DockType, string> = { Back: 'B', CG: 'C', Front: 'F' };
 
 function calculateActualImageBounds(containerSize: { width: number; height: number }) {
   const containerAspectRatio = containerSize.width / containerSize.height;
@@ -160,7 +160,7 @@ const DeckItem: React.FC<DeckItemProps> = ({
   const scale = useRef(new Animated.Value(1)).current;
   const [isFsEditVisible, setIsFsEditVisible] = useState(false);
   const [fsInput, setFsInput] = useState(item.fs.toString());
-  const [dockInput, setDockInput] = useState<DockType>(item.dock || 'CoG');
+  const [dockInput, setDockInput] = useState<DockType>(item.dock || 'CG');
 
   // Store all changing values in refs to keep them accessible to PanResponder
   const itemRef = useRef(item);
@@ -186,7 +186,7 @@ const DeckItem: React.FC<DeckItemProps> = ({
 
 
   // Convert stored absolute FS position to deck-relative position
-  // Stored position is absolute FS (e.g., 375 for item at FS 400 with CoG 25)
+  // Stored position is absolute FS (e.g., 375 for item at FS 400 with CG 25)
   // Deck position is relative to FS 250 (so 375 becomes 125)
   const uncanonicalizePosition = (position: Position) => {
     const result = {

@@ -72,7 +72,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
     }
   }, [initialItem]);
 
-  // Auto-set COG when length changes and COG is empty (simplified, no loop)
+  // Auto-set CG when length changes and CG is empty (simplified, no loop)
   useEffect(() => {
     const lengthValue = parseFloat(formData.length || '0');
     if (lengthValue > 0 && formData.cog === '') {
@@ -107,7 +107,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
       weight: parseFloat(formData.weight),
       cog: cogValue > 0 ? cogValue : lengthValue / 2,
       fs: initialItem?.fs ?? 0,
-      dock: initialItem?.dock ?? 'CoG',
+      dock: initialItem?.dock ?? 'CG',
       status: initialItem?.status || 'inventory',
       position: initialItem?.position || { x: -1, y: -1 },
     };
@@ -263,7 +263,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
               {/* Center of Gravity */}
               <View style={styles.formRow}>
                 <View style={styles.formFullWidth}>
-                  <Text style={styles.labelSmall}>Center of Gravity (inches from front)</Text>
+                  <Text style={styles.labelSmall}>CG (inches from front)</Text>
                   <PlatformSlider
                     minimumValue={0}
                     maximumValue={parseFloat(formData.length || '0') > 0 ? parseFloat(formData.length) : 1}
