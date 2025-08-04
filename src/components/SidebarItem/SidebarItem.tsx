@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, AlertButton } from 'react-native';
+import { View, Text, TouchableOpacity, TouchableWithoutFeedback, Modal } from 'react-native';
 import { CargoItem } from '../../types';
 import { styles } from './SidebarItem.styles';
 
@@ -23,6 +23,7 @@ const SidebarItem = ({
   onRemoveFromStage,
 }: SidebarItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -36,22 +37,13 @@ const SidebarItem = ({
     }
   };
 
-    const showActionsMenu = () => {
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
+  };
 
-    // Create button configuration with Windows compatibility
-    const buttons: AlertButton[] = [
-      { text: 'Edit item', onPress: () => onEdit(item) },
-      { text: 'Duplicate item', onPress: () => onDuplicate(item.id) },
-      { text: 'Save as preset', onPress: () => onSaveAsPreset(item) },
-      { text: 'Delete item', onPress: () => onDelete(item.id) },
-      { text: 'Cancel', onPress: () => {} },
-    ];
-
-    Alert.alert(
-      'Item Actions',
-      'Choose an action:',
-      buttons
-    );
+  const handleMenuAction = (action: () => void) => {
+    setShowDropdown(false);
+    action();
   };
 
   // Format dimensions for display
@@ -69,7 +61,7 @@ const SidebarItem = ({
       >
         <TouchableOpacity
           style={styles.menuButton}
-          onPress={showActionsMenu}
+          onPress={toggleDropdown}
           hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
         >
           <Text style={styles.menuButtonText}>⋮</Text>
@@ -111,6 +103,46 @@ const SidebarItem = ({
           </View>
         </View>
       )}
+
+      <Modal
+        visible={showDropdown}
+        transparent={true}
+        animationType="none"
+        onRequestClose={() => setShowDropdown(false)}
+        supportedOrientations={['portrait', 'landscape']}
+        statusBarTranslucent={true}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalDropdown}>
+              <TouchableOpacity
+                style={styles.dropdownItem}
+                onPress={() => handleMenuAction(() => onEdit(item))}
+              >
+                <Text style={styles.dropdownItemText}>Edit item</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.dropdownItem}
+                onPress={() => handleMenuAction(() => onDuplicate(item.id))}
+              >
+                <Text style={styles.dropdownItemText}>Duplicate item</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.dropdownItem}
+                onPress={() => handleMenuAction(() => onSaveAsPreset(item))}
+              >
+                <Text style={styles.dropdownItemText}>Save as preset</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.dropdownItem, styles.dropdownItemDanger]}
+                onPress={() => handleMenuAction(() => onDelete(item.id))}
+              >
+                <Text style={[styles.dropdownItemText, styles.dropdownItemDangerText]}>Delete item</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 };
