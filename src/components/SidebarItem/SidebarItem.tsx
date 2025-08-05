@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TouchableWithoutFeedback, Modal } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { CargoItem } from '../../types';
 import { styles } from './SidebarItem.styles';
 
@@ -11,19 +11,21 @@ type SidebarItemProps = {
   onSaveAsPreset: (item: CargoItem) => void;
   onAddToStage: (id: string) => void;
   onRemoveFromStage: (id: string) => void;
+  onShowDropdown: (item: CargoItem, position: { x: number; y: number }) => void;
 };
 
 const SidebarItem = ({
   item,
-  onEdit,
-  onDelete,
-  onDuplicate,
-  onSaveAsPreset,
+  onEdit: _onEdit,
+  onDelete: _onDelete,
+  onDuplicate: _onDuplicate,
+  onSaveAsPreset: _onSaveAsPreset,
   onAddToStage,
   onRemoveFromStage,
+  onShowDropdown,
 }: SidebarItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const menuButtonRef = useRef<View>(null);
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -37,13 +39,23 @@ const SidebarItem = ({
     }
   };
 
-  const toggleDropdown = () => {
-    setShowDropdown(!showDropdown);
-  };
-
-  const handleMenuAction = (action: () => void) => {
-    setShowDropdown(false);
-    action();
+  const handleMenuPress = () => {
+    if (menuButtonRef.current) {
+      menuButtonRef.current.measure((x, y, width, height, pageX, pageY) => {
+        const screenHeight = Dimensions.get('window').height;
+        const dropdownHeight = 4 * 32; // Approximate height: 4 items * 32px each
+        const spaceBelow = screenHeight - pageY;
+        
+        // If there's not enough space below, position dropdown higher
+        let adjustedY = pageY - 45;
+        if (spaceBelow < dropdownHeight + 50) {
+          // Move it further up if we're near the bottom
+          adjustedY = pageY - dropdownHeight - 10;
+        }
+        
+        onShowDropdown(item, { x: pageX + width, y: adjustedY });
+      });
+    }
   };
 
   // Format dimensions for display
@@ -60,8 +72,9 @@ const SidebarItem = ({
         style={styles.itemHeader}
       >
         <TouchableOpacity
+          ref={menuButtonRef}
           style={styles.menuButton}
-          onPress={toggleDropdown}
+          onPress={handleMenuPress}
           hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
         >
           <Text style={styles.menuButtonText}>⋮</Text>
@@ -103,46 +116,6 @@ const SidebarItem = ({
           </View>
         </View>
       )}
-
-      <Modal
-        visible={showDropdown}
-        transparent={true}
-        animationType="none"
-        onRequestClose={() => setShowDropdown(false)}
-        supportedOrientations={['portrait', 'landscape']}
-        statusBarTranslucent={true}
-      >
-        <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalDropdown}>
-              <TouchableOpacity
-                style={styles.dropdownItem}
-                onPress={() => handleMenuAction(() => onEdit(item))}
-              >
-                <Text style={styles.dropdownItemText}>Edit item</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.dropdownItem}
-                onPress={() => handleMenuAction(() => onDuplicate(item.id))}
-              >
-                <Text style={styles.dropdownItemText}>Duplicate item</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.dropdownItem}
-                onPress={() => handleMenuAction(() => onSaveAsPreset(item))}
-              >
-                <Text style={styles.dropdownItemText}>Save as preset</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.dropdownItem, styles.dropdownItemDanger]}
-                onPress={() => handleMenuAction(() => onDelete(item.id))}
-              >
-                <Text style={[styles.dropdownItemText, styles.dropdownItemDangerText]}>Delete item</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
     </View>
   );
 };

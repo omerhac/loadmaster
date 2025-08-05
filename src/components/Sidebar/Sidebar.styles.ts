@@ -143,4 +143,46 @@ export const styles = StyleSheet.create({
     transform: [{ scaleX: 0.65 }, { scaleY: 0.65 }],
     marginRight: -5,
   },
+  overlayBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999,
+  },
+  dropdown: {
+    backgroundColor: '#fff',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 1001,
+    minWidth: 120,
+    maxWidth: 160,
+  },
+  dropdownItem: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  dropdownItemDanger: {
+    borderBottomWidth: 0,
+  },
+  dropdownItemText: {
+    fontSize: 11,
+    color: '#333',
+    fontWeight: '500',
+  },
+  dropdownItemDangerText: {
+    color: '#e74c3c',
+  },
 });

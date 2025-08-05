@@ -36,45 +36,6 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 2,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalDropdown: {
-    backgroundColor: '#fff',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 5,
-    minWidth: 150,
-    maxWidth: 200,
-  },
-  dropdownItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  dropdownItemDanger: {
-    borderBottomWidth: 0,
-  },
-  dropdownItemText: {
-    fontSize: 13,
-    color: '#333',
-    fontWeight: '500',
-  },
-  dropdownItemDangerText: {
-    color: '#e74c3c',
-  },
   itemInfo: {
     flex: 1,
     height: 26,
