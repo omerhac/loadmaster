@@ -60,7 +60,7 @@ const SidebarItem = ({
 
   // Format dimensions for display
   const dimensions = `${item.length}"×${item.width}"×${item.height}"`;
-
+  
   // Determine if item is in inventory
   const isInInventory = item.status === 'inventory';
 
@@ -83,7 +83,9 @@ const SidebarItem = ({
         <View style={styles.itemInfo}>
           <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
           <View style={styles.compactInfo}>
-            <Text style={styles.itemDimensions}>{dimensions}</Text>
+            <Text style={styles.itemDimensions}>
+              {item.weight}lb | <Text style={styles.fsText}>{item.fs > 0 ? item.fs : 'not set'}</Text>
+            </Text>
           </View>
         </View>
 
@@ -103,16 +105,12 @@ const SidebarItem = ({
       {isExpanded && (
         <View style={styles.itemDetails}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>FS:</Text>
-            <Text style={styles.detailValue}>{item.fs > 0 ? item.fs : 'not set'}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Weight:</Text>
-            <Text style={styles.detailValue}>{item.weight} lbs</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>CoG:</Text>
+            <Text style={styles.detailLabel}>CG:</Text>
             <Text style={styles.detailValue}>{item.cog}"</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Dim:</Text>
+            <Text style={styles.detailValue}>{dimensions}</Text>
           </View>
         </View>
       )}

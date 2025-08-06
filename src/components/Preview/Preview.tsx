@@ -335,7 +335,7 @@ const Preview = ({
             <Text style={styles.sectionTitle}>Mission Info</Text>
             <View style={styles.detailsGrid}>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Liftoff Weight:</Text>
+                <Text style={styles.detailLabel}>Takeoff Weight:</Text>
                 <Text style={styles.detailValue}>{formatWeight(totalWeight)}</Text>
               </View>
               <View style={styles.detailRow}>
@@ -482,7 +482,7 @@ const Preview = ({
                   <Text style={[styles.tableHeaderText, styles.fsColumn]}>FS</Text>
                   <Text style={[styles.tableHeaderText, styles.weightColumn]}>Weight</Text>
                   <Text style={[styles.tableHeaderText, styles.dimensionsColumn]}>Dimensions</Text>
-                  <Text style={[styles.tableHeaderText, styles.cogColumn]}>CoG</Text>
+                  <Text style={[styles.tableHeaderText, styles.cogColumn]}>CG</Text>
                   <Text style={[styles.tableHeaderText, styles.macColumn]}>MAC Index</Text>
                 </View>
 

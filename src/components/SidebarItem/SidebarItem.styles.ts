@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
   itemHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 5,
+    paddingVertical: 7.5,
     paddingHorizontal: 5,
   },
   menuButton: {
@@ -53,6 +53,9 @@ export const styles = StyleSheet.create({
   itemDimensions: {
     fontSize: 8,
     color: '#666',
+  },
+  fsText: {
+    fontWeight: 'bold',
   },
   itemWeight: {
     fontSize: 10,
@@ -104,7 +107,7 @@ export const styles = StyleSheet.create({
     width: 45,
   },
   detailValue: {
-    fontSize: 10,
+    fontSize: 8,
     color: '#333',
     flex: 1,
   },
