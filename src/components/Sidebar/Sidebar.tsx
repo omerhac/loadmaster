@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Platform, Dimensions, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, Dimensions, Alert, TouchableWithoutFeedback } from 'react-native';
 import { CargoItem } from '../../types';
 import SidebarItem from '../SidebarItem/SidebarItem';
 import { styles } from './Sidebar.styles';
@@ -26,6 +26,15 @@ const Sidebar = ({
   onRemoveFromStage,
 }: SidebarProps) => {
   const [showLoadedItems, setShowLoadedItems] = useState(true);
+  const [dropdownState, setDropdownState] = useState<{
+    visible: boolean;
+    item: CargoItem | null;
+    position: { x: number; y: number } | null;
+  }>({
+    visible: false,
+    item: null,
+    position: null,
+  });
 
   const isIpad = Platform.OS === 'ios' && Platform.isPad;
   const isWindows = Platform.OS === 'windows';
@@ -42,6 +51,28 @@ const Sidebar = ({
   }, [items, showLoadedItems]);
 
   const filteredItems = sortAndFilterItems();
+
+  // Handle dropdown
+  const showDropdown = (item: CargoItem, position: { x: number; y: number }) => {
+    setDropdownState({
+      visible: true,
+      item,
+      position,
+    });
+  };
+
+  const hideDropdown = () => {
+    setDropdownState({
+      visible: false,
+      item: null,
+      position: null,
+    });
+  };
+
+  const handleMenuAction = (action: () => void) => {
+    hideDropdown();
+    action();
+  };
 
   // Handle save as preset
   const handleSaveAsPreset = (item: CargoItem) => {
@@ -94,6 +125,7 @@ const Sidebar = ({
             onSaveAsPreset={handleSaveAsPreset}
             onAddToStage={onAddToStage}
             onRemoveFromStage={onRemoveFromStage}
+            onShowDropdown={showDropdown}
           />
         ))}
         {filteredItems.length === 0 && (
@@ -109,6 +141,50 @@ const Sidebar = ({
           <Text style={styles.addButtonText}>Add Item+</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Global dropdown overlay */}
+      {dropdownState.visible && dropdownState.item && dropdownState.position && (
+        <>
+          <TouchableWithoutFeedback onPress={hideDropdown}>
+            <View style={styles.overlayBackdrop} />
+          </TouchableWithoutFeedback>
+          <View 
+            style={[
+              styles.dropdown,
+              {
+                position: 'absolute',
+                left: dropdownState.position.x,
+                top: dropdownState.position.y,
+              }
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.dropdownItem}
+              onPress={() => handleMenuAction(() => onEditItem(dropdownState.item!))}
+            >
+              <Text style={styles.dropdownItemText}>Edit item</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.dropdownItem}
+              onPress={() => handleMenuAction(() => onDuplicateItem(dropdownState.item!.id))}
+            >
+              <Text style={styles.dropdownItemText}>Duplicate item</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.dropdownItem}
+              onPress={() => handleMenuAction(() => handleSaveAsPreset(dropdownState.item!))}
+            >
+              <Text style={styles.dropdownItemText}>Save as preset</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.dropdownItem, styles.dropdownItemDanger]}
+              onPress={() => handleMenuAction(() => onDeleteItem(dropdownState.item!.id))}
+            >
+              <Text style={[styles.dropdownItemText, styles.dropdownItemDangerText]}>Delete item</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </View>
   );
 };

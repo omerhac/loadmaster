@@ -5,7 +5,6 @@ export const styles = StyleSheet.create({
     backgroundColor: '#fff',
     marginBottom: 5,
     borderRadius: 4,
-    overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#eee',
   },

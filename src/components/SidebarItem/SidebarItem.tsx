@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, AlertButton } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { CargoItem } from '../../types';
 import { styles } from './SidebarItem.styles';
 
@@ -11,18 +11,21 @@ type SidebarItemProps = {
   onSaveAsPreset: (item: CargoItem) => void;
   onAddToStage: (id: string) => void;
   onRemoveFromStage: (id: string) => void;
+  onShowDropdown: (item: CargoItem, position: { x: number; y: number }) => void;
 };
 
 const SidebarItem = ({
   item,
-  onEdit,
-  onDelete,
-  onDuplicate,
-  onSaveAsPreset,
+  onEdit: _onEdit,
+  onDelete: _onDelete,
+  onDuplicate: _onDuplicate,
+  onSaveAsPreset: _onSaveAsPreset,
   onAddToStage,
   onRemoveFromStage,
+  onShowDropdown,
 }: SidebarItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const menuButtonRef = useRef<View>(null);
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -36,22 +39,23 @@ const SidebarItem = ({
     }
   };
 
-    const showActionsMenu = () => {
-
-    // Create button configuration with Windows compatibility
-    const buttons: AlertButton[] = [
-      { text: 'Edit item', onPress: () => onEdit(item) },
-      { text: 'Duplicate item', onPress: () => onDuplicate(item.id) },
-      { text: 'Save as preset', onPress: () => onSaveAsPreset(item) },
-      { text: 'Delete item', onPress: () => onDelete(item.id) },
-      { text: 'Cancel', onPress: () => {} },
-    ];
-
-    Alert.alert(
-      'Item Actions',
-      'Choose an action:',
-      buttons
-    );
+  const handleMenuPress = () => {
+    if (menuButtonRef.current) {
+      menuButtonRef.current.measure((x, y, width, height, pageX, pageY) => {
+        const screenHeight = Dimensions.get('window').height;
+        const dropdownHeight = 4 * 32; // Approximate height: 4 items * 32px each
+        const spaceBelow = screenHeight - pageY;
+        
+        // If there's not enough space below, position dropdown higher
+        let adjustedY = pageY - 45;
+        if (spaceBelow < dropdownHeight + 50) {
+          // Move it further up if we're near the bottom
+          adjustedY = pageY - dropdownHeight - 10;
+        }
+        
+        onShowDropdown(item, { x: pageX + width, y: adjustedY });
+      });
+    }
   };
 
   // Format dimensions for display
@@ -68,8 +72,9 @@ const SidebarItem = ({
         style={styles.itemHeader}
       >
         <TouchableOpacity
+          ref={menuButtonRef}
           style={styles.menuButton}
-          onPress={showActionsMenu}
+          onPress={handleMenuPress}
           hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
         >
           <Text style={styles.menuButtonText}>⋮</Text>

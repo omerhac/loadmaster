@@ -31,7 +31,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
-    borderRadius: 4,
+    borderRadius: 0,
   },
   menuItemDisabled: {
     opacity: 0.5,
