@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
   itemHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 7.5,
+    paddingVertical: 12,
     paddingHorizontal: 5,
   },
   menuButton: {
@@ -38,7 +38,7 @@ export const styles = StyleSheet.create({
   },
   itemInfo: {
     flex: 1,
-    height: 26,
+    height: 32,
     marginRight: 4,
   },
   compactInfo: {
@@ -51,7 +51,7 @@ export const styles = StyleSheet.create({
     color: '#333',
   },
   itemDimensions: {
-    fontSize: 8,
+    fontSize: 12,
     color: '#666',
   },
   fsText: {
