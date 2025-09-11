@@ -63,6 +63,7 @@ interface MissionSettingsProps {
   onSave: (settings: MissionSettings) => void;
   onAddToMainCargo?: (item: CargoItem, status?: 'inventory' | 'onStage' | 'onDeck') => void;
   onRemoveFromDeck?: (id: string) => void;
+  onUpdateItem?: (item: CargoItem) => void;
 }
 
 const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
@@ -72,6 +73,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   onSave,
   onAddToMainCargo,
   onRemoveFromDeck,
+  onUpdateItem,
 }) => {
   const [formData, setFormData] = useState<MissionSettings>(settings || DEFAULT_MISSION_SETTINGS);
 
@@ -147,6 +149,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
           cargoItems={cargoItems}
           onAddCargoItem={onAddToMainCargo}
           onRemoveItem={onRemoveFromDeck}
+          onUpdateItem={onUpdateItem}
         />
 
         <NotesSection
