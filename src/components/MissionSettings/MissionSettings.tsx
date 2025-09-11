@@ -68,7 +68,7 @@ interface MissionSettingsProps {
 const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   settings,
   cargoItems,
-  onReturn,
+  onReturn: _onReturn,
   onSave,
   onAddToMainCargo,
   onRemoveFromDeck,
@@ -119,16 +119,6 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={onReturn}>
-          <Text style={styles.headerButtonText}>Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mission Settings</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={handleSubmit}>
-          <Text style={styles.headerButtonText}>Save</Text>
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.scrollContainer}>
         <BasicInfoSection
           name={formData.name}
@@ -163,6 +153,12 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
           notes={formData.notes}
           onChange={handleChange}
         />
+
+        <View style={styles.saveButtonContainer}>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
+            <Text style={styles.saveButtonText}>Save Mission Settings</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );

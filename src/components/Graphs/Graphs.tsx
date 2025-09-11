@@ -11,7 +11,7 @@ export type GraphsProps = {
   onBack: () => void;
 };
 
-export const Graphs = ({ macPercent, weight, macGraphImgSrc, areaGraphImgSrc, onBack }: GraphsProps) => {
+export const Graphs = ({ macPercent, weight, macGraphImgSrc, areaGraphImgSrc, onBack: _onBack }: GraphsProps) => {
   const [isMacOutOfLimits, setIsMacOutOfLimits] = useState(false);
   const [macLimits, setMacLimits] = useState({ min: 0, max: 0 });
 
@@ -46,16 +46,13 @@ export const Graphs = ({ macPercent, weight, macGraphImgSrc, areaGraphImgSrc, on
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.backButton} onPress={onBack}>{'< Back'}</Text>
-        {isMacOutOfLimits && (
-          <View style={styles.warningContainer}>
-            <Text style={styles.warningText}>
-              ⚠️ MAC OUT OF LIMITS ({macLimits.min.toFixed(1)}% - {macLimits.max.toFixed(1)}%)
-            </Text>
-          </View>
-        )}
-      </View>
+      {isMacOutOfLimits && (
+        <View style={styles.warningContainer}>
+          <Text style={styles.warningText}>
+            ⚠️ MAC OUT OF LIMITS ({macLimits.min.toFixed(1)}% - {macLimits.max.toFixed(1)}%)
+          </Text>
+        </View>
+      )}
       <View style={styles.graphsRow}>
         <View style={styles.graphWrapper}>
           <MACGraph
@@ -98,8 +95,10 @@ const styles = StyleSheet.create({
   warningContainer: {
     backgroundColor: '#ff0000',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
+    margin: 16,
     borderRadius: 4,
+    alignItems: 'center',
   },
   warningText: {
     color: 'white',

@@ -122,7 +122,7 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
 type AppViewType = 'settings' | 'planning' | 'preview' | 'graphs';
 
 function App(): React.JSX.Element {
-  const [currentView, setCurrentView] = useState<AppViewType>('planning');
+  const [currentView, setCurrentView] = useState<AppViewType>('settings');
   const [missionSettings, setMissionSettings] = useState<MissionSettings | null>(null);
   const [cargoItems, setCargoItems] = useState<CargoItem[]>([]);
   const [isLandscape, setIsLandscape] = useState(true);
@@ -605,16 +605,6 @@ function App(): React.JSX.Element {
     ),
     planning: (
       <View style={[styles.planningContainer, isLandscape ? styles.landscapeContainer : null]}>
-        <Header
-          onSettingsClick={() => setCurrentView('settings')}
-          onPreviewClick={() => setCurrentView('preview')}
-          onNewMissionClick={handleNewMissionClick}
-          onLoadMissionClick={handleLoadMissionClick}
-          onGraphsClick={() => setCurrentView('graphs')}
-          macPercent={macPercent}
-          totalWeight={totalWeight}
-          missionSettings={missionSettings}
-        />
         <View style={styles.contentContainer}>
           <Sidebar
             items={cargoItems}
@@ -658,6 +648,17 @@ function App(): React.JSX.Element {
     <Host>
       <GestureHandlerRootView style={styles.root}>
         <SafeAreaView style={styles.safeArea}>
+          <Header
+            onSettingsClick={() => setCurrentView('settings')}
+            onPreviewClick={() => setCurrentView('preview')}
+            onNewMissionClick={handleNewMissionClick}
+            onLoadMissionClick={handleLoadMissionClick}
+            onGraphsClick={() => setCurrentView('graphs')}
+            onPlanningClick={() => setCurrentView('planning')}
+            macPercent={macPercent}
+            totalWeight={totalWeight}
+            missionSettings={missionSettings}
+          />
           {views[currentView]}
           <NewMissionModal
             visible={showNewMissionModal}
