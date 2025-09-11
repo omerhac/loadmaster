@@ -333,6 +333,8 @@ const DeckItem: React.FC<DeckItemProps> = ({
             left: currentPosition.x,
             top: currentPosition.y,
             transform: [{ scale }],
+            backgroundColor: item.color || '#4a90e2',
+            borderColor: item.color || '#4a90e2',
           },
           isSelected && styles.selectedItem,
           isDragging && styles.draggingItem,

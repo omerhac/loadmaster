@@ -64,6 +64,7 @@ function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
     position,
     fs,
     dock: 'CG',
+    color: '#4a90e2', // Default blue color for existing items
   };
 }
 
@@ -154,6 +155,7 @@ function App(): React.JSX.Element {
       dock: 'CG',
       status: 'inventory',
       position: { x: -1, y: -1 },
+      color: '#4a90e2', // Default blue color for presets
     };
   }, []);
 
@@ -284,6 +286,7 @@ function App(): React.JSX.Element {
         const newItemForState = {
           ...convertDbCargoItemToCargoItem(newItem),
           dock: item.dock || 'CG', // preserve dock from input item
+          color: item.color || '#4a90e2', // preserve color from input item
         };
         setCargoItems(prev => [...prev, newItemForState]);
       } else {
