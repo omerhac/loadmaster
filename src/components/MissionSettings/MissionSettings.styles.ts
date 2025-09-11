@@ -348,4 +348,26 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  saveButtonContainer: {
+    marginTop: 20,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  saveButton: {
+    backgroundColor: '#007bff',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 6,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  saveButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

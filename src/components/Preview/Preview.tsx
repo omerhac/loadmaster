@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Animated, Platform } from 'react-native';
+import { View, Text, ScrollView, Animated, Platform } from 'react-native';
 import { CargoItem, MissionSettings } from '../../types';
 import { styles } from './Preview.styles';
 import { validateMac } from '../../services/mac';
@@ -70,7 +70,7 @@ const Preview = ({
   missionSettings,
   macPercent,
   totalWeight,
-  onReturn,
+  onReturn: _onReturn,
 }: PreviewProps) => {
   // Single state object like MissionSettings
   const [state, setState] = useState<PreviewState>(DEFAULT_STATE);
@@ -260,9 +260,6 @@ const Preview = ({
   }, [processData]);
 
   // Stable callback references
-  const handleReturn = useCallback(() => {
-    onReturn();
-  }, [onReturn]);
 
   const formatDate = useCallback((dateString: string) => {
     try {
@@ -318,13 +315,6 @@ const Preview = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.returnButton} onPress={handleReturn}>
-          <Text style={styles.returnButtonText}>Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Mission Preview</Text>
-      </View>
-
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}

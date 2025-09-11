@@ -4,11 +4,13 @@ import { styles } from './MissionSettings.styles';
 import { CargoItem, Position } from '../../types';
 import { DEFAULT_CARGO_TYPE_ID, DEFAULT_Y_POS } from '../../constants';
 import { fsToXPosition } from '../../utils/cargoUtils';
+import InlineEditField from './InlineEditField';
 
 type ManualCargoInsertionProps = {
   cargoItems: CargoItem[];
   onAddCargoItem?: (item: CargoItem, status: 'inventory' | 'onStage' | 'onDeck') => void;
   onRemoveItem?: (id: string) => void;
+  onUpdateItem?: (item: CargoItem) => void;
 };
 
 const DEFAULT_DIMENSIONS = {
@@ -36,7 +38,7 @@ const calculatePosition = (fs: number, cog: number): Position => {
   return { x: x_pos, y: y_pos };
 };
 
-function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }: ManualCargoInsertionProps) {
+function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem, onUpdateItem }: ManualCargoInsertionProps) {
   const [fs, setFs] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [weight, setWeight] = useState<string>('');
@@ -94,6 +96,20 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
     // Also remove from the deck if the callback is provided
     if (onRemoveItem) {
       onRemoveItem(id);
+    }
+  };
+
+  const handleFieldUpdate = (item: CargoItem, field: keyof CargoItem, value: string | number) => {
+    try {
+      if (onUpdateItem) {
+        const updatedItem = { ...item, [field]: value };
+        console.log('Updating field:', field, 'with value:', value, 'for item:', item.id);
+        onUpdateItem(updatedItem);
+      } else {
+        console.warn('onUpdateItem callback not provided');
+      }
+    } catch (error) {
+      console.error('Error updating field:', error);
     }
   };
 
@@ -189,16 +205,38 @@ function ManualCargoInsertion({ cargoItems = [], onAddCargoItem, onRemoveItem }:
                 return (
                   <View key={item.id} style={styles.tableRow}>
                     <View style={[styles.tableCell, { flex: 0.8 }]}>
-                      <Text style={styles.tableCellText}>{item.fs}</Text>
+                      <InlineEditField
+                        value={item.fs}
+                        onSave={(value) => handleFieldUpdate(item, 'fs', value)}
+                        keyboardType="numeric"
+                        textStyle={styles.tableCellText}
+                        inputStyle={[styles.tableCellText, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#007AFF' }]}
+                      />
                     </View>
                     <View style={[styles.tableCell, { flex: 1 }]}>
-                        <Text>{item.dock || 'CG'}</Text>
+                      <InlineEditField
+                        value={item.dock || 'CG'}
+                        onSave={(value) => handleFieldUpdate(item, 'dock', value)}
+                        textStyle={styles.tableCellText}
+                        inputStyle={[styles.tableCellText, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#007AFF' }]}
+                      />
                     </View>
                     <View style={[styles.tableCell, { flex: 2 }]}>
-                      <Text style={styles.tableCellText}>{item.name}</Text>
+                      <InlineEditField
+                        value={item.name}
+                        onSave={(value) => handleFieldUpdate(item, 'name', value)}
+                        textStyle={styles.tableCellText}
+                        inputStyle={[styles.tableCellText, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#007AFF' }]}
+                      />
                     </View>
                     <View style={[styles.tableCell, { flex: 1 }]}>
-                      <Text style={styles.tableCellText}>{item.weight}</Text>
+                      <InlineEditField
+                        value={item.weight}
+                        onSave={(value) => handleFieldUpdate(item, 'weight', value)}
+                        keyboardType="numeric"
+                        textStyle={styles.tableCellText}
+                        inputStyle={[styles.tableCellText, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#007AFF' }]}
+                      />
                     </View>
                     <View style={[styles.tableCell, { flex: 1 }]}>
                       <Text style={styles.tableCellText}>{change}</Text>

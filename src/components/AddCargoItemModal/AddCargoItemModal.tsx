@@ -14,6 +14,7 @@ import {
 import { CargoItem } from '../../types';
 import { styles } from './AddCargoItemModal.styles';
 import PlatformSlider from '../shared/PlatformSlider';
+import ColorPicker, { CARGO_COLORS } from './ColorPicker';
 
 interface AddCargoItemModalProps {
   initialItem?: CargoItem;
@@ -30,6 +31,7 @@ type CargoFormData = {
   height: string;
   weight: string;
   cog: string;
+  color: string;
   showPresets: boolean;
 };
 
@@ -40,6 +42,7 @@ const DEFAULT_FORM_DATA: CargoFormData = {
   height: '',
   weight: '',
   cog: '',
+  color: CARGO_COLORS[0], // Default to first color (blue)
   showPresets: false,
 };
 
@@ -65,6 +68,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
         height: initialItem.height.toString(),
         weight: initialItem.weight.toString(),
         cog: initialItem.cog.toString(),
+        color: initialItem.color || CARGO_COLORS[0],
         showPresets: false,
       });
     } else {
@@ -110,6 +114,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
       dock: initialItem?.dock ?? 'CG',
       status: initialItem?.status || 'inventory',
       position: initialItem?.position || { x: -1, y: -1 },
+      color: formData.color,
     };
 
     onSave(itemToSave);
@@ -123,6 +128,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
       height: preset.height.toString(),
       weight: preset.weight.toString(),
       cog: preset.cog.toString(),
+      color: preset.color || CARGO_COLORS[0],
       showPresets: false,
     });
   }, []);
@@ -276,6 +282,16 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
                     disabled={parseFloat(formData.length || '0') <= 0}
                     showValue={true}
                     multiline={true}
+                  />
+                </View>
+              </View>
+
+              {/* Color Picker */}
+              <View style={styles.formRow}>
+                <View style={styles.formFullWidth}>
+                  <ColorPicker
+                    selectedColor={formData.color}
+                    onColorSelect={(color) => handleChange('color', color)}
                   />
                 </View>
               </View>

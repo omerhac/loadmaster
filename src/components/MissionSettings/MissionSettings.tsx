@@ -63,15 +63,17 @@ interface MissionSettingsProps {
   onSave: (settings: MissionSettings) => void;
   onAddToMainCargo?: (item: CargoItem, status?: 'inventory' | 'onStage' | 'onDeck') => void;
   onRemoveFromDeck?: (id: string) => void;
+  onUpdateItem?: (item: CargoItem) => void;
 }
 
 const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   settings,
   cargoItems,
-  onReturn,
+  onReturn: _onReturn,
   onSave,
   onAddToMainCargo,
   onRemoveFromDeck,
+  onUpdateItem,
 }) => {
   const [formData, setFormData] = useState<MissionSettings>(settings || DEFAULT_MISSION_SETTINGS);
 
@@ -119,16 +121,6 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={onReturn}>
-          <Text style={styles.headerButtonText}>Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mission Settings</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={handleSubmit}>
-          <Text style={styles.headerButtonText}>Save</Text>
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.scrollContainer}>
         <BasicInfoSection
           name={formData.name}
@@ -157,12 +149,19 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
           cargoItems={cargoItems}
           onAddCargoItem={onAddToMainCargo}
           onRemoveItem={onRemoveFromDeck}
+          onUpdateItem={onUpdateItem}
         />
 
         <NotesSection
           notes={formData.notes}
           onChange={handleChange}
         />
+
+        <View style={styles.saveButtonContainer}>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
+            <Text style={styles.saveButtonText}>Save Mission Settings</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );

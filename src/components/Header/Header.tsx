@@ -22,12 +22,13 @@ interface HeaderProps {
   onNewMissionClick: () => void;
   onLoadMissionClick: () => void;
   onGraphsClick: () => void;
+  onPlanningClick: () => void;
   macPercent?: number | null;
   totalWeight?: number | null;
   missionSettings?: MissionSettings | null;
 }
 
-const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onGraphsClick, macPercent, totalWeight, missionSettings }: HeaderProps) => {
+const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onGraphsClick, onPlanningClick, macPercent, totalWeight, missionSettings }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMacOutOfLimits, setIsMacOutOfLimits] = useState(false);
   const blinkAnimation = useRef(new Animated.Value(1)).current;
@@ -42,7 +43,7 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
       totalFuelWeight = (fuel.outbd || 0) + (fuel.inbd || 0) + (fuel.aux || 0) +
                        (fuel.ext || 0) + (fuel.fuselage || 0);
 
-      zeroFuelWeight = totalWeight !== null ? totalWeight - totalFuelWeight : 0;
+      zeroFuelWeight = totalWeight !== null && totalWeight !== undefined ? totalWeight - totalFuelWeight : 0;
     } catch (error) {
       console.warn('Header fuel calculations error:', error);
     }
@@ -138,6 +139,14 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
         onLoadMissionClick();
       },
       disabled: true,
+    },
+    {
+      label: 'Planning',
+      icon: <LoadIcon />,
+      onClick: () => {
+        setIsMenuOpen(false);
+        onPlanningClick();
+      },
     },
     {
       label: 'Mission Settings',

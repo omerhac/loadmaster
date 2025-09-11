@@ -53,9 +53,9 @@ const FloatingMenu = ({
           <TouchableOpacity
             key={index}
             style={[
-              styles.menuItem, 
+              styles.menuItem,
               item.style,
-              item.disabled && styles.menuItemDisabled
+              item.disabled && styles.menuItemDisabled,
             ]}
             onPress={() => {
               if (!item.disabled) {
@@ -70,7 +70,7 @@ const FloatingMenu = ({
             </View>
             <Text style={[
               styles.menuItemText,
-              item.disabled && styles.menuItemTextDisabled
+              item.disabled && styles.menuItemTextDisabled,
             ]}>
               {item.label}
             </Text>
