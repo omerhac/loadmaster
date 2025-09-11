@@ -33,6 +33,7 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
           maximumTrackTintColor="#e8e8e8"
           thumbTintColor="#0066cc"
           showValue={true}
+          allowManualInput={true}
         />
 
         <PlatformSlider
@@ -46,6 +47,7 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
           maximumTrackTintColor="#e8e8e8"
           thumbTintColor="#0066cc"
           showValue={true}
+          allowManualInput={true}
         />
 
         <PlatformSlider
@@ -59,6 +61,7 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
           maximumTrackTintColor="#e8e8e8"
           thumbTintColor="#0066cc"
           showValue={true}
+          allowManualInput={true}
         />
 
         <PlatformSlider
@@ -72,6 +75,7 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
           maximumTrackTintColor="#e8e8e8"
           thumbTintColor="#0066cc"
           showValue={true}
+          allowManualInput={true}
         />
 
         <PlatformSlider
@@ -85,6 +89,7 @@ const FuelDistributionSection: React.FC<FuelDistributionSectionProps> = React.me
           maximumTrackTintColor="#e8e8e8"
           thumbTintColor="#0066cc"
           showValue={true}
+          allowManualInput={true}
         />
       </View>
     </View>

@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, PanResponder, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, PanResponder, Animated, TextInput } from 'react-native';
 
 interface PlatformSliderProps {
   value: number;
@@ -15,6 +15,7 @@ interface PlatformSliderProps {
   label?: string;
   showValue?: boolean;
   multiline?: boolean;
+  allowManualInput?: boolean;
 }
 
 // Custom Windows Slider Component
@@ -156,7 +157,11 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
   label,
   showValue = true,
   multiline = false,
+  allowManualInput = false,
 }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+
   const handleIncrement = useCallback(() => {
     if (disabled) {return;}
     const newValue = Math.min(value + step, maximumValue);
@@ -169,7 +174,25 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
     onValueChange(newValue);
   }, [value, step, minimumValue, disabled, onValueChange]);
 
+  const handleValuePress = useCallback(() => {
+    if (disabled || !allowManualInput) return;
+    setInputValue(value.toString());
+    setIsEditing(true);
+  }, [disabled, allowManualInput, value]);
 
+  const handleInputSubmit = useCallback(() => {
+    const numericValue = parseFloat(inputValue);
+    if (!isNaN(numericValue)) {
+      // For manual input, don't round to step - just clamp to min/max range
+      const clampedValue = Math.max(minimumValue, Math.min(maximumValue, numericValue));
+      onValueChange(clampedValue);
+    }
+    setIsEditing(false);
+  }, [inputValue, minimumValue, maximumValue, onValueChange]);
+
+  const handleInputBlur = useCallback(() => {
+    handleInputSubmit();
+  }, [handleInputSubmit]);
 
   const formatValue = useCallback((val: number) => {
     return step < 1 ? val.toFixed(1) : val.toString();
@@ -207,9 +230,32 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
             </TouchableOpacity>
 
             {showValue && (
-              <Text style={[styles.windowsValueDisplayCenter, disabled && styles.windowsValueDisplayDisabled]}>
-                {formatValue(value)}
-              </Text>
+              isEditing ? (
+                <TextInput
+                  style={[styles.windowsValueDisplayCenter, styles.windowsValueInput]}
+                  value={inputValue}
+                  onChangeText={setInputValue}
+                  onSubmitEditing={handleInputSubmit}
+                  onBlur={handleInputBlur}
+                  keyboardType="numeric"
+                  autoFocus
+                  selectTextOnFocus
+                />
+              ) : (
+                <TouchableOpacity
+                  onPress={handleValuePress}
+                  disabled={disabled || !allowManualInput}
+                  style={[
+                    styles.windowsValueDisplayCenter,
+                    disabled && styles.windowsValueDisplayDisabled,
+                    allowManualInput && !disabled && styles.windowsValueDisplayTouchable,
+                  ]}
+                >
+                  <Text style={[styles.windowsValueDisplayText, disabled && styles.windowsValueDisplayTextDisabled]}>
+                    {formatValue(value)}
+                  </Text>
+                </TouchableOpacity>
+              )
             )}
 
             <TouchableOpacity
@@ -253,9 +299,32 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
             </TouchableOpacity>
 
             {showValue && (
-              <Text style={[styles.windowsValueDisplayCenter, disabled && styles.windowsValueDisplayDisabled]}>
-                {formatValue(value)}
-              </Text>
+              isEditing ? (
+                <TextInput
+                  style={[styles.windowsValueDisplayCenter, styles.windowsValueInput]}
+                  value={inputValue}
+                  onChangeText={setInputValue}
+                  onSubmitEditing={handleInputSubmit}
+                  onBlur={handleInputBlur}
+                  keyboardType="numeric"
+                  autoFocus
+                  selectTextOnFocus
+                />
+              ) : (
+                <TouchableOpacity
+                  onPress={handleValuePress}
+                  disabled={disabled || !allowManualInput}
+                  style={[
+                    styles.windowsValueDisplayCenter,
+                    disabled && styles.windowsValueDisplayDisabled,
+                    allowManualInput && !disabled && styles.windowsValueDisplayTouchable,
+                  ]}
+                >
+                  <Text style={[styles.windowsValueDisplayText, disabled && styles.windowsValueDisplayTextDisabled]}>
+                    {formatValue(value)}
+                  </Text>
+                </TouchableOpacity>
+              )
             )}
 
             <TouchableOpacity
@@ -378,6 +447,25 @@ const styles = StyleSheet.create({
     width: 90,
     textAlign: 'center',
     flexShrink: 0,
+  },
+  windowsValueInput: {
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#0066cc',
+    color: '#0066cc',
+  },
+  windowsValueDisplayTouchable: {
+    backgroundColor: '#e6f3ff',
+    borderWidth: 1,
+    borderColor: '#0066cc',
+  },
+  windowsValueDisplayText: {
+    fontSize: 16,
+    color: '#0066cc',
+    fontWeight: '700',
+  },
+  windowsValueDisplayTextDisabled: {
+    color: '#999',
   },
   windowsButtonSection: {
     flexDirection: 'row',
