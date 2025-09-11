@@ -249,10 +249,18 @@ function App(): React.JSX.Element {
     let x_start_position = -1;
     let y_start_position = -1;
     console.log('item', item);
-    if (status === 'onDeck' && item.fs > 0) {
-      // item defined in manual cargo insertion or being placed on deck
-      x_start_position = fsToXPosition(item.fs, item.cog);
-      y_start_position = DEFAULT_Y_POS;
+    if (status === 'onDeck') {
+      if (item.fs > 0) {
+        // item defined in manual cargo insertion or being placed on deck with specific FS
+        x_start_position = fsToXPosition(item.fs, item.cog);
+        y_start_position = DEFAULT_Y_POS;
+      } else {
+        // New item being automatically placed on deck - use default position
+        // Place at FS 400 (middle of loading area) with item's CG
+        const defaultFs = 400;
+        x_start_position = fsToXPosition(defaultFs, item.cog);
+        y_start_position = DEFAULT_Y_POS;
+      }
     }
     let newItem: DbCargoItem = {
       status: status,
@@ -559,7 +567,8 @@ function App(): React.JSX.Element {
     if (editingItem) {
       handleEditItem(item);
     } else {
-      handleAddItem(item);
+      // Automatically place new items on deck
+      handleAddItem(item, 'onDeck');
     }
     setIsAddModalVisible(false);
     setEditingItem(null);
