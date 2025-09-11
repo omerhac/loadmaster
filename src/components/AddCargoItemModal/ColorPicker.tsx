@@ -16,7 +16,7 @@ export const CARGO_COLORS = [
 
 const COLOR_NAMES = [
   'Blue',
-  'Red', 
+  'Red',
   'Green',
   'Orange',
   'Purple',

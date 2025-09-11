@@ -45,14 +45,14 @@ const SidebarItem = ({
         const screenHeight = Dimensions.get('window').height;
         const dropdownHeight = 4 * 32; // Approximate height: 4 items * 32px each
         const spaceBelow = screenHeight - pageY;
-        
+
         // If there's not enough space below, position dropdown higher
         let adjustedY = pageY - 45;
         if (spaceBelow < dropdownHeight + 50) {
           // Move it further up if we're near the bottom
           adjustedY = pageY - dropdownHeight - 10;
         }
-        
+
         onShowDropdown(item, { x: pageX + width, y: adjustedY });
       });
     }
@@ -60,7 +60,7 @@ const SidebarItem = ({
 
   // Format dimensions for display
   const dimensions = `${item.length}"×${item.width}"×${item.height}"`;
-  
+
   // Determine if item is in inventory
   const isInInventory = item.status === 'inventory';
 

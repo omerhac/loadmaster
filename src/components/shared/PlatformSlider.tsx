@@ -175,7 +175,7 @@ const PlatformSlider: React.FC<PlatformSliderProps> = ({
   }, [value, step, minimumValue, disabled, onValueChange]);
 
   const handleValuePress = useCallback(() => {
-    if (disabled || !allowManualInput) return;
+    if (disabled || !allowManualInput) {return;}
     setInputValue(value.toString());
     setIsEditing(true);
   }, [disabled, allowManualInput, value]);

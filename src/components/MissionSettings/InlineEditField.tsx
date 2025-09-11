@@ -50,7 +50,7 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
       } else {
         newValue = editValue;
       }
-      
+
       // Only save if the value actually changed
       if (newValue !== value) {
         console.log('Saving field with new value:', newValue, 'old value:', value);
@@ -61,11 +61,6 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
       console.error('Error saving field:', error);
       setIsEditing(false);
     }
-  };
-
-  const handleCancel = () => {
-    setEditValue(value.toString());
-    setIsEditing(false);
   };
 
   const handleKeyPress = (event: any) => {

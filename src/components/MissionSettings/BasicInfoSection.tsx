@@ -61,7 +61,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = React.memo(({
     // Adjust day if it's invalid for the new month
     const daysInNewMonth = new Date(year, newMonth, 0).getDate();
     const adjustedDay = day > daysInNewMonth ? daysInNewMonth : day;
-    if (adjustedDay !== day) setDay(adjustedDay);
+    if (adjustedDay !== day) {setDay(adjustedDay);}
     updateDate(adjustedDay, newMonth, year);
   }, [day, month, year, updateDate]);
 
@@ -71,7 +71,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = React.memo(({
     // Adjust day if it's invalid for the new month
     const daysInNewMonth = new Date(year, newMonth, 0).getDate();
     const adjustedDay = day > daysInNewMonth ? daysInNewMonth : day;
-    if (adjustedDay !== day) setDay(adjustedDay);
+    if (adjustedDay !== day) {setDay(adjustedDay);}
     updateDate(adjustedDay, newMonth, year);
   }, [day, month, year, updateDate]);
 
@@ -95,7 +95,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = React.memo(({
 
   const monthNames = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
   ];
 
   return (
@@ -109,7 +109,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = React.memo(({
           placeholder="Mission Name"
           placeholderTextColor="#999"
         />
-        
+
         {/* Date selector with three buttons */}
         <View style={styles.dateContainer}>
           <Text style={styles.label}>Date</Text>
