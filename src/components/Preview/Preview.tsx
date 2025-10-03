@@ -102,157 +102,243 @@ const Preview = ({
         <Text style={styles.title}>Mission Preview</Text>
       </View>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Mission Info Section */}
+        {/* Top Header - Mission Info */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Mission Info</Text>
-          <View style={styles.detailsGrid}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Takeoff Weight:</Text>
-              <Text style={styles.detailValue}>
-                {totalWeight !== null ? `${Math.round(totalWeight)} lbs` : 'N/A'}
-              </Text>
+          <View style={{backgroundColor: '#FFD700', padding: 8, borderBottomWidth: 2, borderBottomColor: '#000'}}>
+            <Text style={{fontSize: 16, fontWeight: 'bold', textAlign: 'center'}}>
+              C-130 HERCULES WEIGHT AND BALANCE FORM
+            </Text>
+          </View>
+
+          {/* Date and Mission Name Row */}
+          <View style={{flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000'}}>
+            <View style={{flex: 1, padding: 8, borderRightWidth: 1, borderRightColor: '#000'}}>
+              <Text style={{fontSize: 12, fontWeight: 'bold'}}>DATE</Text>
+              <Text style={{fontSize: 14}}>{missionSettings?.date || 'N/A'}</Text>
             </View>
-            <Animated.View
-              style={[
-                styles.detailRow,
-                isMacOutOfLimits && {
-                  backgroundColor: blinkAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['rgba(255, 0, 0, 0.3)', 'transparent'],
-                  }),
-                  borderRadius: 4,
-                  paddingHorizontal: 8,
-                  marginHorizontal: -8,
-                },
-              ]}
-            >
-              <Text style={[styles.detailLabel, isMacOutOfLimits && styles.alertLabel]}>MAC%:</Text>
-              <Text style={[styles.detailValue, isMacOutOfLimits && styles.alertValue]}>
-                {macPercent !== null ? `${macPercent.toFixed(2)}%` : 'N/A'}
-              </Text>
-            </Animated.View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Total Fuel Weight:</Text>
-              <Text style={styles.detailValue}>{Math.round(totalFuelWeight)} lbs</Text>
+            <View style={{flex: 2, padding: 8}}>
+              <Text style={{fontSize: 12, fontWeight: 'bold'}}>MISSION</Text>
+              <Text style={{fontSize: 14}}>{missionSettings?.name || 'Unnamed'}</Text>
             </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Z.F.W (Zero Fuel Weight):</Text>
-              <Text style={styles.detailValue}>{Math.round(zeroFuelWeight)} lbs</Text>
+          </View>
+
+          {/* Route Row */}
+          <View style={{flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000'}}>
+            <View style={{flex: 1, padding: 8, borderRightWidth: 1, borderRightColor: '#000'}}>
+              <Text style={{fontSize: 12, fontWeight: 'bold'}}>FROM</Text>
+              <Text style={{fontSize: 14}}>{missionSettings?.departureLocation || 'Unknown'}</Text>
             </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Total Cargo Weight:</Text>
-              <Text style={styles.detailValue}>{Math.round(totalCargoWeight)} lbs</Text>
+            <View style={{flex: 1, padding: 8}}>
+              <Text style={{fontSize: 12, fontWeight: 'bold'}}>TO</Text>
+              <Text style={{fontSize: 14}}>{missionSettings?.arrivalLocation || 'Unknown'}</Text>
             </View>
           </View>
         </View>
 
-        {/* Additional Info Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Additional Info</Text>
-          <View style={styles.detailsGrid}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Mission Name:</Text>
-              <Text style={styles.detailValue}>{missionSettings?.name || 'Unnamed'}</Text>
+        {/* Weight Summary and Fuel Distribution - Side by Side */}
+        <View style={{flexDirection: 'row', ...styles.section}}>
+          {/* Left Column - Weight Breakdown */}
+          <View style={{flex: 1, borderRightWidth: 1, borderRightColor: '#000'}}>
+            <View style={{backgroundColor: '#FFD700', padding: 6, borderBottomWidth: 1, borderBottomColor: '#000'}}>
+              <Text style={{fontSize: 14, fontWeight: 'bold', textAlign: 'center'}}>WEIGHT BREAKDOWN</Text>
             </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Date:</Text>
-              <Text style={styles.detailValue}>{missionSettings?.date || 'N/A'}</Text>
+
+            <View style={{flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000', height: 40}}>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRightWidth: 1, borderRightColor: '#000', backgroundColor: '#f0f0f0', justifyContent: 'center'}}>
+                <Text style={{fontSize: 12, fontWeight: 'bold'}}>Basic Empty Weight</Text>
+              </View>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'flex-end', justifyContent: 'center'}}>
+                <Text style={{fontSize: 14}}>{Math.round(baseWeight)} lbs</Text>
+              </View>
             </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Departure:</Text>
-              <Text style={styles.detailValue}>{missionSettings?.departureLocation || 'Unknown'}</Text>
+
+            <View style={{flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000', height: 40}}>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRightWidth: 1, borderRightColor: '#000', backgroundColor: '#f0f0f0', justifyContent: 'center'}}>
+                <Text style={{fontSize: 12, fontWeight: 'bold'}}>Crew Weight</Text>
+              </View>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'flex-end', justifyContent: 'center'}}>
+                <Text style={{fontSize: 14}}>{Math.round(crewWeight)} lbs</Text>
+              </View>
             </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Arrival:</Text>
-              <Text style={styles.detailValue}>{missionSettings?.arrivalLocation || 'Unknown'}</Text>
+
+            <View style={{flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000', height: 40}}>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRightWidth: 1, borderRightColor: '#000', backgroundColor: '#f0f0f0', justifyContent: 'center'}}>
+                <Text style={{fontSize: 12, fontWeight: 'bold'}}>Total Cargo Weight</Text>
+              </View>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'flex-end', justifyContent: 'center'}}>
+                <Text style={{fontSize: 14}}>{Math.round(totalCargoWeight)} lbs</Text>
+              </View>
             </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Aircraft Index:</Text>
-              <Text style={styles.detailValue}>{missionSettings?.aircraftIndex || 0}</Text>
+
+            <View style={{flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000', height: 40}}>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRightWidth: 1, borderRightColor: '#000', backgroundColor: '#f0f0f0', justifyContent: 'center'}}>
+                <Text style={{fontSize: 12, fontWeight: 'bold'}}>Total Fuel Weight</Text>
+              </View>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'flex-end', justifyContent: 'center'}}>
+                <Text style={{fontSize: 14}}>{Math.round(totalFuelWeight)} lbs</Text>
+              </View>
             </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Base weight:</Text>
-              <Text style={styles.detailValue}>{Math.round(baseWeight)} lbs</Text>
+
+            <View style={{flexDirection: 'row', borderBottomWidth: 2, borderBottomColor: '#000', backgroundColor: '#e8f4f8', height: 40}}>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRightWidth: 1, borderRightColor: '#000', justifyContent: 'center'}}>
+                <Text style={{fontSize: 12, fontWeight: 'bold'}}>Zero Fuel Weight (ZFW)</Text>
+              </View>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'flex-end', justifyContent: 'center'}}>
+                <Text style={{fontSize: 16, fontWeight: 'bold'}}>{Math.round(zeroFuelWeight)} lbs</Text>
+              </View>
             </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Loadmasters:</Text>
-              <Text style={styles.detailValue}>
-                {missionSettings?.loadmasters || 0} ({missionSettings?.loadmastersFs || 0} FS)
-              </Text>
+
+            <View style={{flexDirection: 'row', borderBottomWidth: 2, borderBottomColor: '#000', backgroundColor: '#fff4cc', height: 40}}>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRightWidth: 1, borderRightColor: '#000', justifyContent: 'center'}}>
+                <Text style={{fontSize: 13, fontWeight: 'bold'}}>TAKEOFF WEIGHT</Text>
+              </View>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'flex-end', justifyContent: 'center'}}>
+                <Text style={{fontSize: 18, fontWeight: 'bold'}}>
+                  {totalWeight !== null ? `${Math.round(totalWeight)} lbs` : 'N/A'}
+                </Text>
+              </View>
             </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Crew Weight:</Text>
-              <Text style={styles.detailValue}>{Math.round(crewWeight)} lbs</Text>
+
+            <Animated.View style={{
+              flexDirection: 'row',
+              borderBottomWidth: 2,
+              borderBottomColor: '#000',
+              height: 40,
+              backgroundColor: isMacOutOfLimits
+                ? blinkAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['#ff0000', '#ffcccc'],
+                  })
+                : '#ccffcc',
+            }}>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRightWidth: 1, borderRightColor: '#000', justifyContent: 'center'}}>
+                <Text style={{fontSize: 13, fontWeight: 'bold', color: isMacOutOfLimits ? '#fff' : '#000'}}>
+                  MAC %
+                </Text>
+              </View>
+              <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'flex-end', justifyContent: 'center'}}>
+                <Text style={{fontSize: 18, fontWeight: 'bold', color: isMacOutOfLimits ? '#fff' : '#000'}}>
+                  {macPercent !== null ? `${macPercent.toFixed(2)}%` : 'N/A'}
+                </Text>
+              </View>
+            </Animated.View>
+          </View>
+
+          {/* Right Column - Fuel Distribution */}
+          <View style={{flex: 1}}>
+            <View style={{backgroundColor: '#FFD700', padding: 6, borderBottomWidth: 1, borderBottomColor: '#000'}}>
+              <Text style={{fontSize: 14, fontWeight: 'bold', textAlign: 'center'}}>FUEL DISTRIBUTION</Text>
             </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Food Weight:</Text>
-              <Text style={styles.detailValue}>{missionSettings?.foodWeight || 0} lbs</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Safety Gear Weight:</Text>
-              <Text style={styles.detailValue}>{missionSettings?.safetyGearWeight || 0} lbs</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>ETC Weight:</Text>
-              <Text style={styles.detailValue}>{missionSettings?.etcWeight || 0} lbs</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Configuration Weights:</Text>
-              <Text style={styles.detailValue}>{missionSettings?.configurationWeights || 0} lbs</Text>
-            </View>
+
+            {missionSettings?.fuelDistribution && (
+              <>
+                <View style={{flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000', height: 40}}>
+                  <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRightWidth: 1, borderRightColor: '#000', backgroundColor: '#f0f0f0', justifyContent: 'center'}}>
+                    <Text style={{fontSize: 12}}>OUTBOARD</Text>
+                  </View>
+                  <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'flex-end', justifyContent: 'center'}}>
+                    <Text style={{fontSize: 12}}>{missionSettings.fuelDistribution.outbd || 0} lbs</Text>
+                  </View>
+                </View>
+                <View style={{flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000', height: 40}}>
+                  <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRightWidth: 1, borderRightColor: '#000', backgroundColor: '#f0f0f0', justifyContent: 'center'}}>
+                    <Text style={{fontSize: 12}}>INBOARD</Text>
+                  </View>
+                  <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'flex-end', justifyContent: 'center'}}>
+                    <Text style={{fontSize: 12}}>{missionSettings.fuelDistribution.inbd || 0} lbs</Text>
+                  </View>
+                </View>
+                <View style={{flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000', height: 40}}>
+                  <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRightWidth: 1, borderRightColor: '#000', backgroundColor: '#f0f0f0', justifyContent: 'center'}}>
+                    <Text style={{fontSize: 12}}>AUXILIARY</Text>
+                  </View>
+                  <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'flex-end', justifyContent: 'center'}}>
+                    <Text style={{fontSize: 12}}>{missionSettings.fuelDistribution.aux || 0} lbs</Text>
+                  </View>
+                </View>
+                <View style={{flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000', height: 40}}>
+                  <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRightWidth: 1, borderRightColor: '#000', backgroundColor: '#f0f0f0', justifyContent: 'center'}}>
+                    <Text style={{fontSize: 12}}>EXTERNAL</Text>
+                  </View>
+                  <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'flex-end', justifyContent: 'center'}}>
+                    <Text style={{fontSize: 12}}>{missionSettings.fuelDistribution.ext || 0} lbs</Text>
+                  </View>
+                </View>
+                <View style={{flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000', height: 40}}>
+                  <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRightWidth: 1, borderRightColor: '#000', backgroundColor: '#f0f0f0', justifyContent: 'center'}}>
+                    <Text style={{fontSize: 12}}>FUSELAGE</Text>
+                  </View>
+                  <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, alignItems: 'flex-end', justifyContent: 'center'}}>
+                    <Text style={{fontSize: 12}}>{missionSettings.fuelDistribution.fuselage || 0} lbs</Text>
+                  </View>
+                </View>
+
+                {/* Add spacer rows to match left column height */}
+                <View style={{flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000', backgroundColor: '#fafafa', height: 40}}>
+                  <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, justifyContent: 'center'}}>
+                    <Text style={{fontSize: 12, color: '#999'}}>---</Text>
+                  </View>
+                </View>
+                <View style={{flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#000', backgroundColor: '#fafafa', height: 40}}>
+                  <View style={{flex: 1, paddingVertical: 10, paddingHorizontal: 8, justifyContent: 'center'}}>
+                    <Text style={{fontSize: 12, color: '#999'}}>---</Text>
+                  </View>
+                </View>
+              </>
+            )}
           </View>
         </View>
 
         {/* Cargo Items Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cargo Items on Deck</Text>
+          <View style={{backgroundColor: '#FFD700', padding: 6, borderBottomWidth: 1, borderBottomColor: '#000'}}>
+            <Text style={{fontSize: 14, fontWeight: 'bold', textAlign: 'center'}}>
+              CARGO ITEMS ON DECK ({onDeckItems.length} items, {Math.round(totalCargoWeight)} lbs)
+            </Text>
+          </View>
           {onDeckItems.length > 0 ? (
-            <>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryText}>
-                  Total Items: {onDeckItems.length} | Total Weight: {Math.round(totalCargoWeight)} lbs
-                </Text>
+            <View style={{borderWidth: 1, borderColor: '#000', marginTop: -1}}>
+              {/* Table Header */}
+              <View style={{flexDirection: 'row', backgroundColor: '#f0f0f0', borderBottomWidth: 1, borderBottomColor: '#000', paddingVertical: 8}}>
+                <Text style={{flex: 2, fontSize: 12, fontWeight: 'bold', paddingHorizontal: 8}}>Name</Text>
+                <Text style={{flex: 0.8, fontSize: 12, fontWeight: 'bold', textAlign: 'center'}}>FS</Text>
+                <Text style={{flex: 0.8, fontSize: 12, fontWeight: 'bold', textAlign: 'center'}}>Weight</Text>
+                <Text style={{flex: 1.5, fontSize: 12, fontWeight: 'bold', textAlign: 'center'}}>Dimensions</Text>
+                <Text style={{flex: 0.8, fontSize: 12, fontWeight: 'bold', textAlign: 'center'}}>CG</Text>
               </View>
-              <View style={styles.table}>
-                {/* Table Header */}
-                <View style={styles.tableHeader}>
-                  <Text style={[styles.tableHeaderText, styles.nameColumn]}>Name</Text>
-                  <Text style={[styles.tableHeaderText, styles.fsColumn]}>FS</Text>
-                  <Text style={[styles.tableHeaderText, styles.weightColumn]}>Weight</Text>
-                  <Text style={[styles.tableHeaderText, styles.dimensionsColumn]}>Dimensions</Text>
-                  <Text style={[styles.tableHeaderText, styles.cogColumn]}>CG</Text>
-                </View>
 
-                {/* Table Rows */}
-                {onDeckItems.map((item, index) => (
-                  <View
-                    key={item.id || index}
-                    style={[
-                      styles.tableRow,
-                      index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd,
-                    ]}
-                  >
-                    <Text style={[styles.tableCellText, styles.nameColumn]} numberOfLines={2}>
-                      {item.name || 'Unnamed'}
-                    </Text>
-                    <Text style={[styles.tableCellText, styles.fsColumn]}>
-                      {item.fs || 0}
-                    </Text>
-                    <Text style={[styles.tableCellText, styles.weightColumn]}>
-                      {item.weight || 0}
-                    </Text>
-                    <Text style={[styles.tableCellText, styles.dimensionsColumn]}>
-                      {item.length || 0}"×{item.width || 0}"×{item.height || 0}"
-                    </Text>
-                    <Text style={[styles.tableCellText, styles.cogColumn]}>
-                      {item.cog || 0}"
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </>
+              {/* Table Rows */}
+              {onDeckItems.map((item, index) => (
+                <View
+                  key={item.id || index}
+                  style={{
+                    flexDirection: 'row',
+                    borderBottomWidth: index < onDeckItems.length - 1 ? 1 : 0,
+                    borderBottomColor: '#ddd',
+                    backgroundColor: index % 2 === 0 ? '#fff' : '#fafafa',
+                    paddingVertical: 8,
+                  }}
+                >
+                  <Text style={{flex: 2, fontSize: 12, paddingHorizontal: 8}} numberOfLines={1}>
+                    {item.name || 'Unnamed'}
+                  </Text>
+                  <Text style={{flex: 0.8, fontSize: 12, textAlign: 'center'}}>
+                    {item.fs || 0}
+                  </Text>
+                  <Text style={{flex: 0.8, fontSize: 12, textAlign: 'center'}}>
+                    {item.weight || 0}
+                  </Text>
+                  <Text style={{flex: 1.5, fontSize: 11, textAlign: 'center'}}>
+                    {item.length || 0}"×{item.width || 0}"×{item.height || 0}"
+                  </Text>
+                  <Text style={{flex: 0.8, fontSize: 12, textAlign: 'center'}}>
+                    {item.cog || 0}
+                  </Text>
+                </View>
+              ))}
+            </View>
           ) : (
-            <Text style={styles.emptyState}>No cargo items on deck</Text>
+            <Text style={{textAlign: 'center', padding: 12, fontSize: 14, color: '#666'}}>No cargo items on deck</Text>
           )}
         </View>
       </ScrollView>
