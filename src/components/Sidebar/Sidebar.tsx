@@ -148,14 +148,14 @@ const Sidebar = ({
           <TouchableWithoutFeedback onPress={hideDropdown}>
             <View style={styles.overlayBackdrop} />
           </TouchableWithoutFeedback>
-          <View 
+          <View
             style={[
               styles.dropdown,
               {
                 position: 'absolute',
                 left: dropdownState.position.x,
                 top: dropdownState.position.y,
-              }
+              },
             ]}
           >
             <TouchableOpacity
