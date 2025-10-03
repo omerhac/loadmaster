@@ -36,10 +36,11 @@ export const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     padding: 20,
-    width: '70%',
-    maxWidth: 600,
-    minWidth: 400,
-    maxHeight: '80%',
+    width: '90%',
+    maxWidth: 700,
+    minWidth: 500,
+    height: 600,
+    maxHeight: '90%',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -64,7 +65,7 @@ export const styles = StyleSheet.create({
     color: '#666',
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     marginBottom: 20,
     color: '#333',
@@ -72,7 +73,8 @@ export const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    minHeight: 150,
+    minHeight: 350,
+    maxHeight: 450,
     marginBottom: 20,
   },
   loadingContainer: {
@@ -101,12 +103,13 @@ export const styles = StyleSheet.create({
   },
   missionList: {
     flex: 1,
+    minHeight: 300,
   },
   missionItem: {
     backgroundColor: '#f9f9f9',
     borderRadius: 6,
-    padding: 6,
-    marginBottom: 8,
+    padding: 12,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: 'transparent',
   },
@@ -126,7 +129,7 @@ export const styles = StyleSheet.create({
     marginBottom: 6,
   },
   missionName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#333',
     flex: 1,
@@ -136,7 +139,7 @@ export const styles = StyleSheet.create({
     color: '#0066cc',
   },
   missionDate: {
-    fontSize: 11,
+    fontSize: 13,
     color: '#666',
     fontWeight: '500',
   },

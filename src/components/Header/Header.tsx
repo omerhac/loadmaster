@@ -137,7 +137,6 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
         setIsMenuOpen(false);
         onLoadMissionClick();
       },
-      disabled: true,
     },
     {
       label: 'Mission Settings',
