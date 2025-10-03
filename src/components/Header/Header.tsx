@@ -43,7 +43,7 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
       totalFuelWeight = (fuel.outbd || 0) + (fuel.inbd || 0) + (fuel.aux || 0) +
                        (fuel.ext || 0) + (fuel.fuselage || 0);
 
-      zeroFuelWeight = totalWeight !== null ? totalWeight - totalFuelWeight : 0;
+      zeroFuelWeight = totalWeight !== null && totalWeight !== undefined ? totalWeight - totalFuelWeight : 0;
     } catch (error) {
       console.warn('Header fuel calculations error:', error);
     }
@@ -158,7 +158,6 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
       label: 'Preview Mission',
       icon: <PreviewIcon />,
       onClick: onPreviewClick,
-      disabled: true,
     },
     {
       label: 'Delete Database',
