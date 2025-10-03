@@ -14,12 +14,18 @@ interface NewMissionModalProps {
   visible: boolean;
   onSave: (missionName: string) => void;
   onCancel: () => void;
+  title?: string;
+  buttonText?: string;
+  placeholder?: string;
 }
 
 const NewMissionModal: React.FC<NewMissionModalProps> = ({
   visible,
   onSave,
   onCancel,
+  title = 'Create New Mission',
+  buttonText = 'Create Mission',
+  placeholder = 'Enter mission name',
 }) => {
   const [missionName, setMissionName] = useState('');
 
@@ -57,7 +63,7 @@ const NewMissionModal: React.FC<NewMissionModalProps> = ({
             <Text style={styles.closeButtonText}>×</Text>
           </TouchableOpacity>
 
-          <Text style={styles.modalTitle}>Create New Mission</Text>
+          <Text style={styles.modalTitle}>{title}</Text>
 
           <View style={styles.formContainer}>
             <View style={styles.formRow}>
@@ -66,7 +72,7 @@ const NewMissionModal: React.FC<NewMissionModalProps> = ({
                 style={styles.input}
                 value={missionName}
                 onChangeText={setMissionName}
-                placeholder="Enter mission name"
+                placeholder={placeholder}
                 autoFocus={true}
                 selectTextOnFocus={true}
               />
@@ -86,7 +92,7 @@ const NewMissionModal: React.FC<NewMissionModalProps> = ({
               onPress={handleSubmit}
               disabled={!isDataValid}
             >
-              <Text style={styles.saveButtonText}>Create Mission</Text>
+              <Text style={styles.saveButtonText}>{buttonText}</Text>
             </TouchableOpacity>
           </View>
         </View>

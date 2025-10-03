@@ -21,13 +21,14 @@ interface HeaderProps {
   onPreviewClick: () => void;
   onNewMissionClick: () => void;
   onLoadMissionClick: () => void;
+  onDuplicateMissionClick: () => void;
   onGraphsClick: () => void;
   macPercent?: number | null;
   totalWeight?: number | null;
   missionSettings?: MissionSettings | null;
 }
 
-const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onGraphsClick, macPercent, totalWeight, missionSettings }: HeaderProps) => {
+const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onDuplicateMissionClick, onGraphsClick, macPercent, totalWeight, missionSettings }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMacOutOfLimits, setIsMacOutOfLimits] = useState(false);
   const blinkAnimation = useRef(new Animated.Value(1)).current;
@@ -126,9 +127,12 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
       },
     },
     {
-      label: 'Save Plan',
+      label: 'Duplicate Plan',
       icon: <SaveIcon />,
-      onClick: () => console.log('Save Plan clicked'),
+      onClick: () => {
+        setIsMenuOpen(false);
+        onDuplicateMissionClick();
+      },
     },
     {
       label: 'Load Plan',

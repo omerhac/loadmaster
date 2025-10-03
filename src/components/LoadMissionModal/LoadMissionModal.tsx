@@ -70,7 +70,7 @@ const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
       if (dbResponse && dbResponse.results) {
         // Extract missions from the results array
         const missionsData = dbResponse.results.map((result: any) => result.data || result).filter(Boolean);
-        
+
         // Valid array response
         const validMissions = missionsData.filter((mission: any): mission is Mission => {
           return mission &&
