@@ -10,7 +10,7 @@ export const LOCATION_OPTIONS = [
   '25 - Ramon',
   '28 - Nevatim',
   '30 - Palmahim',
-  'Other'
+  'Other',
 ];
 
 interface LocationDropdownProps {
