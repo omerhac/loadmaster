@@ -66,8 +66,37 @@ const LoadMissionModal: React.FC<LoadMissionModalProps> = ({
       // Type assertion needed due to Promise.race
       const dbResponse = response as any;
 
-      if (Array.isArray(dbResponse)) {
+      // Check if the response has the expected DatabaseResponse structure
+      if (dbResponse && dbResponse.results) {
+        // Extract missions from the results array
+        const missionsData = dbResponse.results.map((result: any) => result.data || result).filter(Boolean);
+
         // Valid array response
+        const validMissions = missionsData.filter((mission: any): mission is Mission => {
+          return mission &&
+                 typeof mission === 'object' &&
+                 typeof mission.name === 'string' &&
+                 mission.name.trim().length > 0;
+        });
+
+        // Sort by modified_date (newest first) with safe date handling
+        const sortedMissions = validMissions.sort((a, b) => {
+          try {
+            const dateA = a.modified_date ? new Date(a.modified_date).getTime() : 0;
+            const dateB = b.modified_date ? new Date(b.modified_date).getTime() : 0;
+            return dateB - dateA; // Newest first
+          } catch {
+            return 0; // Keep original order if date parsing fails
+          }
+        });
+
+        updateState({
+          missions: sortedMissions,
+          isLoading: false,
+          hasError: false,
+        });
+      } else if (Array.isArray(dbResponse)) {
+        // Fallback for direct array response (backward compatibility)
         const validMissions = dbResponse.filter((mission): mission is Mission => {
           return mission &&
                  typeof mission === 'object' &&

@@ -129,6 +129,7 @@ function App(): React.JSX.Element {
   const [isLandscape, setIsLandscape] = useState(true);
   const [showNewMissionModal, setShowNewMissionModal] = useState(false);
   const [showLoadMissionModal, setShowLoadMissionModal] = useState(false);
+  const [showDuplicateMissionModal, setShowDuplicateMissionModal] = useState(false);
   const [currentMissionId, setCurrentMissionId] = useState<number>(DEFAULT_MISSION_ID);
   const [macPercent, setMacPercent] = useState<number | null>(null);
   const [totalWeight, setTotalWeight] = useState<number | null>(null);
@@ -546,6 +547,91 @@ function App(): React.JSX.Element {
     setShowLoadMissionModal(false);
   }, []);
 
+  const handleDuplicateMission = useCallback(async (newMissionName: string) => {
+    try {
+      if (!missionSettings) {
+        console.error('No current mission to duplicate');
+        return;
+      }
+
+      // Create a new mission with the duplicated settings but new name
+      const duplicatedMission: Mission = {
+        name: newMissionName,
+        created_date: new Date().toISOString(),
+        modified_date: new Date().toISOString(),
+        loadmasters: missionSettings.loadmasters,
+        loadmasters_fs: missionSettings.loadmastersFs,
+        configuration_weights: missionSettings.configurationWeights,
+        crew_gear_weight: missionSettings.crewGearWeight,
+        food_weight: missionSettings.foodWeight,
+        safety_gear_weight: missionSettings.safetyGearWeight,
+        etc_weight: missionSettings.etcWeight,
+        outboard_fuel: missionSettings.fuelDistribution.outbd,
+        inboard_fuel: missionSettings.fuelDistribution.inbd,
+        fuselage_fuel: missionSettings.fuelDistribution.fuselage,
+        auxiliary_fuel: missionSettings.fuelDistribution.aux,
+        external_fuel: missionSettings.fuelDistribution.ext,
+        aircraft_id: missionSettings.aircraftId,
+        aircraft_empty_weight: missionSettings.aircraftEmptyWeight,
+      };
+
+      // Create the new mission in the database
+      const missionResponse = await createMission(duplicatedMission);
+      const newMissionId = missionResponse.results[0].lastInsertId as number;
+
+      // Duplicate all cargo items for the new mission
+      const duplicatedCargoItems: CargoItem[] = [];
+      for (const item of cargoItems) {
+        const duplicatedDbItem: DbCargoItem = {
+          mission_id: newMissionId,
+          cargo_type_id: item.cargo_type_id,
+          name: item.name,
+          weight: item.weight,
+          length: item.length,
+          width: item.width,
+          height: item.height,
+          cog: item.cog,
+          x_start_position: item.position.x,
+          y_start_position: item.position.y,
+          status: item.status,
+          forward_overhang: 0,
+          back_overhang: 0,
+        };
+
+        const itemResponse = await createCargoItem(duplicatedDbItem);
+        if (itemResponse && itemResponse.results && itemResponse.results.length > 0) {
+          duplicatedDbItem.id = itemResponse.results[0].lastInsertId;
+          duplicatedCargoItems.push(convertDbCargoItemToCargoItem(duplicatedDbItem));
+        }
+      }
+
+      // Set the new mission as current
+      setCurrentMissionId(newMissionId);
+      setCargoItems(duplicatedCargoItems);
+
+      duplicatedMission.id = newMissionId;
+      const newMissionSettings = await convertDbMissionToMissionSettings(duplicatedMission);
+      setMissionSettings(newMissionSettings);
+
+      setShowDuplicateMissionModal(false);
+      console.log('Mission duplicated:', newMissionName, 'with ID:', newMissionId);
+    } catch (error) {
+      console.error('Error duplicating mission:', error);
+    }
+  }, [missionSettings, cargoItems]);
+
+  const handleDuplicateMissionClick = useCallback(() => {
+    if (!missionSettings) {
+      console.error('No Mission', 'Please create or load a mission first.');
+      return;
+    }
+    setShowDuplicateMissionModal(true);
+  }, [missionSettings]);
+
+  const handleCancelDuplicateMission = useCallback(() => {
+    setShowDuplicateMissionModal(false);
+  }, []);
+
   // Add item modal handlers
   const handleAddItemModal = useCallback(() => {
     setEditingItem(null);
@@ -609,6 +695,17 @@ function App(): React.JSX.Element {
     ),
     planning: (
       <View style={[styles.planningContainer, isLandscape ? styles.landscapeContainer : null]}>
+        <Header
+          onSettingsClick={() => setCurrentView('settings')}
+          onPreviewClick={() => setCurrentView('preview')}
+          onNewMissionClick={handleNewMissionClick}
+          onLoadMissionClick={handleLoadMissionClick}
+          onDuplicateMissionClick={handleDuplicateMissionClick}
+          onGraphsClick={() => setCurrentView('graphs')}
+          macPercent={macPercent}
+          totalWeight={totalWeight}
+          missionSettings={missionSettings}
+        />
         <View style={styles.contentContainer}>
           <Sidebar
             items={cargoItems}
@@ -673,6 +770,14 @@ function App(): React.JSX.Element {
             visible={showLoadMissionModal}
             onLoad={handleLoadMission}
             onCancel={handleCancelLoadMission}
+          />
+          <NewMissionModal
+            visible={showDuplicateMissionModal}
+            onSave={handleDuplicateMission}
+            onCancel={handleCancelDuplicateMission}
+            title="Duplicate Mission"
+            buttonText="Duplicate"
+            placeholder="Enter name for duplicated mission"
           />
           {isAddModalVisible && (
             <AddCargoItemModal
