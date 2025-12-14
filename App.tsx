@@ -64,6 +64,7 @@ function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
     position,
     fs,
     dock: 'CG',
+    color: '#4a90e2', // Default blue color for existing items
   };
 }
 
@@ -122,7 +123,7 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
 type AppViewType = 'settings' | 'planning' | 'preview' | 'graphs';
 
 function App(): React.JSX.Element {
-  const [currentView, setCurrentView] = useState<AppViewType>('planning');
+  const [currentView, setCurrentView] = useState<AppViewType>('settings');
   const [missionSettings, setMissionSettings] = useState<MissionSettings | null>(null);
   const [cargoItems, setCargoItems] = useState<CargoItem[]>([]);
   const [isLandscape, setIsLandscape] = useState(true);
@@ -155,6 +156,7 @@ function App(): React.JSX.Element {
       dock: 'CG',
       status: 'inventory',
       position: { x: -1, y: -1 },
+      color: '#4a90e2', // Default blue color for presets
     };
   }, []);
 
@@ -250,10 +252,18 @@ function App(): React.JSX.Element {
     let x_start_position = -1;
     let y_start_position = -1;
     console.log('item', item);
-    if (status === 'onDeck' && item.fs > 0) {
-      // item defined in manual cargo insertion or being placed on deck
-      x_start_position = fsToXPosition(item.fs, item.cog);
-      y_start_position = DEFAULT_Y_POS;
+    if (status === 'onDeck') {
+      if (item.fs > 0) {
+        // item defined in manual cargo insertion or being placed on deck with specific FS
+        x_start_position = fsToXPosition(item.fs, item.cog);
+        y_start_position = DEFAULT_Y_POS;
+      } else {
+        // New item being automatically placed on deck - use default position
+        // Place at FS 400 (middle of loading area) with item's CG
+        const defaultFs = 400;
+        x_start_position = fsToXPosition(defaultFs, item.cog);
+        y_start_position = DEFAULT_Y_POS;
+      }
     }
     let newItem: DbCargoItem = {
       status: status,
@@ -277,6 +287,7 @@ function App(): React.JSX.Element {
         const newItemForState = {
           ...convertDbCargoItemToCargoItem(newItem),
           dock: item.dock || 'CG', // preserve dock from input item
+          color: item.color || '#4a90e2', // preserve color from input item
         };
         setCargoItems(prev => [...prev, newItemForState]);
       } else {
@@ -290,44 +301,35 @@ function App(): React.JSX.Element {
   const handleEditItem = useCallback((item: CargoItem) => {
     setCargoItems(prev => prev.map(i => {
       if (i.id !== item.id) {return i;}
+
+      let updatedItem = { ...i, ...item };
+
       // If FS changed, update position.x accordingly
       if (i.fs !== item.fs) {
-        const updatedItem = updateCargoItemPosition({ ...i, ...item }, { ...i.position, x: fsToXPosition(item.fs, i.cog) });
-        updateCargoItem({
-          id: parseInt(item.id, 10),
-          status: updatedItem.status,
-          x_start_position: updatedItem.position.x,
-          y_start_position: updatedItem.position.y,
-          mission_id: currentMissionId,
-          cargo_type_id: updatedItem.cargo_type_id,
-          name: updatedItem.name,
-          weight: updatedItem.weight,
-          length: updatedItem.length,
-          width: updatedItem.width,
-          height: updatedItem.height,
-          forward_overhang: 0,
-          back_overhang: 0,
-          cog: updatedItem.cog,
-        });
-        return updatedItem;
+        updatedItem = updateCargoItemPosition(updatedItem, { ...i.position, x: fsToXPosition(item.fs, item.cog) });
       }
+      // If CG changed and item is on deck, update position.x to maintain FS
+      else if (i.cog !== item.cog && item.status === 'onDeck') {
+        updatedItem = updateCargoItemPosition(updatedItem, { ...i.position, x: fsToXPosition(item.fs, item.cog) });
+      }
+
       updateCargoItem({
         id: parseInt(item.id, 10),
-        status: item.status,
-        x_start_position: item.position.x,
-        y_start_position: item.position.y,
+        status: updatedItem.status,
+        x_start_position: updatedItem.position.x,
+        y_start_position: updatedItem.position.y,
         mission_id: currentMissionId,
-        cargo_type_id: item.cargo_type_id,
-        name: item.name,
-        weight: item.weight,
-        length: item.length,
-        width: item.width,
-        height: item.height,
+        cargo_type_id: updatedItem.cargo_type_id,
+        name: updatedItem.name,
+        weight: updatedItem.weight,
+        length: updatedItem.length,
+        width: updatedItem.width,
+        height: updatedItem.height,
         forward_overhang: 0,
         back_overhang: 0,
-        cog: item.cog,
+        cog: updatedItem.cog,
       });
-      return item;
+      return updatedItem;
     }));
   }, [currentMissionId]);
 
@@ -645,7 +647,8 @@ function App(): React.JSX.Element {
     if (editingItem) {
       handleEditItem(item);
     } else {
-      handleAddItem(item);
+      // Automatically place new items on deck
+      handleAddItem(item, 'onDeck');
     }
     setIsAddModalVisible(false);
     setEditingItem(null);
@@ -687,6 +690,7 @@ function App(): React.JSX.Element {
         onSave={handleMissionSave}
         onAddToMainCargo={handleAddItem}
         onRemoveFromDeck={handleRemoveFromDeck}
+        onUpdateItem={handleEditItem}
       />
     ),
     planning: (
@@ -745,6 +749,17 @@ function App(): React.JSX.Element {
     <Host>
       <GestureHandlerRootView style={styles.root}>
         <SafeAreaView style={styles.safeArea}>
+          <Header
+            onSettingsClick={() => setCurrentView('settings')}
+            onPreviewClick={() => setCurrentView('preview')}
+            onNewMissionClick={handleNewMissionClick}
+            onLoadMissionClick={handleLoadMissionClick}
+            onGraphsClick={() => setCurrentView('graphs')}
+            onPlanningClick={() => setCurrentView('planning')}
+            macPercent={macPercent}
+            totalWeight={totalWeight}
+            missionSettings={missionSettings}
+          />
           {views[currentView]}
           <NewMissionModal
             visible={showNewMissionModal}

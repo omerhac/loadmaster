@@ -20,6 +20,7 @@ export type CargoItem = {
     position: Position;
     fs: number;
     dock: 'Front' | 'Back' | 'CG';
+    color?: string;
 }
 
 export type Cargo = {
