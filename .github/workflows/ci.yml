@@ -103,9 +103,6 @@ jobs:
       
     - name: Run tests
       run: npm test
-      
-    - name: Install react-native-windows
-      run: npm install --save-dev react-native-windows@latest
 
     # Update the Platform Toolset for SQLitePlugin to v143 (Visual Studio 2022)
     - name: Update SQLitePlugin Platform Toolset
