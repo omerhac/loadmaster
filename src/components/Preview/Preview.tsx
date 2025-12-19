@@ -49,7 +49,6 @@ const Preview = ({
 }: PreviewProps) => {
   const [macIndices, setMacIndices] = useState<Record<string, number>>({});
   const [calculatedValues, setCalculatedValues] = useState<CalculatedValues | null>(null);
-  const [_, setIsLoading] = useState(true);
 
   const onDeckItems = (items || []).filter(item => item?.status === 'onDeck');
   const onDeckItemIds = onDeckItems.map(i => i.id).join(',');
@@ -58,239 +57,339 @@ const Preview = ({
   const aircraftId = missionSettings?.aircraftId ? parseInt(String(missionSettings.aircraftId), 10) : null;
 
   useEffect(() => {
+    let cancelled = false;
+    
     const fetchAllCalculations = async () => {
-      if (!missionId || isNaN(missionId)) {
-        setIsLoading(false);
-        return;
-      }
+      if (!missionId || isNaN(missionId)) return;
 
-      setIsLoading(true);
       try {
-        // Fetch individual cargo MAC indices for display
         const indices: Record<string, number> = {};
-        for (const item of onDeckItems) {
-          if (item.id) {
+        const currentDeckItems = (items || []).filter(item => item?.status === 'onDeck');
+        for (const item of currentDeckItems) {
+          if (item.id && !cancelled) {
             try {
               const itemId = parseInt(item.id, 10);
               if (!isNaN(itemId)) {
-                const macIndex = await calculateMACIndex(itemId);
-                indices[item.id] = macIndex;
+                indices[item.id] = await calculateMACIndex(itemId);
               }
-            } catch (error) {
-              console.warn(`Failed to calculate MAC for item ${item.id}:`, error);
+            } catch {
               indices[item.id] = 0;
             }
           }
         }
+        if (cancelled) return;
         setMacIndices(indices);
 
-        // Fetch all calculations from the service
-        const [
-          macPercent,
-          totalWeight,
-          zeroFuelWeight,
-          baseWeight,
-          totalFuelWeight,
-          cargoWeight,
-          cargoMACIndex,
-          fuelMACIndex,
-          additionalWeightsMACIndex,
-          loadmastersIndex,
-          totalIndex,
-        ] = await Promise.all([
-          calculateMACPercent(missionId),
-          calculateTotalAircraftWeight(missionId),
-          calculateZeroFuelWeight(missionId),
-          calculateBaseWeight(missionId),
-          calculateTotalFuelWeight(missionId),
-          calculateCargoWeight(missionId),
-          calculateCargoMACIndex(missionId),
-          calculateFuelMAC(missionId),
-          calculateAdditionalWeightsMAC(missionId),
-          calculateLoadmastersIndex(missionId),
-          calculateTotalIndex(missionId),
+        const results = await Promise.all([
+          calculateMACPercent(missionId).catch(() => 0),
+          calculateTotalAircraftWeight(missionId).catch(() => 0),
+          calculateZeroFuelWeight(missionId).catch(() => 0),
+          calculateBaseWeight(missionId).catch(() => 0),
+          calculateTotalFuelWeight(missionId).catch(() => 0),
+          calculateCargoWeight(missionId).catch(() => 0),
+          calculateCargoMACIndex(missionId).catch(() => 0),
+          calculateFuelMAC(missionId).catch(() => 0),
+          calculateAdditionalWeightsMAC(missionId).catch(() => 0),
+          calculateLoadmastersIndex(missionId).catch(() => 0),
+          calculateTotalIndex(missionId).catch(() => 0),
         ]);
+        
+        if (cancelled) return;
 
-        // Get empty aircraft MAC index
+        const [
+          macPercent, totalWeight, zeroFuelWeight, baseWeight,
+          totalFuelWeight, cargoWeight, cargoMACIndex, fuelMACIndex,
+          additionalWeightsMACIndex, loadmastersIndex, totalIndex,
+        ] = results;
+
         let emptyAircraftMACIndex = 0;
         if (aircraftId && !isNaN(aircraftId)) {
-          try {
-            emptyAircraftMACIndex = await getEmptyAircraftMACIndex(aircraftId);
-          } catch (error) {
-            console.warn('Failed to get empty aircraft MAC index:', error);
-          }
+          try { emptyAircraftMACIndex = await getEmptyAircraftMACIndex(aircraftId); } catch { /* ignore */ }
         }
+        
+        if (cancelled) return;
 
-        // Calculate CG
-        const aircraftCG = await calculateAircraftCG(missionId, totalIndex);
+        let aircraftCG = 0;
+        try { aircraftCG = await calculateAircraftCG(missionId, totalIndex); } catch { /* ignore */ }
+        
+        if (cancelled) return;
 
         setCalculatedValues({
-          macPercent,
-          totalWeight,
-          zeroFuelWeight,
-          baseWeight,
-          totalFuelWeight,
-          cargoWeight,
-          cargoMACIndex,
-          fuelMACIndex,
-          additionalWeightsMACIndex,
-          emptyAircraftMACIndex,
-          loadmastersIndex,
-          totalIndex,
-          aircraftCG,
+          macPercent, totalWeight, zeroFuelWeight, baseWeight, totalFuelWeight,
+          cargoWeight, cargoMACIndex, fuelMACIndex, additionalWeightsMACIndex,
+          emptyAircraftMACIndex, loadmastersIndex, totalIndex, aircraftCG,
         });
       } catch (error) {
         console.warn('Failed to fetch calculations:', error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchAllCalculations();
-  }, [missionId, aircraftId, onDeckItemIds, onDeckItems]);
+    
+    return () => { cancelled = true; };
+  }, [missionId, aircraftId, onDeckItemIds, items]);
 
   const getItemMACIndex = (item: CargoItem): number => {
     return item.id ? (macIndices[item.id] ?? 0) : 0;
   };
 
-  const formatNumber = (num: number | null | undefined): string => {
-    if (num === null || num === undefined) {return '-';}
+  const fmt = (num: number | null | undefined): string => {
+    if (num === null || num === undefined) return '-';
     return num.toFixed(2);
   };
 
-  // All values from service
-  const macPercent = calculatedValues?.macPercent ?? 0;
-  const totalWeight = calculatedValues?.totalWeight ?? 0;
-  const zeroFuelWeight = calculatedValues?.zeroFuelWeight ?? 0;
-  const baseWeight = calculatedValues?.baseWeight ?? 0;
-  const totalFuelWeight = calculatedValues?.totalFuelWeight ?? 0;
-  const cargoWeight = calculatedValues?.cargoWeight ?? 0;
-  const cargoMACIndex = calculatedValues?.cargoMACIndex ?? 0;
-  const fuelMACIndex = calculatedValues?.fuelMACIndex ?? 0;
-  const additionalWeightsMACIndex = calculatedValues?.additionalWeightsMACIndex ?? 0;
-  const emptyAircraftMACIndex = calculatedValues?.emptyAircraftMACIndex ?? 0;
-  const loadmastersIndex = calculatedValues?.loadmastersIndex ?? 0;
-  const totalIndex = calculatedValues?.totalIndex ?? 0;
-  const aircraftCG = calculatedValues?.aircraftCG ?? 0;
-
-  // Fuel distribution values from props (for breakdown display)
+  const cv = calculatedValues;
   const fuel = missionSettings?.fuelDistribution || { outbd: 0, inbd: 0, aux: 0, ext: 0, fuselage: 0 };
-  const loadmasters = missionSettings?.loadmasters || 0;
+
+  // Calculate cumulative indices
+  const emptyIdx = cv?.emptyAircraftMACIndex ?? 0;
+  const additionalIdx = cv?.additionalWeightsMACIndex ?? 0;
+  const loadmastersIdx = cv?.loadmastersIndex ?? 0;
+  const baseIdx = emptyIdx + additionalIdx + loadmastersIdx;
+  const fuelIdx = cv?.fuelMACIndex ?? 0;
+  const cargoIdx = cv?.cargoMACIndex ?? 0;
+
+  // Cumulative totals
+  let cumulative = 0;
+  const emptyCum = (cumulative += emptyIdx);
+  const additionalCum = (cumulative += additionalIdx);
+  const loadmastersCum = (cumulative += loadmastersIdx);
+  const baseCum = loadmastersCum;
+  const fuelCum = (cumulative += fuelIdx);
+  const cargoCum = (cumulative += cargoIdx);
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content}>
         {/* Top Summary Bar */}
-        <View style={styles.summarySection}>
-          <View style={styles.summaryRow}>
-            <View style={styles.summaryCell}>
-              <Text style={styles.summaryLabel}>TAKEOFF WEIGHT</Text>
-              <Text style={styles.summaryValue}>{formatNumber(totalWeight)}</Text>
-            </View>
-            <View style={styles.summaryCell}>
-              <Text style={styles.summaryLabel}>MAC%</Text>
-              <Text style={styles.summaryValue}>{formatNumber(macPercent)}</Text>
-            </View>
-            <View style={styles.summaryCell}>
-              <Text style={styles.summaryLabel}>Z.F.W</Text>
-              <Text style={styles.summaryValue}>{formatNumber(zeroFuelWeight)}</Text>
-            </View>
-            <View style={styles.summaryCellLast}>
-              <Text style={styles.summaryLabel}>CG</Text>
-              <Text style={styles.summaryValue}>{formatNumber(aircraftCG)}</Text>
-            </View>
+        <View style={styles.summaryBar}>
+          <View style={styles.summaryCell}>
+            <Text style={styles.summaryLabel}>TAKEOFF WEIGHT</Text>
+            <Text style={styles.summaryValue}>{fmt(cv?.totalWeight)}</Text>
+          </View>
+          <View style={styles.summaryCell}>
+            <Text style={styles.summaryLabel}>MAC%</Text>
+            <Text style={styles.summaryValue}>{fmt(cv?.macPercent)}</Text>
+          </View>
+          <View style={styles.summaryCell}>
+            <Text style={styles.summaryLabel}>Z.F.W</Text>
+            <Text style={styles.summaryValue}>{fmt(cv?.zeroFuelWeight)}</Text>
+          </View>
+          <View style={styles.summaryCellLast}>
+            <Text style={styles.summaryLabel}>CG</Text>
+            <Text style={styles.summaryValue}>{fmt(cv?.aircraftCG)}</Text>
           </View>
         </View>
 
-        {/* Two Column Layout */}
         <View style={styles.twoColumnRow}>
-          {/* Left Column */}
+          {/* Left Column - Config & Cargo */}
           <View style={styles.column}>
             {/* Flight Info */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Flight Info</Text>
               </View>
-              <View style={styles.sectionContent}>
-                <View style={styles.tableRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Mission</Text>
-                  </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{missionSettings?.name || '-'}</Text>
-                  </View>
-                </View>
-                <View style={styles.tableRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Date</Text>
-                  </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{missionSettings?.date || '-'}</Text>
-                  </View>
-                </View>
-                <View style={styles.tableRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Departure</Text>
-                  </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{missionSettings?.departureLocation || '-'}</Text>
-                  </View>
-                </View>
-                <View style={styles.tableRowNoBorder}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Arrival</Text>
-                  </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{missionSettings?.arrivalLocation || '-'}</Text>
-                  </View>
-                </View>
+              <View style={styles.formRow}>
+                <Text style={styles.formLabel}>Mission</Text>
+                <Text style={styles.weightText}>{missionSettings?.name || '-'}</Text>
+              </View>
+              <View style={styles.formRow}>
+                <Text style={styles.formLabel}>Date</Text>
+                <Text style={styles.weightText}>{missionSettings?.date || '-'}</Text>
+              </View>
+              <View style={styles.formRow}>
+                <Text style={styles.formLabel}>From / To</Text>
+                <Text style={styles.weightText}>{missionSettings?.departureLocation || '-'} → {missionSettings?.arrivalLocation || '-'}</Text>
               </View>
             </View>
 
-            {/* Weight Summary */}
+            {/* Cargo Items */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Weight Summary</Text>
+                <Text style={styles.sectionTitle}>Cargo ({onDeckItems.length})</Text>
               </View>
-              <View style={styles.sectionContent}>
-                <View style={styles.tableRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Base Weight</Text>
+              <View style={styles.cargoTable}>
+                <View style={styles.cargoHeader}>
+                  <View style={[styles.cargoHeaderCell, styles.colName]}>
+                    <Text style={styles.cargoHeaderText}>Item</Text>
                   </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{formatNumber(baseWeight)}</Text>
+                  <View style={[styles.cargoHeaderCell, styles.colFs]}>
+                    <Text style={styles.cargoHeaderText}>FS</Text>
                   </View>
-                </View>
-                <View style={styles.tableRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Fuel</Text>
+                  <View style={[styles.cargoHeaderCell, styles.colWeight]}>
+                    <Text style={styles.cargoHeaderText}>Weight</Text>
                   </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{formatNumber(totalFuelWeight)}</Text>
+                  <View style={[styles.cargoHeaderCellLast, styles.colIndex]}>
+                    <Text style={styles.cargoHeaderText}>Index</Text>
                   </View>
                 </View>
-                <View style={styles.tableRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Cargo</Text>
+                {onDeckItems.length > 0 ? (
+                  <>
+                    {onDeckItems.map((item, index) => (
+                      <View key={item.id || index} style={styles.cargoRow}>
+                        <View style={[styles.cargoCell, styles.colName]}>
+                          <Text style={styles.cargoText} numberOfLines={1}>{item.name || '-'}</Text>
+                        </View>
+                        <View style={[styles.cargoCell, styles.colFs]}>
+                          <Text style={styles.cargoText}>{fmt(item.fs)}</Text>
+                        </View>
+                        <View style={[styles.cargoCell, styles.colWeight]}>
+                          <Text style={styles.cargoText}>{fmt(item.weight)}</Text>
+                        </View>
+                        <View style={[styles.cargoCellLast, styles.colIndex]}>
+                          <Text style={styles.cargoText}>{fmt(getItemMACIndex(item))}</Text>
+                        </View>
+                      </View>
+                    ))}
+                    <View style={[styles.cargoRow, styles.weightRowHighlight]}>
+                      <View style={[styles.cargoCell, styles.colName]}>
+                        <Text style={styles.weightTextBold}>Cargo Total</Text>
+                      </View>
+                      <View style={[styles.cargoCell, styles.colFs]}>
+                        <Text style={styles.cargoText}>-</Text>
+                      </View>
+                      <View style={[styles.cargoCell, styles.colWeight]}>
+                        <Text style={styles.weightTextBold}>{fmt(cv?.cargoWeight)}</Text>
+                      </View>
+                      <View style={[styles.cargoCellLast, styles.colIndex]}>
+                        <Text style={styles.weightTextBold}>{fmt(cargoIdx)}</Text>
+                      </View>
+                    </View>
+                  </>
+                ) : (
+                  <View style={styles.emptyState}>
+                    <Text style={styles.emptyText}>No cargo</Text>
                   </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{formatNumber(cargoWeight)}</Text>
+                )}
+              </View>
+            </View>
+          </View>
+
+          {/* Right Column - Weights & Fuel */}
+          <View style={styles.column}>
+            {/* Weight Breakdown with Index */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Weight & Index</Text>
+              </View>
+              <View style={styles.weightTable}>
+                <View style={styles.weightHeader}>
+                  <View style={[styles.weightHeaderCell, styles.colLabel]}>
+                    <Text style={styles.weightHeaderText}>Item</Text>
+                  </View>
+                  <View style={[styles.weightHeaderCell, styles.colWeight]}>
+                    <Text style={styles.weightHeaderText}>Weight</Text>
+                  </View>
+                  <View style={[styles.weightHeaderCell, styles.colIndex]}>
+                    <Text style={styles.weightHeaderText}>Index</Text>
+                  </View>
+                  <View style={[styles.weightHeaderCellLast, styles.colCumulative]}>
+                    <Text style={styles.weightHeaderText}>Cum.</Text>
                   </View>
                 </View>
-                <View style={[styles.tableRow, styles.tableRowHighlight]}>
-                  <View style={styles.labelCell}>
-                    <Text style={[styles.labelText, { fontWeight: 'bold' }]}>Takeoff Weight</Text>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colLabel]}>
+                    <Text style={styles.weightText}>Empty Aircraft</Text>
                   </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueTextLarge}>{formatNumber(totalWeight)}</Text>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <Text style={styles.weightTextCenter}>{fmt(missionSettings?.aircraftEmptyWeight)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>{fmt(emptyIdx)}</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colCumulative]}>
+                    <Text style={styles.weightTextCenter}>{fmt(emptyCum)}</Text>
                   </View>
                 </View>
-                <View style={styles.tableRowNoBorder}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Zero Fuel Weight</Text>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colLabel]}>
+                    <Text style={styles.weightText}>Config/Additional</Text>
                   </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{formatNumber(zeroFuelWeight)}</Text>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <Text style={styles.weightTextCenter}>{fmt((missionSettings?.safetyGearWeight || 0) + (missionSettings?.configurationWeights || 0))}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>{fmt(additionalIdx)}</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colCumulative]}>
+                    <Text style={styles.weightTextCenter}>{fmt(additionalCum)}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colLabel]}>
+                    <Text style={styles.weightText}>Loadmasters ({missionSettings?.loadmasters || 0})</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <Text style={styles.weightTextCenter}>{fmt((missionSettings?.loadmasters || 0) * 100)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>{fmt(loadmastersIdx)}</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colCumulative]}>
+                    <Text style={styles.weightTextCenter}>{fmt(loadmastersCum)}</Text>
+                  </View>
+                </View>
+
+                <View style={[styles.weightRow, styles.weightRowHighlight]}>
+                  <View style={[styles.weightCell, styles.colLabel]}>
+                    <Text style={styles.weightTextBold}>Base Weight</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <Text style={[styles.weightTextCenter, { fontWeight: 'bold' }]}>{fmt(cv?.baseWeight)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={[styles.weightTextCenter, { fontWeight: 'bold' }]}>{fmt(baseIdx)}</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colCumulative]}>
+                    <Text style={[styles.weightTextCenter, { fontWeight: 'bold' }]}>{fmt(baseCum)}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colLabel]}>
+                    <Text style={styles.weightText}>Fuel</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <Text style={styles.weightTextCenter}>{fmt(cv?.totalFuelWeight)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>{fmt(fuelIdx)}</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colCumulative]}>
+                    <Text style={styles.weightTextCenter}>{fmt(fuelCum)}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colLabel]}>
+                    <Text style={styles.weightText}>Cargo</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <Text style={styles.weightTextCenter}>{fmt(cv?.cargoWeight)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>{fmt(cargoIdx)}</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colCumulative]}>
+                    <Text style={styles.weightTextCenter}>{fmt(cargoCum)}</Text>
+                  </View>
+                </View>
+
+                <View style={[styles.weightRow, styles.weightRowHighlight]}>
+                  <View style={[styles.weightCell, styles.colLabel]}>
+                    <Text style={styles.weightTextBold}>Total Weight</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <Text style={[styles.weightTextCenter, { fontWeight: 'bold', fontSize: 13 }]}>{fmt(cv?.totalWeight)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={[styles.weightTextCenter, { fontWeight: 'bold' }]}>{fmt(cv?.totalIndex)}</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colCumulative]}>
+                    <Text style={[styles.weightTextCenter, { fontWeight: 'bold' }]}>{fmt(cargoCum)}</Text>
                   </View>
                 </View>
               </View>
@@ -321,157 +420,30 @@ const Preview = ({
                 </View>
                 <View style={styles.fuelRow}>
                   <View style={styles.fuelCell}>
-                    <Text style={styles.fuelText}>{formatNumber(fuel.outbd)}</Text>
+                    <Text style={styles.fuelText}>{fmt(fuel.outbd)}</Text>
                   </View>
                   <View style={styles.fuelCell}>
-                    <Text style={styles.fuelText}>{formatNumber(fuel.inbd)}</Text>
+                    <Text style={styles.fuelText}>{fmt(fuel.inbd)}</Text>
                   </View>
                   <View style={styles.fuelCell}>
-                    <Text style={styles.fuelText}>{formatNumber(fuel.aux)}</Text>
+                    <Text style={styles.fuelText}>{fmt(fuel.aux)}</Text>
                   </View>
                   <View style={styles.fuelCell}>
-                    <Text style={styles.fuelText}>{formatNumber(fuel.ext)}</Text>
+                    <Text style={styles.fuelText}>{fmt(fuel.ext)}</Text>
                   </View>
                   <View style={styles.fuelCellLast}>
-                    <Text style={styles.fuelText}>{formatNumber(fuel.fuselage)}</Text>
+                    <Text style={styles.fuelText}>{fmt(fuel.fuselage)}</Text>
                   </View>
                 </View>
-                <View style={[styles.fuelRow, styles.tableRowHighlight]}>
+                <View style={[styles.fuelRow, styles.weightRowHighlight]}>
                   <View style={[styles.fuelCell, { flex: 2 }]}>
-                    <Text style={[styles.fuelText, { fontWeight: 'bold' }]}>Total Fuel</Text>
+                    <Text style={[styles.fuelText, { fontWeight: 'bold' }]}>Total</Text>
                   </View>
                   <View style={[styles.fuelCellLast, { flex: 3 }]}>
-                    <Text style={[styles.fuelText, { fontWeight: 'bold', fontSize: 14 }]}>{formatNumber(totalFuelWeight)}</Text>
+                    <Text style={[styles.fuelText, { fontWeight: 'bold' }]}>{fmt(cv?.totalFuelWeight)}</Text>
                   </View>
                 </View>
               </View>
-            </View>
-          </View>
-
-          {/* Right Column */}
-          <View style={styles.column}>
-            {/* Index Summary */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Index Summary</Text>
-              </View>
-              <View style={styles.sectionContent}>
-                <View style={styles.tableRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Empty Aircraft Index</Text>
-                  </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{formatNumber(emptyAircraftMACIndex)}</Text>
-                  </View>
-                </View>
-                <View style={styles.tableRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Cargo Index</Text>
-                  </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{formatNumber(cargoMACIndex)}</Text>
-                  </View>
-                </View>
-                <View style={styles.tableRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Fuel Index</Text>
-                  </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{formatNumber(fuelMACIndex)}</Text>
-                  </View>
-                </View>
-                <View style={styles.tableRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Additional Weights Index</Text>
-                  </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{formatNumber(additionalWeightsMACIndex)}</Text>
-                  </View>
-                </View>
-                <View style={styles.tableRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Loadmasters Index</Text>
-                  </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{formatNumber(loadmastersIndex)}</Text>
-                  </View>
-                </View>
-                <View style={[styles.tableRow, styles.tableRowHighlight]}>
-                  <View style={styles.labelCell}>
-                    <Text style={[styles.labelText, { fontWeight: 'bold' }]}>Total Index</Text>
-                  </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueTextLarge}>{formatNumber(totalIndex)}</Text>
-                  </View>
-                </View>
-                <View style={styles.tableRowNoBorder}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Loadmasters</Text>
-                  </View>
-                  <View style={styles.valueCell}>
-                    <Text style={styles.valueText}>{loadmasters} @ FS {missionSettings?.loadmastersFs || 0}</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-
-            {/* Cargo Items */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Cargo Items ({onDeckItems.length})</Text>
-              </View>
-              {onDeckItems.length > 0 ? (
-                <View style={styles.cargoTable}>
-                  <View style={styles.cargoHeader}>
-                    <View style={[styles.cargoHeaderCell, styles.colName]}>
-                      <Text style={styles.cargoHeaderText}>Item</Text>
-                    </View>
-                    <View style={[styles.cargoHeaderCell, styles.colFs]}>
-                      <Text style={styles.cargoHeaderText}>FS</Text>
-                    </View>
-                    <View style={[styles.cargoHeaderCell, styles.colWeight]}>
-                      <Text style={styles.cargoHeaderText}>Weight</Text>
-                    </View>
-                    <View style={[styles.cargoHeaderCellLast, styles.colIndex]}>
-                      <Text style={styles.cargoHeaderText}>Index</Text>
-                    </View>
-                  </View>
-                  {onDeckItems.map((item, index) => (
-                    <View key={item.id || index} style={styles.cargoRow}>
-                      <View style={[styles.cargoCell, styles.colName]}>
-                        <Text style={styles.cargoText} numberOfLines={1}>{item.name || '-'}</Text>
-                      </View>
-                      <View style={[styles.cargoCell, styles.colFs]}>
-                        <Text style={styles.cargoText}>{formatNumber(item.fs)}</Text>
-                      </View>
-                      <View style={[styles.cargoCell, styles.colWeight]}>
-                        <Text style={styles.cargoText}>{formatNumber(item.weight)}</Text>
-                      </View>
-                      <View style={[styles.cargoCellLast, styles.colIndex]}>
-                        <Text style={styles.cargoText}>{formatNumber(getItemMACIndex(item))}</Text>
-                      </View>
-                    </View>
-                  ))}
-                  <View style={[styles.cargoRow, styles.tableRowHighlight]}>
-                    <View style={[styles.cargoCell, styles.colName]}>
-                      <Text style={[styles.cargoText, { fontWeight: 'bold' }]}>Total</Text>
-                    </View>
-                    <View style={[styles.cargoCell, styles.colFs]}>
-                      <Text style={styles.cargoText}>-</Text>
-                    </View>
-                    <View style={[styles.cargoCell, styles.colWeight]}>
-                      <Text style={[styles.cargoText, { fontWeight: 'bold' }]}>{formatNumber(cargoWeight)}</Text>
-                    </View>
-                    <View style={[styles.cargoCellLast, styles.colIndex]}>
-                      <Text style={[styles.cargoText, { fontWeight: 'bold' }]}>{formatNumber(cargoMACIndex)}</Text>
-                    </View>
-                  </View>
-                </View>
-              ) : (
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyText}>No cargo items on deck</Text>
-                </View>
-              )}
             </View>
           </View>
         </View>

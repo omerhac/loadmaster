@@ -233,7 +233,7 @@ function App(): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    if ((currentView === 'graphs' || currentView === 'planning' || currentView === 'preview') && currentMissionId) {
+    if (currentMissionId) {
       (async () => {
         try {
           const mac = await calculateMACPercent(currentMissionId);
@@ -246,7 +246,7 @@ function App(): React.JSX.Element {
         }
       })();
     }
-  }, [currentView, currentMissionId, cargoItems]);
+  }, [currentView, currentMissionId, cargoItems, missionSettings]);
 
   const handleAddItem = useCallback(async (item: CargoItem, status: 'inventory' | 'onStage' | 'onDeck' = 'inventory') => {
     let x_start_position = -1;
@@ -486,8 +486,6 @@ function App(): React.JSX.Element {
     } catch (error) {
       console.error('Error updating mission:', error);
     }
-
-    setCurrentView('planning');
   }, []);
 
   const handleNewMission = useCallback(async (missionName: string) => {
