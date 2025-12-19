@@ -49,6 +49,7 @@ const Preview = ({
 }: PreviewProps) => {
   const [macIndices, setMacIndices] = useState<Record<string, number>>({});
   const [calculatedValues, setCalculatedValues] = useState<CalculatedValues | null>(null);
+  const [_, setIsLoading] = useState(true);
 
   const onDeckItems = (items || []).filter(item => item?.status === 'onDeck');
   const onDeckItemIds = onDeckItems.map(i => i.id).join(',');
@@ -59,9 +60,11 @@ const Preview = ({
   useEffect(() => {
     const fetchAllCalculations = async () => {
       if (!missionId || isNaN(missionId)) {
+        setIsLoading(false);
         return;
       }
 
+      setIsLoading(true);
       try {
         // Fetch individual cargo MAC indices for display
         const indices: Record<string, number> = {};
@@ -138,6 +141,8 @@ const Preview = ({
         });
       } catch (error) {
         console.warn('Failed to fetch calculations:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
