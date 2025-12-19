@@ -695,17 +695,6 @@ function App(): React.JSX.Element {
     ),
     planning: (
       <View style={[styles.planningContainer, isLandscape ? styles.landscapeContainer : null]}>
-        <Header
-          onSettingsClick={() => setCurrentView('settings')}
-          onPreviewClick={() => setCurrentView('preview')}
-          onNewMissionClick={handleNewMissionClick}
-          onLoadMissionClick={handleLoadMissionClick}
-          onDuplicateMissionClick={handleDuplicateMissionClick}
-          onGraphsClick={() => setCurrentView('graphs')}
-          macPercent={macPercent}
-          totalWeight={totalWeight}
-          missionSettings={missionSettings}
-        />
         <View style={styles.contentContainer}>
           <Sidebar
             items={cargoItems}
@@ -754,6 +743,7 @@ function App(): React.JSX.Element {
             onPreviewClick={() => setCurrentView('preview')}
             onNewMissionClick={handleNewMissionClick}
             onLoadMissionClick={handleLoadMissionClick}
+            onDuplicateMissionClick={handleDuplicateMissionClick}
             onGraphsClick={() => setCurrentView('graphs')}
             onPlanningClick={() => setCurrentView('planning')}
             macPercent={macPercent}
