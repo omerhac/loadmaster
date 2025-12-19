@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup Label="Loadmaster React Native Windows Overrides">
+    <!--
+      RNW's Microsoft.ReactNative.Cxx.vcxitems expects JSI headers/sources at:
+        $(JSI_SourcePath)\jsi\jsi.h
+        $(JSI_SourcePath)\jsi\jsi.cpp
+
+      With RN 0.79, those live at:
+        node_modules\react-native\ReactCommon\jsi\jsi\jsi.h
+        node_modules\react-native\ReactCommon\jsi\jsi\jsi.cpp
+
+      So we set JSI_SourcePath to:
+        node_modules\react-native\ReactCommon\jsi
+    -->
+    <ReactNativeDir Condition="'$(ReactNativeDir)' == ''">$(MSBuildThisFileDirectory)node_modules\react-native\</ReactNativeDir>
+    <JSI_SourcePath Condition="'$(JSI_SourcePath)' == ''">$(ReactNativeDir)ReactCommon\jsi</JSI_SourcePath>
+
+    <!-- Force all projects to use an installed Windows SDK version (10.0.18362.0 is not installed) -->
+    <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">10.0.19041.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+</Project>

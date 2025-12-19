@@ -17,7 +17,8 @@
     "create-db": "node scripts/create-dummy-db.js",
     "copy-db": "node scripts/copy-database.js",
     "setup-db": "npm run create-db && npm run copy-db",
-    "postinstall": "npm run copy-db"
+    "postinstall": "npm run copy-db",
+    "windows:patch": "patch-package && node scripts/apply-windows-patches.js"
   },
   "dependencies": {
     "@react-native-community/slider": "^4.5.6",
@@ -57,6 +58,7 @@
     "jest": "^29.6.3",
     "jest-fetch-mock": "^3.0.3",
     "metro-config": "^0.81.3",
+    "patch-package": "^8.0.1",
     "prettier": "2.8.8",
     "react-test-renderer": "19.0.0",
     "sqlite3": "^5.1.7",
