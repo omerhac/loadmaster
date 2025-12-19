@@ -739,6 +739,7 @@ function App(): React.JSX.Element {
       <GestureHandlerRootView style={styles.root}>
         <SafeAreaView style={styles.safeArea}>
           <Header
+            currentView={currentView}
             onSettingsClick={() => setCurrentView('settings')}
             onPreviewClick={() => setCurrentView('preview')}
             onNewMissionClick={handleNewMissionClick}
