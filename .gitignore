@@ -1,7 +1,6 @@
 # OSX
 #
 .DS_Store
-windows/
 
 # Xcode
 #
@@ -22,7 +21,7 @@ DerivedData
 *.ipa
 *.xcuserstate
 **/.xcode.env.local
-windows/msbuild**
+
 # Android/IntelliJ
 #
 build/
@@ -88,3 +87,24 @@ EncodedKey.pfx
 
 # Build logs
 build-logs/
+
+# Windows build artifacts (keep source files, ignore build output)
+windows/**/bin/
+windows/**/obj/
+windows/**/x64/
+windows/**/x86/
+windows/**/ARM/
+windows/**/ARM64/
+windows/**/Debug/
+windows/**/Release/
+windows/**/packages/
+windows/**/*.user
+windows/**/packages.lock.json
+windows/*.binlog
+windows/*.err
+windows/*.wrn
+windows/UpgradeLog.htm
+.vs/
+
+# Yarn (using npm instead)
+yarn.lock
