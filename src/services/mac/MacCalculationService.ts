@@ -15,6 +15,37 @@ import {
 import { DEFAULT_LOADMASTER_WEIGHT } from '../../constants';
 
 /**
+ * Calculates the total weight of loadmasters
+ * @param loadmastersCount - The number of loadmasters
+ * @returns The total weight of loadmasters in pounds
+ */
+export function calculateLoadmastersWeight(loadmastersCount: number): number {
+  return loadmastersCount * DEFAULT_LOADMASTER_WEIGHT;
+}
+
+/**
+ * Calculates the MAC index contribution from loadmasters
+ * @param missionId - The ID of the mission
+ * @returns The MAC index contribution from loadmasters
+ */
+export async function calculateLoadmastersIndex(missionId: number): Promise<number> {
+  const missionResult = await getMissionById(missionId);
+  if (missionResult.count === 0) {
+    throw new Error(`Mission with ID ${missionId} not found`);
+  }
+
+  const mission = missionResult.results[0].data;
+  if (!mission) {
+    throw new Error(`Mission data is undefined for mission ID ${missionId}`);
+  }
+
+  const loadmastersWeight = calculateLoadmastersWeight(mission.loadmasters);
+  const loadmastersIndex = (mission.loadmasters_fs - 533.46) * loadmastersWeight / 50000;
+
+  return loadmastersIndex;
+}
+
+/**
  * Calculates the MAC percentage for a given mission
  * @param missionId - The ID of the mission to calculate MAC for
  * @returns The current MAC percentage as a float
@@ -31,35 +62,20 @@ export async function calculateMACPercent(missionId: number): Promise<number> {
     throw new Error(`Mission data is undefined for mission ID ${missionId}`);
   }
 
-  // 2. Get all cargo items for this mission
-  const cargoItemsResult = await getOnDeckCargoItemsByMissionId(missionId);
-  const cargoItems = cargoItemsResult.results.map(result => result.data).filter(Boolean);
+  // 2. Calculate total MAC index from all contributions
+  const [cargoMACIndex, additionalWeightsMACIndex, fuelMACIndex, emptyMACIndex] = await Promise.all([
+    calculateCargoMACIndex(missionId),
+    calculateAdditionalWeightsMACIndex(missionId),
+    calculateFuelMAC(missionId),
+    getEmptyAircraftMACIndex(mission.aircraft_id),
+  ]);
 
-  // 3. Calculate total MAC index from cargo items
-  let totalMACIndex = 0;
-  for (const cargoItem of cargoItems) {
-    if (cargoItem && cargoItem.id) {
-      const macIndex = await calculateMACIndex(cargoItem.id);
-      totalMACIndex += macIndex;
-    }
-  }
+  const totalMACIndex = cargoMACIndex + additionalWeightsMACIndex + fuelMACIndex + emptyMACIndex;
 
-  // 4. Add MAC index contribution from additional weights
-  const additionalWeightsMACIndex = await calculateAdditionalWeightsMACIndex(missionId);
-  totalMACIndex += additionalWeightsMACIndex;
-
-  // 5. Add MAC index contribution from fuel
-  const fuelMACIndex = await calculateFuelMAC(missionId);
-  totalMACIndex += fuelMACIndex;
-
-  // 6. Add empty aircraft MAC index
-  const emptyMACIndex = await getEmptyAircraftMACIndex(mission.aircraft_id);
-  totalMACIndex += emptyMACIndex;
-
-  // 7. Calculate aircraft CG
+  // 3. Calculate aircraft CG
   const cg = await calculateAircraftCG(missionId, totalMACIndex);
 
-  // 8. Calculate MAC percentage using constants
+  // 4. Calculate MAC percentage using constants
   // NOTE: These constants may need to be calibrated based on actual aircraft specifications
   const MAC_DATUM = 487.4; // MAC datum station
   const MAC_LENGTH = 164.5; // MAC length
@@ -139,10 +155,9 @@ export async function calculateAdditionalWeightsMACIndex(missionId: number): Pro
   // 3. Calculate MAC index contributions for each weight type
   let totalAdditionalMAC = 0;
 
-  // Crew weight
-  const loadmasters_weight = mission.loadmasters * DEFAULT_LOADMASTER_WEIGHT;
-  const loadmasters_index = (mission.loadmasters_fs - 533.46) * loadmasters_weight / 50000;
-  totalAdditionalMAC += loadmasters_index;
+  // Loadmasters index - use the dedicated function
+  const loadmastersIndex = await calculateLoadmastersIndex(missionId);
+  totalAdditionalMAC += loadmastersIndex;
 
   // Configuration weights
   const configuration_index = (CONFIG_STATION - 533.46) * mission.configuration_weights / 50000;
@@ -215,9 +230,9 @@ export async function calculateTotalAircraftWeight(missionId: number): Promise<n
                          mission.external_fuel - TAXI_FUEL_WEIGHT;
 
   // 6. Sum all weights to get gross weight
-  const loadmasters_weight = mission.loadmasters * DEFAULT_LOADMASTER_WEIGHT;
+  const loadmastersWeight = calculateLoadmastersWeight(mission.loadmasters);
   const grossWeight = aircraft.empty_weight +
-                      loadmasters_weight +
+                      loadmastersWeight +
                       mission.configuration_weights +
                       mission.crew_gear_weight +
                       mission.food_weight +
@@ -282,4 +297,146 @@ export async function getEmptyAircraftMACIndex(aircraftId: number): Promise<numb
   }
 
   return aircraft.empty_mac;
+}
+
+/**
+ * Calculates the base weight (empty weight + configuration + crew + gear + food + safety + etc)
+ * @param missionId - The ID of the mission
+ * @returns The base weight in pounds
+ */
+export async function calculateBaseWeight(missionId: number): Promise<number> {
+  const missionResult = await getMissionById(missionId);
+  if (missionResult.count === 0) {
+    throw new Error(`Mission with ID ${missionId} not found`);
+  }
+
+  const mission = missionResult.results[0].data;
+  if (!mission) {
+    throw new Error(`Mission data is undefined for mission ID ${missionId}`);
+  }
+
+  const aircraftResult = await getAircraftById(mission.aircraft_id);
+  if (aircraftResult.count === 0) {
+    throw new Error(`Aircraft with ID ${mission.aircraft_id} not found`);
+  }
+
+  const aircraft = aircraftResult.results[0].data;
+  if (!aircraft) {
+    throw new Error(`Aircraft data is undefined for ID ${mission.aircraft_id}`);
+  }
+
+  const loadmastersWeight = calculateLoadmastersWeight(mission.loadmasters);
+  const baseWeight = aircraft.empty_weight +
+                    mission.configuration_weights +
+                    loadmastersWeight +
+                    mission.crew_gear_weight +
+                    mission.food_weight +
+                    mission.safety_gear_weight +
+                    mission.etc_weight;
+
+  return baseWeight;
+}
+
+/**
+ * Calculates the total fuel weight from mission fuel fields
+ * @param missionId - The ID of the mission
+ * @returns The total fuel weight in pounds
+ */
+export async function calculateTotalFuelWeight(missionId: number): Promise<number> {
+  const missionResult = await getMissionById(missionId);
+  if (missionResult.count === 0) {
+    throw new Error(`Mission with ID ${missionId} not found`);
+  }
+
+  const mission = missionResult.results[0].data;
+  if (!mission) {
+    throw new Error(`Mission data is undefined for mission ID ${missionId}`);
+  }
+
+  const totalFuelWeight = mission.outboard_fuel + mission.inboard_fuel +
+                         mission.fuselage_fuel + mission.auxiliary_fuel +
+                         mission.external_fuel;
+
+  return totalFuelWeight;
+}
+
+/**
+ * Calculates the total cargo weight for a mission
+ * @param missionId - The ID of the mission
+ * @returns The total cargo weight in pounds
+ */
+export async function calculateCargoWeight(missionId: number): Promise<number> {
+  const cargoItemsResult = await getOnDeckCargoItemsByMissionId(missionId);
+  const cargoItems = cargoItemsResult.results.map(result => result.data).filter(Boolean);
+
+  let totalCargoWeight = 0;
+  for (const cargoItem of cargoItems) {
+    if (cargoItem && cargoItem.weight !== undefined) {
+      totalCargoWeight += cargoItem.weight;
+    }
+  }
+
+  return totalCargoWeight;
+}
+
+/**
+ * Calculates the total MAC index from all cargo items
+ * @param missionId - The ID of the mission
+ * @returns The total cargo MAC index
+ */
+export async function calculateCargoMACIndex(missionId: number): Promise<number> {
+  const cargoItemsResult = await getOnDeckCargoItemsByMissionId(missionId);
+  const cargoItems = cargoItemsResult.results.map(result => result.data).filter(Boolean);
+
+  let totalCargoMACIndex = 0;
+  for (const cargoItem of cargoItems) {
+    if (cargoItem && cargoItem.id) {
+      const macIndex = await calculateMACIndex(cargoItem.id);
+      totalCargoMACIndex += macIndex;
+    }
+  }
+
+  return totalCargoMACIndex;
+}
+
+/**
+ * Calculates the total MAC index (sum of all index contributions)
+ * @param missionId - The ID of the mission
+ * @returns The total MAC index
+ */
+export async function calculateTotalIndex(missionId: number): Promise<number> {
+  const missionResult = await getMissionById(missionId);
+  if (missionResult.count === 0) {
+    throw new Error(`Mission with ID ${missionId} not found`);
+  }
+
+  const mission = missionResult.results[0].data;
+  if (!mission) {
+    throw new Error(`Mission data is undefined for mission ID ${missionId}`);
+  }
+
+  const [cargoMACIndex, fuelMACIndex, additionalWeightsMACIndex, emptyAircraftMACIndex] = await Promise.all([
+    calculateCargoMACIndex(missionId),
+    calculateFuelMAC(missionId),
+    calculateAdditionalWeightsMACIndex(missionId),
+    getEmptyAircraftMACIndex(mission.aircraft_id),
+  ]);
+
+  return cargoMACIndex + fuelMACIndex + additionalWeightsMACIndex + emptyAircraftMACIndex;
+}
+
+/**
+ * Calculates the zero fuel weight (total weight minus fuel)
+ * @param missionId - The ID of the mission
+ * @returns The zero fuel weight in pounds
+ */
+export async function calculateZeroFuelWeight(missionId: number): Promise<number> {
+  const [totalWeight, totalFuelWeight] = await Promise.all([
+    calculateTotalAircraftWeight(missionId),
+    calculateTotalFuelWeight(missionId),
+  ]);
+
+  // Subtract taxi fuel that was already subtracted in total weight
+  const TAXI_FUEL_WEIGHT = 1000;
+  return totalWeight - totalFuelWeight + TAXI_FUEL_WEIGHT;
 }

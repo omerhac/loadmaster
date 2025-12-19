@@ -1,204 +1,287 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    backgroundColor: '#0066cc',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    height: Platform.OS === 'ios' ? 60 : 55,
-    zIndex: 100,
-    width: '100%',
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
-    flex: 1,
-    textAlign: 'center',
-    width: '100%',
-  },
-  returnButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-  },
-  returnButtonText: {
-    color: 'white',
-    fontSize: 16,
+    backgroundColor: '#fff',
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: 12,
   },
+  // Two column layout
+  twoColumnRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  column: {
+    flex: 1,
+  },
+  // Section styles
   section: {
-    backgroundColor: 'white',
-    marginBottom: 20,
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#000',
+    marginBottom: 12,
+  },
+  sectionHeader: {
+    backgroundColor: '#FFE135',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    paddingBottom: 8,
-  },
-  detailsGrid: {
-    gap: 8,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-    flex: 1,
-  },
-  detailValue: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '400',
-    flex: 1,
-    textAlign: 'right',
-  },
-  loadingText: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    fontStyle: 'italic',
-    paddingVertical: 20,
-  },
-  summaryRow: {
-    backgroundColor: '#f8f9fa',
-    padding: 12,
-    borderRadius: 6,
-    marginBottom: 12,
-  },
-  summaryText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    color: '#000',
     textAlign: 'center',
   },
-  table: {
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 6,
-    overflow: 'hidden',
+  sectionContent: {
+    padding: 0,
   },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#f8f9fa',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  tableHeaderText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-  },
+  // Table row styles
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#ccc',
+    minHeight: 28,
   },
-  tableRowEven: {
-    backgroundColor: '#ffffff',
+  tableRowNoBorder: {
+    flexDirection: 'row',
+    minHeight: 28,
   },
-  tableRowOdd: {
-    backgroundColor: '#fafafa',
+  tableRowHighlight: {
+    backgroundColor: '#FFE135',
   },
-  tableCellText: {
+  // Cell styles
+  labelCell: {
+    flex: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#ccc',
+  },
+  valueCell: {
+    flex: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+  valueCellCenter: {
+    flex: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  labelText: {
     fontSize: 12,
     color: '#333',
-    textAlign: 'center',
+    fontWeight: '500',
   },
-  nameColumn: {
-    flex: 3,
-    textAlign: 'left',
+  valueText: {
+    fontSize: 12,
+    color: '#000',
+    fontWeight: '600',
   },
-  fsColumn: {
-    flex: 1,
-  },
-  weightColumn: {
-    flex: 1,
-  },
-  dimensionsColumn: {
-    flex: 2,
-  },
-  cogColumn: {
-    flex: 1,
-  },
-  macColumn: {
-    flex: 1.2,
-  },
-  emptyState: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    fontStyle: 'italic',
-    paddingVertical: 20,
-  },
-  alertRow: {
-    backgroundColor: 'rgba(255, 0, 0, 0.15)',
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    marginHorizontal: -8,
-  },
-  alertLabel: {
-    color: '#d32f2f',
-    fontWeight: 'bold',
-  },
-  alertValue: {
-    color: '#d32f2f',
-    fontWeight: 'bold',
-  },
-  // Legacy styles (keeping for compatibility)
-  backButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-  },
-  backButtonText: {
-    color: 'white',
-  },
-  placeholderText: {
+  valueTextLarge: {
     fontSize: 16,
-    color: '#666',
-    marginBottom: 20,
+    color: '#000',
+    fontWeight: 'bold',
   },
-  statsText: {
+  // Summary section
+  summarySection: {
+    borderWidth: 2,
+    borderColor: '#000',
+    marginBottom: 12,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    backgroundColor: '#FFE135',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+  },
+  summaryCell: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#000',
+  },
+  summaryCellLast: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: 10,
+    color: '#333',
+    fontWeight: '500',
+  },
+  summaryValue: {
+    fontSize: 18,
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  // Fuel distribution table
+  fuelTable: {
+    borderWidth: 1,
+    borderColor: '#000',
+  },
+  fuelHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#FFE135',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+  },
+  fuelHeaderCell: {
+    flex: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#000',
+  },
+  fuelHeaderCellLast: {
+    flex: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+  },
+  fuelHeaderText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  fuelRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  fuelCell: {
+    flex: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#ccc',
+  },
+  fuelCellLast: {
+    flex: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+  },
+  fuelText: {
+    fontSize: 12,
+    color: '#000',
+  },
+  // Cargo table
+  cargoTable: {
+    borderWidth: 1,
+    borderColor: '#000',
+  },
+  cargoHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#FFE135',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+  },
+  cargoHeaderCell: {
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#000',
+  },
+  cargoHeaderCellLast: {
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+  },
+  cargoHeaderText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  cargoRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  cargoCell: {
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#ccc',
+  },
+  cargoCellLast: {
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cargoText: {
+    fontSize: 11,
+    color: '#000',
+  },
+  // Column widths for cargo table
+  colName: { flex: 2.5 },
+  colFs: { flex: 1 },
+  colWeight: { flex: 1.2 },
+  colIndex: { flex: 1.2 },
+  // Empty state
+  emptyState: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyText: {
     fontSize: 14,
-    color: '#444',
-    marginVertical: 4,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  // Flight info row (for header section)
+  flightInfoRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+    backgroundColor: '#fff',
+  },
+  flightInfoCell: {
+    flex: 1,
+    flexDirection: 'row',
+    borderRightWidth: 1,
+    borderRightColor: '#ccc',
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+  },
+  flightInfoCellLast: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+  },
+  flightInfoLabel: {
+    fontSize: 11,
+    color: '#666',
+    marginRight: 4,
+  },
+  flightInfoValue: {
+    fontSize: 11,
+    color: '#000',
+    fontWeight: '600',
+  },
+  // Totals row
+  totalsRow: {
+    flexDirection: 'row',
+    backgroundColor: '#FFE135',
+    borderTopWidth: 2,
+    borderTopColor: '#000',
   },
 });
