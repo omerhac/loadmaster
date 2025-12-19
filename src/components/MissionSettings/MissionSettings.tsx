@@ -120,9 +120,9 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
 
   useEffect(() => {
     let cancelled = false;
-    
+
     const fetchCalculations = async () => {
-      if (!missionId || isNaN(missionId)) return;
+      if (!missionId || isNaN(missionId)) {return;}
 
       try {
         // Fetch cargo MAC indices
@@ -138,7 +138,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
             } catch { indices[item.id] = 0; }
           }
         }
-        if (cancelled) return;
+        if (cancelled) {return;}
         setMacIndices(indices);
 
         // Fetch all other calculations
@@ -155,8 +155,8 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
           calculateLoadmastersIndex(missionId).catch(() => 0),
           calculateTotalIndex(missionId).catch(() => 0),
         ]);
-        
-        if (cancelled) return;
+
+        if (cancelled) {return;}
 
         const [
           macPercent, totalWeight, zeroFuelWeight, baseWeight,
@@ -169,12 +169,12 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
           try { emptyAircraftMACIndex = await getEmptyAircraftMACIndex(aircraftId); } catch { /* ignore */ }
         }
 
-        if (cancelled) return;
+        if (cancelled) {return;}
 
         let aircraftCG = 0;
         try { aircraftCG = await calculateAircraftCG(missionId, totalIndex); } catch { /* ignore */ }
 
-        if (cancelled) return;
+        if (cancelled) {return;}
 
         setCalculatedValues({
           macPercent, totalWeight, zeroFuelWeight, baseWeight, totalFuelWeight,
@@ -187,7 +187,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
     };
 
     fetchCalculations();
-    
+
     return () => { cancelled = true; };
   }, [missionId, aircraftId, onDeckItemIds, cargoItems, settings]);
 
@@ -215,7 +215,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   }, [formData, onSave]);
 
   const handleAddCargo = useCallback(() => {
-    if (!onAddToMainCargo) return;
+    if (!onAddToMainCargo) {return;}
     const newItem: CargoItem = {
       id: `cargo-${Date.now()}`,
       cargo_type_id: DEFAULT_CARGO_TYPE_ID,
@@ -236,7 +236,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   const getItemMACIndex = (item: CargoItem): number => item.id ? (macIndices[item.id] ?? 0) : 0;
 
   const fmt = (num: number | null | undefined): string => {
-    if (num === null || num === undefined) return '-';
+    if (num === null || num === undefined) {return '-';}
     return num.toFixed(2);
   };
 
@@ -279,7 +279,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     <Text style={styles.weightHeaderText}>Wt</Text>
                   </View>
                   <View style={[styles.weightHeaderCell, styles.colWeight]}>
-                    <Text style={styles.weightHeaderText}></Text>
+                    <Text style={styles.weightHeaderText} />
                   </View>
                   <View style={[styles.weightHeaderCell, styles.colIndex]}>
                     <Text style={styles.weightHeaderText}>Idx</Text>
@@ -288,7 +288,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     <Text style={styles.weightHeaderText}>Cum</Text>
                   </View>
                   <View style={[styles.weightHeaderCellLast, styles.colAction]}>
-                    <Text style={styles.weightHeaderText}></Text>
+                    <Text style={styles.weightHeaderText} />
                   </View>
                 </View>
 
@@ -305,7 +305,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     />
                   </View>
                   <View style={[styles.weightCell, styles.colWeight]}>
-                    <Text style={styles.weightTextCenter}></Text>
+                    <Text style={styles.weightTextCenter} />
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
                     <Text style={styles.weightTextCenter}>{fmt(emptyIdx)}</Text>
@@ -329,7 +329,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     />
                   </View>
                   <View style={[styles.weightCell, styles.colWeight]}>
-                    <Text style={styles.weightTextCenter}></Text>
+                    <Text style={styles.weightTextCenter} />
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
                     <Text style={styles.weightTextCenter}>{fmt(additionalIdx)}</Text>
@@ -356,7 +356,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     <Text style={styles.weightTextCenter}>{fmt((formData.loadmasters || 0) * 100)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colWeight]}>
-                    <Text style={styles.weightTextCenter}></Text>
+                    <Text style={styles.weightTextCenter} />
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
                     <Text style={styles.weightTextCenter}>{fmt(loadmastersIdx)}</Text>
@@ -375,7 +375,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     <Text style={[styles.weightTextCenter, { fontWeight: 'bold' }]}>{fmt(cv?.baseWeight)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colWeight]}>
-                    <Text style={styles.weightTextCenter}></Text>
+                    <Text style={styles.weightTextCenter} />
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
                     <Text style={[styles.weightTextCenter, { fontWeight: 'bold' }]}>{fmt(baseIdx)}</Text>
@@ -394,7 +394,7 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     <Text style={styles.weightTextCenter}>{fmt(cv?.totalFuelWeight)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colWeight]}>
-                    <Text style={styles.weightTextCenter}></Text>
+                    <Text style={styles.weightTextCenter} />
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
                     <Text style={styles.weightTextCenter}>{fmt(fuelIdx)}</Text>
