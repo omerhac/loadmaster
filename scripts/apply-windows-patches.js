@@ -1,6 +1,6 @@
 /**
  * Apply Windows build patches that can't be handled by patch-package.
- * 
+ *
  * This creates node_modules/Directory.Build.props which is needed because
  * patch-package only works on individual packages, not the node_modules root.
  */

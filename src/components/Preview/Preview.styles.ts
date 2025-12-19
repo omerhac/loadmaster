@@ -166,6 +166,12 @@ export const styles = StyleSheet.create({
     fontStyle: 'italic',
     paddingVertical: 20,
   },
+  alertRow: {
+    backgroundColor: 'rgba(255, 0, 0, 0.15)',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    marginHorizontal: -8,
+  },
   alertLabel: {
     color: '#d32f2f',
     fontWeight: 'bold',
