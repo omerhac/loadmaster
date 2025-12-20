@@ -12,10 +12,36 @@ export const styles = StyleSheet.create({
     zIndex: 100,
     width: '100%',
   },
+  leftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     color: 'white',
+  },
+  navTabs: {
+    flexDirection: 'row',
+    marginLeft: 24,
+  },
+  navTab: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  navTabActive: {
+    backgroundColor: '#555',
+  },
+  navTabText: {
+    color: '#999',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  navTabTextActive: {
+    color: 'white',
+    fontWeight: '600',
   },
   burgerButton: {
     width: 40,

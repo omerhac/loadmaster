@@ -10,6 +10,14 @@ export {
   calculateTotalAircraftWeight,
   calculateFuelMAC,
   getEmptyAircraftMACIndex,
+  calculateLoadmastersWeight,
+  calculateLoadmastersIndex,
+  calculateBaseWeight,
+  calculateTotalFuelWeight,
+  calculateCargoWeight,
+  calculateCargoMACIndex,
+  calculateTotalIndex,
+  calculateZeroFuelWeight,
 } from './MacCalculationService';
 
 /**

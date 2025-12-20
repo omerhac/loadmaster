@@ -233,7 +233,7 @@ function App(): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    if ((currentView === 'graphs' || currentView === 'planning' || currentView === 'preview') && currentMissionId) {
+    if (currentMissionId) {
       (async () => {
         try {
           const mac = await calculateMACPercent(currentMissionId);
@@ -246,7 +246,7 @@ function App(): React.JSX.Element {
         }
       })();
     }
-  }, [currentView, currentMissionId, cargoItems]);
+  }, [currentView, currentMissionId, cargoItems, missionSettings]);
 
   const handleAddItem = useCallback(async (item: CargoItem, status: 'inventory' | 'onStage' | 'onDeck' = 'inventory') => {
     let x_start_position = -1;
@@ -486,8 +486,6 @@ function App(): React.JSX.Element {
     } catch (error) {
       console.error('Error updating mission:', error);
     }
-
-    setCurrentView('planning');
   }, []);
 
   const handleNewMission = useCallback(async (missionName: string) => {
@@ -695,17 +693,6 @@ function App(): React.JSX.Element {
     ),
     planning: (
       <View style={[styles.planningContainer, isLandscape ? styles.landscapeContainer : null]}>
-        <Header
-          onSettingsClick={() => setCurrentView('settings')}
-          onPreviewClick={() => setCurrentView('preview')}
-          onNewMissionClick={handleNewMissionClick}
-          onLoadMissionClick={handleLoadMissionClick}
-          onDuplicateMissionClick={handleDuplicateMissionClick}
-          onGraphsClick={() => setCurrentView('graphs')}
-          macPercent={macPercent}
-          totalWeight={totalWeight}
-          missionSettings={missionSettings}
-        />
         <View style={styles.contentContainer}>
           <Sidebar
             items={cargoItems}
@@ -750,10 +737,12 @@ function App(): React.JSX.Element {
       <GestureHandlerRootView style={styles.root}>
         <SafeAreaView style={styles.safeArea}>
           <Header
+            currentView={currentView}
             onSettingsClick={() => setCurrentView('settings')}
             onPreviewClick={() => setCurrentView('preview')}
             onNewMissionClick={handleNewMissionClick}
             onLoadMissionClick={handleLoadMissionClick}
+            onDuplicateMissionClick={handleDuplicateMissionClick}
             onGraphsClick={() => setCurrentView('graphs')}
             onPlanningClick={() => setCurrentView('planning')}
             macPercent={macPercent}

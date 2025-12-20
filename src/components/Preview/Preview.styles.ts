@@ -1,198 +1,360 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    backgroundColor: '#0066cc',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    height: Platform.OS === 'ios' ? 60 : 55,
-    zIndex: 100,
-    width: '100%',
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
-    flex: 1,
-    textAlign: 'center',
-    width: '100%',
-  },
-  returnButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-  },
-  returnButtonText: {
-    color: 'white',
-    fontSize: 16,
+    backgroundColor: '#fff',
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: 8,
   },
-  section: {
-    backgroundColor: 'white',
-    marginBottom: 20,
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+  // Top summary bar
+  summaryBar: {
+    flexDirection: 'row',
+    backgroundColor: '#FFE135',
+    borderWidth: 1,
+    borderColor: '#000',
+    marginBottom: 8,
   },
-  sectionTitle: {
-    fontSize: 18,
+  summaryCell: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#000',
+  },
+  summaryCellLast: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: 10,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    paddingBottom: 8,
+    color: '#000',
   },
-  detailsGrid: {
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  // Two column layout
+  twoColumnRow: {
+    flexDirection: 'row',
     gap: 8,
   },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
+  column: {
     flex: 1,
   },
-  detailValue: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '400',
-    flex: 1,
-    textAlign: 'right',
+  columnSmall: {
+    flex: 0.7,
   },
-  loadingText: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    fontStyle: 'italic',
-    paddingVertical: 20,
-  },
-  summaryRow: {
-    backgroundColor: '#f8f9fa',
-    padding: 12,
-    borderRadius: 6,
-    marginBottom: 12,
-  },
-  summaryText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    textAlign: 'center',
-  },
-  table: {
+  // Section styles
+  section: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 6,
-    overflow: 'hidden',
+    borderColor: '#000',
+    marginBottom: 8,
   },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#f8f9fa',
-    paddingVertical: 12,
+  sectionHeader: {
+    backgroundColor: '#FFE135',
+    paddingVertical: 4,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#000',
   },
-  tableHeaderText: {
+  sectionTitle: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#000',
     textAlign: 'center',
   },
-  tableRow: {
+  // Weight table with index
+  weightTable: {
+    borderWidth: 0,
+  },
+  weightHeader: {
     flexDirection: 'row',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+    backgroundColor: '#FFE135',
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#000',
   },
-  tableRowEven: {
-    backgroundColor: '#ffffff',
+  weightHeaderCell: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#000',
   },
-  tableRowOdd: {
-    backgroundColor: '#fafafa',
+  weightHeaderCellLast: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    alignItems: 'center',
   },
-  tableCellText: {
-    fontSize: 12,
-    color: '#333',
+  weightHeaderText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  weightRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  weightRowHighlight: {
+    backgroundColor: '#FFE135',
+    borderBottomColor: '#000',
+  },
+  weightCell: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#ccc',
+  },
+  weightCellLast: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  weightText: {
+    fontSize: 11,
+    color: '#000',
+  },
+  weightTextBold: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  weightTextCenter: {
+    fontSize: 11,
+    color: '#000',
     textAlign: 'center',
   },
-  nameColumn: {
-    flex: 3,
-    textAlign: 'left',
+  // Column widths for weight table
+  colLabel: { flex: 2 },
+  colWeight: { flex: 1.2 },
+  colIndex: { flex: 1 },
+  colCumulative: { flex: 1 },
+  // Cargo table styles
+  cargoTable: {
+    borderWidth: 0,
   },
-  fsColumn: {
-    flex: 1,
+  cargoHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#FFE135',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
   },
-  weightColumn: {
-    flex: 1,
+  cargoHeaderCell: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#000',
   },
-  dimensionsColumn: {
-    flex: 2,
+  cargoHeaderCellLast: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    alignItems: 'center',
   },
-  cogColumn: {
-    flex: 1,
+  cargoHeaderText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#000',
   },
-  macColumn: {
-    flex: 1.2,
+  cargoRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
-  emptyState: {
-    fontSize: 14,
-    color: '#666',
+  cargoCell: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#ccc',
+  },
+  cargoCellLast: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cargoText: {
+    fontSize: 10,
+    color: '#000',
+  },
+  cargoInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 2,
+    padding: 2,
+    backgroundColor: '#fff',
+    fontSize: 10,
+    height: 22,
+    width: '100%',
     textAlign: 'center',
-    fontStyle: 'italic',
-    paddingVertical: 20,
   },
-  alertLabel: {
-    color: '#d32f2f',
+  // Column widths for cargo table
+  colName: { flex: 1.8 },
+  colFs: { flex: 0.6 },
+  colCum: { flex: 0.7 },
+  colAction: { width: 26 },
+  // Fuel distribution table
+  fuelTable: {
+    borderWidth: 0,
+  },
+  fuelHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#FFE135',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+  },
+  fuelHeaderCell: {
+    flex: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#000',
+  },
+  fuelHeaderCellLast: {
+    flex: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    alignItems: 'center',
+  },
+  fuelHeaderText: {
+    fontSize: 9,
     fontWeight: 'bold',
+    color: '#000',
   },
-  alertValue: {
-    color: '#d32f2f',
-    fontWeight: 'bold',
+  fuelRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
-  // Legacy styles (keeping for compatibility)
-  backButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  fuelCell: {
+    flex: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#ccc',
+  },
+  fuelCellLast: {
+    flex: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    alignItems: 'center',
+  },
+  fuelText: {
+    fontSize: 10,
+    color: '#000',
+    textAlign: 'center',
+  },
+  fuelInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 2,
+    padding: 2,
+    backgroundColor: '#fff',
+    fontSize: 10,
+    height: 22,
+    width: '100%',
+    textAlign: 'center',
+  },
+  // Input styles for editable mode
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 2,
+    padding: 4,
+    backgroundColor: '#fff',
+    fontSize: 11,
+    height: 26,
+  },
+  inputSmall: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 2,
+    padding: 2,
+    backgroundColor: '#fff',
+    fontSize: 10,
+    height: 22,
+    textAlign: 'center',
+  },
+  // Button styles
+  addButton: {
+    backgroundColor: '#007bff',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     borderRadius: 4,
+    alignItems: 'center',
+    margin: 4,
   },
-  backButtonText: {
+  addButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 11,
+  },
+  removeButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#ff3b30',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+  saveButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 4,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#000',
+    marginTop: 8,
+  },
+  saveButtonText: {
     color: 'white',
-  },
-  placeholderText: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 20,
-  },
-  statsText: {
     fontSize: 14,
-    color: '#444',
-    marginVertical: 4,
+    fontWeight: 'bold',
+  },
+  // Empty state
+  emptyState: {
+    padding: 12,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 11,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  // Form row for editable sections
+  formRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  formLabel: {
+    flex: 1,
+    fontSize: 11,
+    color: '#333',
+  },
+  formValue: {
+    flex: 1,
   },
 });

@@ -5,10 +5,8 @@ import {
   NewIcon,
   SaveIcon,
   LoadIcon,
-  SettingsIcon,
   PreviewIcon,
   BurgerMenuIcon,
-  GraphIcon,
   DeleteIcon,
 } from '../icons';
 import { styles } from './Header.styles';
@@ -16,7 +14,10 @@ import { validateMac } from '../../services/mac';
 import { DatabaseFactory } from '../../services/db/DatabaseService';
 import { MissionSettings } from '../../types';
 
+type ViewType = 'settings' | 'planning' | 'preview' | 'graphs';
+
 interface HeaderProps {
+  currentView: ViewType;
   onSettingsClick: () => void;
   onPreviewClick: () => void;
   onNewMissionClick: () => void;
@@ -29,7 +30,7 @@ interface HeaderProps {
   missionSettings?: MissionSettings | null;
 }
 
-const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onDuplicateMissionClick, onPlanningClick, onGraphsClick, macPercent, totalWeight, missionSettings }: HeaderProps) => {
+const Header = ({ currentView, onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onDuplicateMissionClick, onPlanningClick, onGraphsClick, macPercent, totalWeight, missionSettings }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMacOutOfLimits, setIsMacOutOfLimits] = useState(false);
   const blinkAnimation = useRef(new Animated.Value(1)).current;
@@ -144,29 +145,12 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
       },
     },
     {
-      label: 'Planning',
-      icon: <LoadIcon />,
-      onClick: () => {
-        setIsMenuOpen(false);
-        onPlanningClick();
-      },
-    },
-    {
-      label: 'Mission Settings',
-      icon: <SettingsIcon />,
-      onClick: onSettingsClick,
-      style: {
-        borderTopWidth: 1,
-        borderTopColor: '#ddd',
-        borderTopStyle: 'dashed',
-        marginTop: 5,
-        paddingTop: 10,
-      },
-    },
-    {
       label: 'Preview Mission',
       icon: <PreviewIcon />,
-      onClick: onPreviewClick,
+      onClick: () => {
+        setIsMenuOpen(false);
+        onPreviewClick();
+      },
     },
     {
       label: 'Delete Database',
@@ -184,7 +168,29 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
 
   return (
     <View style={styles.header}>
-      <Text style={styles.title}>Loadmaster</Text>
+      <View style={styles.leftSection}>
+        <Text style={styles.title}>Loadmaster</Text>
+        <View style={styles.navTabs}>
+          <TouchableOpacity
+            style={[styles.navTab, currentView === 'planning' && styles.navTabActive]}
+            onPress={onPlanningClick}
+          >
+            <Text style={[styles.navTabText, currentView === 'planning' && styles.navTabTextActive]}>Planning</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.navTab, currentView === 'settings' && styles.navTabActive]}
+            onPress={onSettingsClick}
+          >
+            <Text style={[styles.navTabText, currentView === 'settings' && styles.navTabTextActive]}>Settings</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.navTab, currentView === 'graphs' && styles.navTabActive]}
+            onPress={onGraphsClick}
+          >
+            <Text style={[styles.navTabText, currentView === 'graphs' && styles.navTabTextActive]}>Graphs</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
       <View style={styles.metricsContainer}>
         {macPercent !== null && macPercent !== undefined && (
           <Animated.View
@@ -223,22 +229,18 @@ const Header = ({ onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMiss
         )}
       </View>
       <View style={styles.headerButtons}>
-
-      <TouchableOpacity
-        style={styles.burgerButton}
-        onPress={() => setIsMenuOpen(!isMenuOpen)}
-      >
-        <BurgerMenuIcon />
-        <FloatingMenu
-          items={menuItems}
-          isOpen={isMenuOpen}
-          onClose={() => setIsMenuOpen(false)}
-          position={{ top: 45, right: 0 }}
-        />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.graphsButton} onPress={onGraphsClick}>
-        <GraphIcon />
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.burgerButton}
+          onPress={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          <BurgerMenuIcon />
+          <FloatingMenu
+            items={menuItems}
+            isOpen={isMenuOpen}
+            onClose={() => setIsMenuOpen(false)}
+            position={{ top: 45, right: 0 }}
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
