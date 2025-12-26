@@ -1,4 +1,4 @@
-import { View, Image, StyleSheet, ImageSourcePropType } from 'react-native';
+import { View, Image, StyleSheet, ImageSourcePropType, Text } from 'react-native';
 import { calculateCargoChartY } from '../../services/cargoChart';
 
 // Chart axis ranges (in 1,000 lbs)
@@ -8,6 +8,8 @@ const CHART_Y_MAX = 62.5; // Y axis
 // Direct pixel offsets to fine-tune dot position
 const DOT_X_OFFSET = 2;   // Pixels to shift right
 const DOT_Y_OFFSET = 8;   // Pixels to shift down
+
+const formatWeight = (w: number) => (w / 1000).toFixed(1) + 'k';
 
 export type AREAGraphProps = {
   imageSourceTop: ImageSourcePropType;
@@ -64,6 +66,10 @@ export const AREAGraph = ({
             },
           ]}
         />
+        <View style={[styles.label, { left: dotX + 8, top: dotY - 20 }]}>
+          <Text style={styles.labelText}>Fuel: {formatWeight(fuelWeight)}</Text>
+          <Text style={styles.labelText}>Cargo: {formatWeight(cargoWeight)}</Text>
+        </View>
       </View>
       <Image source={imageSourceBottom} style={{ width, height: bottomHeight, marginLeft: -4 }} resizeMode="contain" />
     </View>
@@ -83,5 +89,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
     borderWidth: 2,
     borderColor: 'white',
+  },
+  label: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  labelText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });

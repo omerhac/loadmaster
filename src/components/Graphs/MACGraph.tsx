@@ -1,4 +1,4 @@
-import { View, ImageBackground, StyleSheet, ImageSourcePropType } from 'react-native';
+import { View, ImageBackground, StyleSheet, ImageSourcePropType, Text } from 'react-native';
 
 export type MACGraphProps = {
   macPercent: number; // e.g. 24.5
@@ -11,10 +11,12 @@ export type MACGraphProps = {
 const MAC_MIN = 14;
 const MAC_MAX = 32;
 const WEIGHT_MIN = 70000;
-const WEIGHT_MAX = 180000;
+const WEIGHT_MAX = 173500;
 
 // Direct pixel offset to fine-tune dot position
 const DOT_X_OFFSET = -12;  // Pixels to shift (negative = left)
+
+const formatWeight = (w: number) => (w / 1000).toFixed(1) + 'k';
 
 export const MACGraph = ({
   macPercent,
@@ -35,6 +37,10 @@ export const MACGraph = ({
           { left: x - 6, top: y - 6 },
         ]}
       />
+      <View style={[styles.label, { left: x + 8, top: y - 20 }]}>
+        <Text style={styles.labelText}>{macPercent.toFixed(1)}%</Text>
+        <Text style={styles.labelText}>{formatWeight(weight)}</Text>
+      </View>
     </ImageBackground>
   );
 };
@@ -48,5 +54,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
     borderWidth: 2,
     borderColor: 'white',
+  },
+  label: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  labelText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });
