@@ -212,6 +212,63 @@ const Preview = ({
 
                 <View style={styles.weightRow}>
                   <View style={[styles.weightCell, styles.colName]}>
+                    <Text style={styles.weightText}>Configuration</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colFs]}>
+                    <Text style={styles.weightTextCenter} />
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <Text style={styles.weightTextCenter}>{fmt(missionSettings?.configurationWeights)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>-</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colCum]}>
+                    <Text style={styles.weightTextCenter}>-</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colAction]} />
+                </View>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colName]}>
+                    <Text style={styles.weightText}>Crew Gear</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colFs]}>
+                    <Text style={styles.weightTextCenter} />
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <Text style={styles.weightTextCenter}>{fmt(missionSettings?.crewGearWeight)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>-</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colCum]}>
+                    <Text style={styles.weightTextCenter}>-</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colAction]} />
+                </View>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colName]}>
+                    <Text style={styles.weightText}>Food</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colFs]}>
+                    <Text style={styles.weightTextCenter} />
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <Text style={styles.weightTextCenter}>{fmt(missionSettings?.foodWeight)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>-</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colCum]}>
+                    <Text style={styles.weightTextCenter}>-</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colAction]} />
+                </View>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colName]}>
                     <Text style={styles.weightText}>Safety Gear</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colFs]}>
@@ -221,10 +278,29 @@ const Preview = ({
                     <Text style={styles.weightTextCenter}>{fmt(missionSettings?.safetyGearWeight)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
-                    <Text style={styles.weightTextCenter}>{fmt(additionalIdx)}</Text>
+                    <Text style={styles.weightTextCenter}>-</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colCum]}>
-                    <Text style={styles.weightTextCenter}>{fmt(additionalCum)}</Text>
+                    <Text style={styles.weightTextCenter}>-</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colAction]} />
+                </View>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colName]}>
+                    <Text style={styles.weightText}>ETC</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colFs]}>
+                    <Text style={styles.weightTextCenter} />
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <Text style={styles.weightTextCenter}>{fmt(missionSettings?.etcWeight)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>-</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colCum]}>
+                    <Text style={styles.weightTextCenter}>-</Text>
                   </View>
                   <View style={[styles.weightCellLast, styles.colAction]} />
                 </View>
@@ -237,7 +313,7 @@ const Preview = ({
                     <Text style={styles.weightTextCenter} />
                   </View>
                   <View style={[styles.weightCell, styles.colWeight]}>
-                    <Text style={styles.weightTextCenter}>{fmt((missionSettings?.loadmasters || 0) * 100)}</Text>
+                    <Text style={styles.weightTextCenter}>{fmt((missionSettings?.loadmasters || 0) * 170)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
                     <Text style={styles.weightTextCenter}>{fmt(loadmastersIdx)}</Text>
