@@ -31,7 +31,7 @@ import { updateMission } from './src/services/db/operations/MissionOperations';
 import { xPositionToFs, fsToXPosition, updateCargoItemPosition } from './src/utils/cargoUtils';
 import { Graphs } from './src/components/Graphs/Graphs';
 import { Images } from './src/assets';
-import { calculateMACPercent, calculateTotalAircraftWeight } from './src/services/mac';
+import { calculateMACPercent, calculateTotalAircraftWeight, calculateBaseWeight, calculateTotalFuelWeight, calculateCargoWeight } from './src/services/mac';
 import AddCargoItemModal from './src/components/AddCargoItemModal/AddCargoItemModal';
 import { getAllCargoTypes } from './src/services/db/operations/CargoTypeOperations';
 
@@ -133,6 +133,9 @@ function App(): React.JSX.Element {
   const [currentMissionId, setCurrentMissionId] = useState<number>(DEFAULT_MISSION_ID);
   const [macPercent, setMacPercent] = useState<number | null>(null);
   const [totalWeight, setTotalWeight] = useState<number | null>(null);
+  const [baseWeight, setBaseWeight] = useState<number | null>(null);
+  const [fuelWeight, setFuelWeight] = useState<number | null>(null);
+  const [cargoWeight, setCargoWeight] = useState<number | null>(null);
   const [isDatabaseInitialized, setIsDatabaseInitialized] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
 
@@ -240,9 +243,18 @@ function App(): React.JSX.Element {
           setMacPercent(mac);
           const weight = await calculateTotalAircraftWeight(currentMissionId);
           setTotalWeight(weight);
+          const base = await calculateBaseWeight(currentMissionId);
+          setBaseWeight(base);
+          const fuel = await calculateTotalFuelWeight(currentMissionId);
+          setFuelWeight(fuel);
+          const cargo = await calculateCargoWeight(currentMissionId);
+          setCargoWeight(cargo);
         } catch (e) {
           setMacPercent(null);
           setTotalWeight(null);
+          setBaseWeight(null);
+          setFuelWeight(null);
+          setCargoWeight(null);
         }
       })();
     }
@@ -725,6 +737,9 @@ function App(): React.JSX.Element {
       <Graphs
         macPercent={macPercent ?? 0}
         weight={totalWeight ?? 0}
+        baseWeight={baseWeight ?? 0}
+        fuelWeight={fuelWeight ?? 0}
+        cargoWeight={cargoWeight ?? 0}
         macGraphImgSrc={Images.mac}
         areaGraphImgSrcTop={Images.area_top}
         areaGraphImgSrcBottom={Images.area_bottom}

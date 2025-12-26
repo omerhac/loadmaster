@@ -6,13 +6,16 @@ import { validateMac } from '../../services/mac';
 export type GraphsProps = {
   macPercent: number;
   weight: number;
+  baseWeight: number;
+  fuelWeight: number;
+  cargoWeight: number;
   macGraphImgSrc: any;
   areaGraphImgSrcTop: any;
   areaGraphImgSrcBottom: any;
   onBack: () => void;
 };
 
-export const Graphs = ({ macPercent, weight, macGraphImgSrc, areaGraphImgSrcTop, areaGraphImgSrcBottom, onBack: _onBack }: GraphsProps) => {
+export const Graphs = ({ macPercent, weight, baseWeight, fuelWeight, cargoWeight, macGraphImgSrc, areaGraphImgSrcTop, areaGraphImgSrcBottom, onBack: _onBack }: GraphsProps) => {
   const [isMacOutOfLimits, setIsMacOutOfLimits] = useState(false);
   const [macLimits, setMacLimits] = useState({ min: 0, max: 0 });
 
@@ -66,6 +69,9 @@ export const Graphs = ({ macPercent, weight, macGraphImgSrc, areaGraphImgSrcTop,
             imageSourceTop={areaGraphImgSrcTop}
             imageSourceBottom={areaGraphImgSrcBottom}
             width={displayWidth}
+            baseWeight={baseWeight}
+            fuelWeight={fuelWeight}
+            cargoWeight={cargoWeight}
           />
         </View>
       </View>
