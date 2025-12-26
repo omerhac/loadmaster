@@ -224,7 +224,6 @@ export async function calculateTotalAircraftWeight(missionId: number): Promise<n
 
   // 5. Calculate total fuel weight from mission fuel fields
   // TODO: enable passing the taxi fuel weight as a parameter
-  const TAXI_FUEL_WEIGHT = 1000;
   const totalFuelWeight = mission.outboard_fuel + mission.inboard_fuel +
                          mission.fuselage_fuel + mission.auxiliary_fuel +
                          mission.external_fuel - TAXI_FUEL_WEIGHT;

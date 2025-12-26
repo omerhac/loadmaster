@@ -18,9 +18,9 @@ export type AREAGraphProps = {
   cargoWeight: number;
 };
 
-export const AREAGraph = ({ 
-  imageSourceTop, 
-  imageSourceBottom, 
+export const AREAGraph = ({
+  imageSourceTop,
+  imageSourceBottom,
   width = 350,
   baseWeight,
   fuelWeight,
@@ -28,25 +28,25 @@ export const AREAGraph = ({
 }: AREAGraphProps) => {
   const resolvedTop = Image.resolveAssetSource(imageSourceTop);
   const resolvedBottom = Image.resolveAssetSource(imageSourceBottom);
-  
+
   const topAspectRatio = resolvedTop.width / resolvedTop.height;
   const bottomAspectRatio = resolvedBottom.width / resolvedBottom.height;
-  
+
   const topHeight = width / topAspectRatio;
   const bottomHeight = width / bottomAspectRatio;
 
   // Calculate Y value using the cargo chart service
   const chartResult = calculateCargoChartY(baseWeight, cargoWeight);
   const yValueKlbs = chartResult.yValue;
-  
+
   // Convert fuel weight to klbs for X position
   const xValueKlbs = fuelWeight / 1000;
-  
+
   // Calculate pixel positions on the top graph
   // X: 0 is left edge, CHART_X_MAX is right edge
   const xPercent = xValueKlbs / CHART_X_MAX;
   const dotX = (xPercent * width) + DOT_X_OFFSET;
-  
+
   // Y: 0 is bottom, CHART_Y_MAX is top (need to invert for pixels)
   const yPercent = yValueKlbs / CHART_Y_MAX;
   const dotY = topHeight - (yPercent * topHeight) + DOT_Y_OFFSET;

@@ -152,7 +152,6 @@ const Preview = ({
   // Cumulative totals
   let cumulative = 0;
   const emptyCum = (cumulative += emptyIdx);
-  const additionalCum = (cumulative += additionalIdx);
   const loadmastersCum = (cumulative += loadmastersIdx);
   const baseCum = loadmastersCum;
   const fuelCum = (cumulative += fuelIdx);
