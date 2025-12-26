@@ -66,6 +66,7 @@ export interface CargoItem {
   x_start_position: number;
   y_start_position: number;
   status?: 'inventory' | 'onStage' | 'onDeck';
+  color?: string;
 }
 
 export interface Compartment {
