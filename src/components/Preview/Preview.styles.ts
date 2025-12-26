@@ -175,6 +175,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 4,
     justifyContent: 'center',
+    alignItems: 'center',
     borderRightWidth: 1,
     borderRightColor: '#ccc',
   },

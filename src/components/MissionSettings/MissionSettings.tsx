@@ -492,12 +492,32 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                         />
                       </View>
                       <View style={[styles.cargoCell, styles.colFs]}>
-                        <TextInput
-                          style={styles.cargoInput}
-                          value={(item.fs ?? 0).toString()}
-                          onChangeText={(v) => onUpdateItem?.({ ...item, fs: parseInt(v, 10) || 0 })}
-                          keyboardType="numeric"
-                        />
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                          <TouchableOpacity
+                            style={{ paddingHorizontal: 4, paddingVertical: 2 }}
+                            onPress={() => {
+                              const newFs = (item.fs ?? 0) - 1;
+                              onUpdateItem?.({ ...item, fs: newFs });
+                            }}
+                          >
+                            <Text style={{ fontSize: 12, color: '#007bff', fontWeight: 'bold' }}>◀</Text>
+                          </TouchableOpacity>
+                          <TextInput
+                            style={[styles.cargoInput, { width: 45, textAlign: 'center' }]}
+                            value={(item.fs ?? 0).toString()}
+                            onChangeText={(v) => onUpdateItem?.({ ...item, fs: parseInt(v, 10) || 0 })}
+                            keyboardType="numeric"
+                          />
+                          <TouchableOpacity
+                            style={{ paddingHorizontal: 4, paddingVertical: 2 }}
+                            onPress={() => {
+                              const newFs = (item.fs ?? 0) + 1;
+                              onUpdateItem?.({ ...item, fs: newFs });
+                            }}
+                          >
+                            <Text style={{ fontSize: 12, color: '#007bff', fontWeight: 'bold' }}>▶</Text>
+                          </TouchableOpacity>
+                        </View>
                       </View>
                       <View style={[styles.cargoCell, styles.colWeight]}>
                         <TextInput
