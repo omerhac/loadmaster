@@ -13,6 +13,7 @@ import { styles } from './Header.styles';
 import { validateMac } from '../../services/mac';
 import { DatabaseFactory } from '../../services/db/DatabaseService';
 import { MissionSettings } from '../../types';
+import { TAXI_FUEL_WEIGHT } from '../../constants';
 
 type ViewType = 'settings' | 'planning' | 'preview' | 'graphs';
 
@@ -175,13 +176,13 @@ const Header = ({ currentView, onSettingsClick, onPreviewClick, onNewMissionClic
             style={[styles.navTab, currentView === 'planning' && styles.navTabActive]}
             onPress={onPlanningClick}
           >
-            <Text style={[styles.navTabText, currentView === 'planning' && styles.navTabTextActive]}>Planning</Text>
+            <Text style={[styles.navTabText, currentView === 'planning' && styles.navTabTextActive]}>Cargo Bay</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.navTab, currentView === 'settings' && styles.navTabActive]}
             onPress={onSettingsClick}
           >
-            <Text style={[styles.navTabText, currentView === 'settings' && styles.navTabTextActive]}>Settings</Text>
+            <Text style={[styles.navTabText, currentView === 'settings' && styles.navTabTextActive]}>Planning</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.navTab, currentView === 'graphs' && styles.navTabActive]}
@@ -213,6 +214,7 @@ const Header = ({ currentView, onSettingsClick, onPreviewClick, onNewMissionClic
           <View style={styles.metricContainer}>
             <Text style={styles.metricLabel}>TAKEOFF WEIGHT</Text>
             <Text style={styles.metricValue}>{totalWeight.toFixed(0)} lbs</Text>
+            <Text style={{ fontSize: 10, color: '#aaa' }}>(Taxi: {TAXI_FUEL_WEIGHT} lbs)</Text>
           </View>
         )}
         {missionSettings && totalFuelWeight > 0 && (

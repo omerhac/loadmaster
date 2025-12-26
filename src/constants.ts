@@ -19,6 +19,7 @@ export const DEFAULT_FUSELAGE_FUEL = 0;
 export const DEFAULT_AUXILIARY_FUEL = 4000;
 export const DEFAULT_EXTERNAL_FUEL = 0;
 export const DEFAULT_LOADMASTER_WEIGHT = 170;
+export const TAXI_FUEL_WEIGHT = 1000;
 export const DEFAULT_NEW_MISSION: Mission = {
   id: DEFAULT_MISSION_ID,
   name: 'New Mission',

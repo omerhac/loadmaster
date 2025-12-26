@@ -12,7 +12,7 @@ import {
   getCargoItemById,
   getAircraftById,
 } from '../db/operations';
-import { DEFAULT_LOADMASTER_WEIGHT } from '../../constants';
+import { DEFAULT_LOADMASTER_WEIGHT, TAXI_FUEL_WEIGHT } from '../../constants';
 
 /**
  * Calculates the total weight of loadmasters
@@ -224,7 +224,6 @@ export async function calculateTotalAircraftWeight(missionId: number): Promise<n
 
   // 5. Calculate total fuel weight from mission fuel fields
   // TODO: enable passing the taxi fuel weight as a parameter
-  const TAXI_FUEL_WEIGHT = 1000;
   const totalFuelWeight = mission.outboard_fuel + mission.inboard_fuel +
                          mission.fuselage_fuel + mission.auxiliary_fuel +
                          mission.external_fuel - TAXI_FUEL_WEIGHT;
@@ -437,6 +436,5 @@ export async function calculateZeroFuelWeight(missionId: number): Promise<number
   ]);
 
   // Subtract taxi fuel that was already subtracted in total weight
-  const TAXI_FUEL_WEIGHT = 1000;
   return totalWeight - totalFuelWeight + TAXI_FUEL_WEIGHT;
 }

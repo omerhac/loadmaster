@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    height: Platform.OS === 'ios' ? 60 : 55,
+    height: Platform.OS === 'ios' ? 70 : 65,
     zIndex: 100,
     width: '100%',
   },
@@ -81,6 +81,8 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     marginLeft: 8,
+    height: 54,
+    justifyContent: 'center',
   },
   firstMetric: {
     marginLeft: 0,

@@ -1,4 +1,4 @@
-import { View, ImageBackground, StyleSheet, ImageSourcePropType, Text, Platform } from 'react-native';
+import { View, ImageBackground, StyleSheet, ImageSourcePropType } from 'react-native';
 
 export type MACGraphProps = {
   macPercent: number; // e.g. 24.5
@@ -13,6 +13,9 @@ const MAC_MAX = 32;
 const WEIGHT_MIN = 70000;
 const WEIGHT_MAX = 180000;
 
+// Direct pixel offset to fine-tune dot position
+const DOT_X_OFFSET = -12;  // Pixels to shift (negative = left)
+
 export const MACGraph = ({
   macPercent,
   weight,
@@ -21,70 +24,29 @@ export const MACGraph = ({
   height = 350,
 }: MACGraphProps) => {
   // Map MAC% and weight to image coordinates
-  const x = ((macPercent - MAC_MIN) / (MAC_MAX - MAC_MIN)) * width;
+  const x = ((macPercent - MAC_MIN) / (MAC_MAX - MAC_MIN)) * width + DOT_X_OFFSET;
   const y = height - ((weight - WEIGHT_MIN) / (WEIGHT_MAX - WEIGHT_MIN)) * height;
 
   return (
     <ImageBackground source={imageSource} style={{ width, height }}>
       <View
         style={[
-          styles.cross,
-          { left: x - 10, top: y - 10 }, // Center the cross
+          styles.dot,
+          { left: x - 6, top: y - 6 },
         ]}
-      >
-        <View style={styles.crossLineVertical} />
-        <View style={styles.crossLineHorizontal} />
-        <Text
-          style={styles.debug}
-          numberOfLines={1}
-          ellipsizeMode="clip"
-        >
-          {`${isNaN(x) ? '?' : Math.round(x)} , ${isNaN(y) ? '?' : Math.round(y)}`}
-        </Text>
-      </View>
+      />
     </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  debug: {
+  dot: {
     position: 'absolute',
-    top: -20,
-    left: -30,
-    borderColor: 'blue',
-    borderWidth: 1,
-    width: 60,
-    color: 'blue',
-    fontSize: 10,
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    paddingHorizontal: 2,
-    paddingVertical: 1,
-    minWidth: 0,
-    textAlign: 'center',
-  },
-  cross: {
-    position: 'absolute',
-    width: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    pointerEvents: 'none',
-  },
-  crossLineVertical: {
-    position: 'absolute',
-    width: 2,
-    height: 20,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: 'red',
-    left: 9,
-    top: 0,
-  },
-  crossLineHorizontal: {
-    position: 'absolute',
-    width: 20,
-    height: 2,
-    backgroundColor: 'red',
-    left: 0,
-    top: 9,
+    borderWidth: 2,
+    borderColor: 'white',
   },
 });
