@@ -9,7 +9,7 @@ const CHART_X_MAX = 65;  // Fuel weight axis
 const CHART_Y_MAX = 62.5; // Y axis
 
 // Direct pixel offsets to fine-tune dot position
-const DOT_X_OFFSET = 2;   // Pixels to shift right
+const DOT_X_OFFSET = 4;   // Pixels to shift right
 const DOT_Y_OFFSET = 8;   // Pixels to shift down
 
 const formatWeight = (w: number) => (w / 1000).toFixed(1) + 'k';
@@ -47,8 +47,11 @@ export const AREAGraph = ({
   const yPercent = yValueKlbs / CHART_Y_MAX;
   const dotY = height - (yPercent * height) + DOT_Y_OFFSET;
 
+  // X-axis tick values (Fuel Weight in thousands)
+  const xTicks = [0, 10, 20, 30, 40, 50, 60];
+
   return (
-    <View style={{ width, height, backgroundColor: '#eee' }}>
+    <View style={{ position: 'relative' }}>
       <ImageBackground source={imageSource || areaImage} style={{ width, height }}>
         <View
           style={[
@@ -61,6 +64,19 @@ export const AREAGraph = ({
           <Text style={styles.labelText}>Cargo: {formatWeight(cargoWeight)}</Text>
         </View>
       </ImageBackground>
+      {/* X-axis tick labels (Fuel Weight) */}
+      {xTicks.map((tick) => {
+        const tickX = (tick / CHART_X_MAX) * width + DOT_X_OFFSET;
+        return (
+          <Text key={`x-${tick}`} style={[styles.tickLabel, { left: tickX - 8, bottom: -16 }]}>
+            {tick}
+          </Text>
+        );
+      })}
+      {/* X-axis legend */}
+      <Text style={[styles.axisLegend, { bottom: -32, left: width / 2 - 50 }]}>
+        Total Fuel (1000 lbs)
+      </Text>
     </View>
   );
 };
@@ -86,5 +102,18 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 10,
     fontWeight: 'bold',
+  },
+  tickLabel: {
+    position: 'absolute',
+    fontSize: 10,
+    color: '#333',
+    fontWeight: '600',
+  },
+  axisLegend: {
+    position: 'absolute',
+    fontSize: 11,
+    color: '#333',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });

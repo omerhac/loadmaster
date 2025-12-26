@@ -41,9 +41,10 @@ export const Graphs = ({ macPercent, weight, baseWeight, fuelWeight, cargoWeight
   const resolved2 = RNImage.resolveAssetSource(areaGraphImgSrc);
   const aspectRatio1 = resolved1.width / resolved1.height;
   const aspectRatio2 = resolved2 ? resolved2.width / resolved2.height : 1;
-  // Divide available width between two graphs, with some margin
-  const displayWidth = (screenWidth - 48) / 2; // 24px margin on each side
-  const maxHeight = screenHeight * 0.8;
+  // Divide available width between two graphs, accounting for margins and Y-axis labels
+  const totalMargin = 200; // Space for Y-axis labels + padding + gap between graphs
+  const displayWidth = (screenWidth - totalMargin) / 2;
+  const maxHeight = screenHeight * 0.75;
   const displayHeight1 = Math.min(displayWidth / aspectRatio1, maxHeight);
   const displayHeight2 = Math.min(displayWidth / aspectRatio2, maxHeight);
 
@@ -114,11 +115,12 @@ const styles = StyleSheet.create({
   graphsRow: {
     flexDirection: 'row',
     flex: 1,
-    padding: 16,
-    justifyContent: 'space-around',
+    paddingHorizontal: 50,
+    paddingVertical: 50,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   graphWrapper: {
-    marginHorizontal: 8,
+    marginHorizontal: 30,
   },
 });

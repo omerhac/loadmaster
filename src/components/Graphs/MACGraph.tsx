@@ -14,7 +14,7 @@ const WEIGHT_MIN = 70000;
 const WEIGHT_MAX = 180000;
 
 // Direct pixel offset to fine-tune dot position
-const DOT_X_OFFSET = -4;  // Pixels to shift (negative = left)
+const DOT_X_OFFSET = -2;  // Pixels to shift (negative = left)
 
 const formatWeight = (w: number) => (w / 1000).toFixed(1) + 'k';
 
@@ -29,19 +29,54 @@ export const MACGraph = ({
   const x = ((macPercent - MAC_MIN) / (MAC_MAX - MAC_MIN)) * width + DOT_X_OFFSET;
   const y = height - ((weight - WEIGHT_MIN) / (WEIGHT_MAX - WEIGHT_MIN)) * height;
 
+  // X-axis tick values (MAC %)
+  const xTicks = [14, 16, 18, 20, 22, 24, 26, 28, 31];
+  // Y-axis tick values (Gross Weight in thousands)
+  const yTicks = [70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180];
+
   return (
-    <ImageBackground source={imageSource} style={{ width, height }}>
-      <View
-        style={[
-          styles.dot,
-          { left: x - 6, top: y - 6 },
-        ]}
-      />
-      <View style={[styles.label, { left: x + 8, top: y - 20 }]}>
-        <Text style={styles.labelText}>{macPercent.toFixed(1)}%</Text>
-        <Text style={styles.labelText}>{formatWeight(weight)}</Text>
+    <View style={{ position: 'relative' }}>
+      <ImageBackground source={imageSource} style={{ width, height }}>
+        <View
+          style={[
+            styles.dot,
+            { left: x - 6, top: y - 6 },
+          ]}
+        />
+        <View style={[styles.label, { left: x + 8, top: y - 20 }]}>
+          <Text style={styles.labelText}>{macPercent.toFixed(1)}%</Text>
+          <Text style={styles.labelText}>{formatWeight(weight)}</Text>
+        </View>
+      </ImageBackground>
+      {/* X-axis tick labels (MAC %) */}
+      {xTicks.map((tick) => {
+        const tickX = ((tick - MAC_MIN) / (MAC_MAX - MAC_MIN)) * width + DOT_X_OFFSET;
+        return (
+          <Text key={`x-${tick}`} style={[styles.tickLabel, { left: tickX - 8, bottom: -16 }]}>
+            {tick}
+          </Text>
+        );
+      })}
+      {/* Y-axis tick labels (Gross Weight) */}
+      {yTicks.map((tick) => {
+        const tickY = height - ((tick * 1000 - WEIGHT_MIN) / (WEIGHT_MAX - WEIGHT_MIN)) * height;
+        return (
+          <Text key={`y-${tick}`} style={[styles.tickLabel, { left: -28, top: tickY - 6 }]}>
+            {tick}
+          </Text>
+        );
+      })}
+      {/* X-axis legend */}
+      <Text style={[styles.axisLegend, { bottom: -32, left: width / 2 - 30 }]}>
+        MAC %
+      </Text>
+      {/* Y-axis legend */}
+      <View style={[styles.yAxisLegend, { left: -100, top: height / 2 - 40 }]}>
+        <Text style={[styles.axisLegend, { transform: [{ rotate: '-90deg' }], width: 100 }]}>
+          Gross Weight (1000 lbs)
+        </Text>
       </View>
-    </ImageBackground>
+    </View>
   );
 };
 
@@ -66,5 +101,21 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 10,
     fontWeight: 'bold',
+  },
+  tickLabel: {
+    position: 'absolute',
+    fontSize: 10,
+    color: '#333',
+    fontWeight: '600',
+  },
+  axisLegend: {
+    position: 'absolute',
+    fontSize: 11,
+    color: '#333',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  yAxisLegend: {
+    position: 'absolute',
   },
 });
