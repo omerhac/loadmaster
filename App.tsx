@@ -64,7 +64,7 @@ function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
     position,
     fs,
     dock: 'CG',
-    color: '#4a90e2', // Default blue color for existing items
+    color: item.color || '#4a90e2', // Use saved color or default blue
   };
 }
 
@@ -291,6 +291,7 @@ function App(): React.JSX.Element {
       cog: item.cog,
       forward_overhang: 0,
       back_overhang: 0,
+      color: item.color,
     };
     try {
       const response = await createCargoItem(newItem);
@@ -340,6 +341,7 @@ function App(): React.JSX.Element {
         forward_overhang: 0,
         back_overhang: 0,
         cog: updatedItem.cog,
+        color: updatedItem.color,
       });
       return updatedItem;
     }));
@@ -378,6 +380,7 @@ function App(): React.JSX.Element {
       cog: itemToDuplicate.cog,
       forward_overhang: 0, // TODO: Add forward overhang
       back_overhang: 0, // TODO: Add back overhang
+      color: itemToDuplicate.color,
     };
 
     try {
@@ -421,6 +424,7 @@ function App(): React.JSX.Element {
         forward_overhang: 0, // TODO: Add forward overhang
         back_overhang: 0, // TODO: Add back overhang
         cog: i.cog,
+        color: i.color,
       });
 
       // Use utility function to update position and sync fs
@@ -606,6 +610,7 @@ function App(): React.JSX.Element {
           status: item.status,
           forward_overhang: 0,
           back_overhang: 0,
+          color: item.color,
         };
 
         const itemResponse = await createCargoItem(duplicatedDbItem);
@@ -741,8 +746,7 @@ function App(): React.JSX.Element {
         fuelWeight={fuelWeight ?? 0}
         cargoWeight={cargoWeight ?? 0}
         macGraphImgSrc={Images.mac}
-        areaGraphImgSrcTop={Images.area_top}
-        areaGraphImgSrcBottom={Images.area_bottom}
+        areaGraphImgSrc={Images.area}
         onBack={() => setCurrentView('planning')}
       />
     ),
@@ -763,6 +767,7 @@ function App(): React.JSX.Element {
             onPlanningClick={() => setCurrentView('planning')}
             macPercent={macPercent}
             totalWeight={totalWeight}
+            cargoWeight={cargoWeight}
             missionSettings={missionSettings}
           />
           {views[currentView]}

@@ -27,9 +27,9 @@ export async function createCargoItem(cargoItem: CargoItem): Promise<DatabaseRes
   const sql = `
     INSERT INTO cargo_item (
       mission_id, cargo_type_id, name, weight, length, width, height, 
-      forward_overhang, back_overhang, cog, x_start_position, y_start_position, status
+      forward_overhang, back_overhang, cog, x_start_position, y_start_position, status, color
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
 
   return db.executeQuery(sql, [
@@ -46,6 +46,7 @@ export async function createCargoItem(cargoItem: CargoItem): Promise<DatabaseRes
     cargoItem.x_start_position,
     cargoItem.y_start_position,
     cargoItem.status || 'inventory',
+    cargoItem.color || null,
   ]);
 }
 
@@ -87,7 +88,7 @@ export async function updateCargoItem(cargoItem: CargoItem): Promise<DatabaseRes
     SET mission_id = ?, cargo_type_id = ?, name = ?,
         weight = ?, length = ?, width = ?, height = ?,
         forward_overhang = ?, back_overhang = ?, cog = ?,
-        x_start_position = ?, y_start_position = ?, status = ?
+        x_start_position = ?, y_start_position = ?, status = ?, color = ?
     WHERE id = ?;
   `;
   return db.executeQuery(sql, [
@@ -104,6 +105,7 @@ export async function updateCargoItem(cargoItem: CargoItem): Promise<DatabaseRes
     cargoItem.x_start_position,
     cargoItem.y_start_position,
     cargoItem.status || 'inventory',
+    cargoItem.color || null,
     cargoItem.id,
   ]);
 }

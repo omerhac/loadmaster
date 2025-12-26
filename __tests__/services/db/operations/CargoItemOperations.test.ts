@@ -89,6 +89,7 @@ describe('CargoItem Operations', () => {
       name: 'Test Item',
       x_start_position: 10,
       y_start_position: 5,
+      color: '#4a90e2',
     };
 
     const createResult = await createCargoItem(cargoItem);
@@ -111,6 +112,7 @@ describe('CargoItem Operations', () => {
 
     expect(getResult.results[0].data?.x_start_position).toBe(10);
     expect(getResult.results[0].data?.y_start_position).toBe(5);
+    expect(getResult.results[0].data?.color).toBe('#4a90e2');
   });
 
   it('should retrieve cargo items by mission ID', async () => {
@@ -147,6 +149,7 @@ describe('CargoItem Operations', () => {
       name: 'Update Item',
       x_start_position: 10,
       y_start_position: 5,
+      color: '#4a90e2',
     };
 
     const createResult = await createCargoItem(cargoItem);
@@ -166,6 +169,7 @@ describe('CargoItem Operations', () => {
       back_overhang: 0.2,
       x_start_position: 15,
       y_start_position: 10,
+      color: '#e74c3c',
     };
 
     await updateCargoItem(updatedCargoItem);
@@ -181,6 +185,7 @@ describe('CargoItem Operations', () => {
     expect(getResult.results[0].data?.back_overhang).toBe(0.2);
     expect(getResult.results[0].data?.x_start_position).toBe(15);
     expect(getResult.results[0].data?.y_start_position).toBe(10);
+    expect(getResult.results[0].data?.color).toBe('#e74c3c');
   });
 
   it('should delete cargo item', async () => {
@@ -218,6 +223,7 @@ describe('CargoItem Operations', () => {
       back_overhang: 0.3,
       x_start_position: 20,
       y_start_position: 10,
+      color: '#2ecc71',
     };
 
     const createResult = await createCargoItem(cargoItem);
@@ -238,5 +244,27 @@ describe('CargoItem Operations', () => {
     expect(getResult.results[0].data?.back_overhang).toBe(0.3);
     expect(getResult.results[0].data?.x_start_position).toBe(20);
     expect(getResult.results[0].data?.y_start_position).toBe(10);
+    expect(getResult.results[0].data?.color).toBe('#2ecc71');
+  });
+
+  it('should create cargo item without color (null)', async () => {
+    // Create test cargo item without color
+    const cargoItem: CargoItem = {
+      mission_id: missionId,
+      cargo_type_id: cargoTypeId,
+      name: 'No Color Item',
+      x_start_position: 10,
+      y_start_position: 5,
+    };
+
+    const createResult = await createCargoItem(cargoItem);
+    expect(createResult.results[0].lastInsertId).toBeTruthy();
+
+    const cargoItemId = createResult.results[0].lastInsertId;
+
+    // Get cargo item by ID
+    const getResult = await getCargoItemById(cargoItemId as number);
+    expect(getResult.count).toBe(1);
+    expect(getResult.results[0].data?.color).toBeNull();
   });
 });
