@@ -767,6 +767,7 @@ function App(): React.JSX.Element {
             onPlanningClick={() => setCurrentView('planning')}
             macPercent={macPercent}
             totalWeight={totalWeight}
+            cargoWeight={cargoWeight}
             missionSettings={missionSettings}
           />
           {views[currentView]}
