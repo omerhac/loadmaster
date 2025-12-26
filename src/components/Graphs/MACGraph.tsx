@@ -9,12 +9,12 @@ export type MACGraphProps = {
 };
 
 const MAC_MIN = 14;
-const MAC_MAX = 32;
+const MAC_MAX = 31;
 const WEIGHT_MIN = 70000;
-const WEIGHT_MAX = 173500;
+const WEIGHT_MAX = 180000;
 
 // Direct pixel offset to fine-tune dot position
-const DOT_X_OFFSET = -12;  // Pixels to shift (negative = left)
+const DOT_X_OFFSET = -4;  // Pixels to shift (negative = left)
 
 const formatWeight = (w: number) => (w / 1000).toFixed(1) + 'k';
 

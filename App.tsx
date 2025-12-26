@@ -741,8 +741,7 @@ function App(): React.JSX.Element {
         fuelWeight={fuelWeight ?? 0}
         cargoWeight={cargoWeight ?? 0}
         macGraphImgSrc={Images.mac}
-        areaGraphImgSrcTop={Images.area_top}
-        areaGraphImgSrcBottom={Images.area_bottom}
+        areaGraphImgSrc={Images.area}
         onBack={() => setCurrentView('planning')}
       />
     ),

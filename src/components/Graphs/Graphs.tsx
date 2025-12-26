@@ -10,12 +10,11 @@ export type GraphsProps = {
   fuelWeight: number;
   cargoWeight: number;
   macGraphImgSrc: any;
-  areaGraphImgSrcTop: any;
-  areaGraphImgSrcBottom: any;
+  areaGraphImgSrc: any;
   onBack: () => void;
 };
 
-export const Graphs = ({ macPercent, weight, baseWeight, fuelWeight, cargoWeight, macGraphImgSrc, areaGraphImgSrcTop, areaGraphImgSrcBottom, onBack: _onBack }: GraphsProps) => {
+export const Graphs = ({ macPercent, weight, baseWeight, fuelWeight, cargoWeight, macGraphImgSrc, areaGraphImgSrc, onBack: _onBack }: GraphsProps) => {
   const [isMacOutOfLimits, setIsMacOutOfLimits] = useState(false);
   const [macLimits, setMacLimits] = useState({ min: 0, max: 0 });
 
@@ -39,11 +38,14 @@ export const Graphs = ({ macPercent, weight, baseWeight, fuelWeight, cargoWeight
 
   const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
   const resolved1 = RNImage.resolveAssetSource(macGraphImgSrc);
+  const resolved2 = RNImage.resolveAssetSource(areaGraphImgSrc);
   const aspectRatio1 = resolved1.width / resolved1.height;
+  const aspectRatio2 = resolved2 ? resolved2.width / resolved2.height : 1;
   // Divide available width between two graphs, with some margin
   const displayWidth = (screenWidth - 48) / 2; // 24px margin on each side
   const maxHeight = screenHeight * 0.8;
   const displayHeight1 = Math.min(displayWidth / aspectRatio1, maxHeight);
+  const displayHeight2 = Math.min(displayWidth / aspectRatio2, maxHeight);
 
   return (
     <View style={styles.container}>
@@ -66,9 +68,9 @@ export const Graphs = ({ macPercent, weight, baseWeight, fuelWeight, cargoWeight
         </View>
         <View style={styles.graphWrapper}>
           <AREAGraph
-            imageSourceTop={areaGraphImgSrcTop}
-            imageSourceBottom={areaGraphImgSrcBottom}
+            imageSource={areaGraphImgSrc}
             width={displayWidth}
+            height={displayHeight2}
             baseWeight={baseWeight}
             fuelWeight={fuelWeight}
             cargoWeight={cargoWeight}

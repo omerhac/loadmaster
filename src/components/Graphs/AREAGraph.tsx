@@ -1,5 +1,8 @@
-import { View, Image, StyleSheet, ImageSourcePropType, Text } from 'react-native';
+import { View, ImageBackground, StyleSheet, ImageSourcePropType, Text } from 'react-native';
 import { calculateCargoChartY } from '../../services/cargoChart';
+
+// Fallback image require
+const areaImage = require('../../../assets/images/area_top.png');
 
 // Chart axis ranges (in 1,000 lbs)
 const CHART_X_MAX = 65;  // Fuel weight axis
@@ -12,31 +15,22 @@ const DOT_Y_OFFSET = 8;   // Pixels to shift down
 const formatWeight = (w: number) => (w / 1000).toFixed(1) + 'k';
 
 export type AREAGraphProps = {
-  imageSourceTop: ImageSourcePropType;
-  imageSourceBottom: ImageSourcePropType;
+  imageSource: ImageSourcePropType;
   width?: number;
+  height?: number;
   baseWeight: number;
   fuelWeight: number;
   cargoWeight: number;
 };
 
 export const AREAGraph = ({
-  imageSourceTop,
-  imageSourceBottom,
+  imageSource,
   width = 350,
+  height = 350,
   baseWeight,
   fuelWeight,
   cargoWeight,
 }: AREAGraphProps) => {
-  const resolvedTop = Image.resolveAssetSource(imageSourceTop);
-  const resolvedBottom = Image.resolveAssetSource(imageSourceBottom);
-
-  const topAspectRatio = resolvedTop.width / resolvedTop.height;
-  const bottomAspectRatio = resolvedBottom.width / resolvedBottom.height;
-
-  const topHeight = width / topAspectRatio;
-  const bottomHeight = width / bottomAspectRatio;
-
   // Calculate Y value using the cargo chart service
   const chartResult = calculateCargoChartY(baseWeight, cargoWeight);
   const yValueKlbs = chartResult.yValue;
@@ -44,43 +38,34 @@ export const AREAGraph = ({
   // Convert fuel weight to klbs for X position
   const xValueKlbs = fuelWeight / 1000;
 
-  // Calculate pixel positions on the top graph
+  // Calculate pixel positions on the graph
   // X: 0 is left edge, CHART_X_MAX is right edge
   const xPercent = xValueKlbs / CHART_X_MAX;
   const dotX = (xPercent * width) + DOT_X_OFFSET;
 
   // Y: 0 is bottom, CHART_Y_MAX is top (need to invert for pixels)
   const yPercent = yValueKlbs / CHART_Y_MAX;
-  const dotY = topHeight - (yPercent * topHeight) + DOT_Y_OFFSET;
+  const dotY = height - (yPercent * height) + DOT_Y_OFFSET;
 
   return (
-    <View style={styles.container}>
-      <View style={{ position: 'relative' }}>
-        <Image source={imageSourceTop} style={{ width, height: topHeight }} resizeMode="contain" />
+    <View style={{ width, height, backgroundColor: '#eee' }}>
+      <ImageBackground source={imageSource || areaImage} style={{ width, height }}>
         <View
           style={[
             styles.dot,
-            {
-              left: dotX - 6,
-              top: dotY - 6,
-            },
+            { left: dotX - 6, top: dotY - 6 },
           ]}
         />
         <View style={[styles.label, { left: dotX + 8, top: dotY - 20 }]}>
           <Text style={styles.labelText}>Fuel: {formatWeight(fuelWeight)}</Text>
           <Text style={styles.labelText}>Cargo: {formatWeight(cargoWeight)}</Text>
         </View>
-      </View>
-      <Image source={imageSourceBottom} style={{ width, height: bottomHeight, marginLeft: -4 }} resizeMode="contain" />
+      </ImageBackground>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
   dot: {
     position: 'absolute',
     width: 12,
