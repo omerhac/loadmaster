@@ -136,7 +136,7 @@ export const styles = StyleSheet.create({
   },
   // Column widths for weight table
   colLabel: { flex: 2 },
-  colWeight: { flex: 1.2 },
+  colWeight: { flex: 1 },
   colIndex: { flex: 1 },
   colCumulative: { flex: 1 },
   // Cargo table styles
@@ -201,8 +201,8 @@ export const styles = StyleSheet.create({
   },
   // Column widths for cargo table
   colName: { flex: 1.8 },
-  colFs: { flex: 0.6 },
-  colCum: { flex: 0.7 },
+  colFs: { flex: 0.8 },
+  colCum: { flex: 1 },
   colAction: { width: 26 },
   // Fuel distribution table
   fuelTable: {

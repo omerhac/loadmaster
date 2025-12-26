@@ -175,13 +175,13 @@ const Header = ({ currentView, onSettingsClick, onPreviewClick, onNewMissionClic
             style={[styles.navTab, currentView === 'planning' && styles.navTabActive]}
             onPress={onPlanningClick}
           >
-            <Text style={[styles.navTabText, currentView === 'planning' && styles.navTabTextActive]}>Planning</Text>
+            <Text style={[styles.navTabText, currentView === 'planning' && styles.navTabTextActive]}>Cargo Bay</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.navTab, currentView === 'settings' && styles.navTabActive]}
             onPress={onSettingsClick}
           >
-            <Text style={[styles.navTabText, currentView === 'settings' && styles.navTabTextActive]}>Settings</Text>
+            <Text style={[styles.navTabText, currentView === 'settings' && styles.navTabTextActive]}>Planning</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.navTab, currentView === 'graphs' && styles.navTabActive]}

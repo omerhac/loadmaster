@@ -276,16 +276,16 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     <Text style={styles.weightHeaderText}>Item</Text>
                   </View>
                   <View style={[styles.weightHeaderCell, styles.colFs]}>
-                    <Text style={styles.weightHeaderText}>Wt</Text>
+                    <Text style={styles.weightHeaderText} />
                   </View>
                   <View style={[styles.weightHeaderCell, styles.colWeight]}>
-                    <Text style={styles.weightHeaderText} />
+                    <Text style={styles.weightHeaderText}>Weight(lb)</Text>
                   </View>
                   <View style={[styles.weightHeaderCell, styles.colIndex]}>
                     <Text style={styles.weightHeaderText}>Idx</Text>
                   </View>
                   <View style={[styles.weightHeaderCell, styles.colCum]}>
-                    <Text style={styles.weightHeaderText}>Cum</Text>
+                    <Text style={styles.weightHeaderText}>Cumulative</Text>
                   </View>
                   <View style={[styles.weightHeaderCellLast, styles.colAction]}>
                     <Text style={styles.weightHeaderText} />
@@ -297,15 +297,15 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     <Text style={styles.weightText}>Empty Aircraft</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colFs]}>
+                    <Text style={styles.weightTextCenter} />
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
                     <TextInput
                       style={styles.inputSmall}
                       value={(formData.aircraftEmptyWeight ?? 0).toString()}
                       onChangeText={(v) => handleNumericChange('aircraftEmptyWeight', v)}
                       keyboardType="numeric"
                     />
-                  </View>
-                  <View style={[styles.weightCell, styles.colWeight]}>
-                    <Text style={styles.weightTextCenter} />
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
                     <Text style={styles.weightTextCenter}>{fmt(emptyIdx)}</Text>
@@ -321,15 +321,15 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     <Text style={styles.weightText}>Safety Gear</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colFs]}>
+                    <Text style={styles.weightTextCenter} />
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
                     <TextInput
                       style={styles.inputSmall}
                       value={(formData.safetyGearWeight ?? 0).toString()}
                       onChangeText={(v) => handleNumericChange('safetyGearWeight', v)}
                       keyboardType="numeric"
                     />
-                  </View>
-                  <View style={[styles.weightCell, styles.colWeight]}>
-                    <Text style={styles.weightTextCenter} />
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
                     <Text style={styles.weightTextCenter}>{fmt(additionalIdx)}</Text>
@@ -353,10 +353,10 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     </View>
                   </View>
                   <View style={[styles.weightCell, styles.colFs]}>
-                    <Text style={styles.weightTextCenter}>{fmt((formData.loadmasters || 0) * 100)}</Text>
+                    <Text style={styles.weightTextCenter} />
                   </View>
                   <View style={[styles.weightCell, styles.colWeight]}>
-                    <Text style={styles.weightTextCenter} />
+                    <Text style={styles.weightTextCenter}>{fmt((formData.loadmasters || 0) * 100)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
                     <Text style={styles.weightTextCenter}>{fmt(loadmastersIdx)}</Text>
@@ -372,10 +372,10 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     <Text style={styles.weightTextBold}>Base Weight</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colFs]}>
-                    <Text style={[styles.weightTextCenter, { fontWeight: 'bold' }]}>{fmt(cv?.baseWeight)}</Text>
+                    <Text style={styles.weightTextCenter} />
                   </View>
                   <View style={[styles.weightCell, styles.colWeight]}>
-                    <Text style={styles.weightTextCenter} />
+                    <Text style={[styles.weightTextCenter, { fontWeight: 'bold' }]}>{fmt(cv?.baseWeight)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
                     <Text style={[styles.weightTextCenter, { fontWeight: 'bold' }]}>{fmt(baseIdx)}</Text>
@@ -391,10 +391,10 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     <Text style={styles.weightText}>Fuel</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colFs]}>
-                    <Text style={styles.weightTextCenter}>{fmt(cv?.totalFuelWeight)}</Text>
+                    <Text style={styles.weightTextCenter} />
                   </View>
                   <View style={[styles.weightCell, styles.colWeight]}>
-                    <Text style={styles.weightTextCenter} />
+                    <Text style={styles.weightTextCenter}>{fmt(cv?.totalFuelWeight)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
                     <Text style={styles.weightTextCenter}>{fmt(fuelIdx)}</Text>
@@ -422,13 +422,13 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     <Text style={styles.cargoHeaderText}>FS</Text>
                   </View>
                   <View style={[styles.cargoHeaderCell, styles.colWeight]}>
-                    <Text style={styles.cargoHeaderText}>Wt</Text>
+                    <Text style={styles.cargoHeaderText}>Weight(lb)</Text>
                   </View>
                   <View style={[styles.cargoHeaderCell, styles.colIndex]}>
                     <Text style={styles.cargoHeaderText}>Idx</Text>
                   </View>
                   <View style={[styles.cargoHeaderCell, styles.colCum]}>
-                    <Text style={styles.cargoHeaderText}>Cum</Text>
+                    <Text style={styles.cargoHeaderText}>Cumulative</Text>
                   </View>
                   <View style={[styles.cargoHeaderCellLast, styles.colAction]}>
                     <Text style={styles.cargoHeaderText}>⚙</Text>
