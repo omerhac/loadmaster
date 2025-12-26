@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Image as RNImage } from 'react-native';
 import { CargoItem, MissionSettings } from '../../types';
 import { styles } from './Preview.styles';
 import {
@@ -18,6 +18,8 @@ import {
   calculateTotalIndex,
   calculateZeroFuelWeight,
 } from '../../services/mac';
+import { MACGraph, AREAGraph } from '../Graphs';
+import { Images } from '../../assets';
 
 interface PreviewProps {
   missionSettings: MissionSettings | null;
@@ -556,6 +558,31 @@ const Preview = ({
                 <Text style={styles.formLabel}>Fuel Pods</Text>
                 <Text style={styles.weightText}>{missionSettings?.fuelPods ? 'Yes' : 'No'}</Text>
               </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Graphs Section */}
+        <View style={[styles.section, { marginBottom: 80 }]}>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 40, paddingBottom: 80 }}>
+            <View style={{ marginHorizontal: 20 }}>
+              <MACGraph
+                macPercent={cv?.macPercent ?? 0}
+                weight={cv?.totalWeight ?? 0}
+                imageSource={Images.mac}
+                width={280}
+                height={280}
+              />
+            </View>
+            <View style={{ marginHorizontal: 20 }}>
+              <AREAGraph
+                imageSource={Images.area}
+                width={280}
+                height={280}
+                baseWeight={cv?.baseWeight ?? 0}
+                fuelWeight={cv?.totalFuelWeight ?? 0}
+                cargoWeight={cv?.cargoWeight ?? 0}
+              />
             </View>
           </View>
         </View>
