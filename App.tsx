@@ -726,7 +726,8 @@ function App(): React.JSX.Element {
         macPercent={macPercent ?? 0}
         weight={totalWeight ?? 0}
         macGraphImgSrc={Images.mac}
-        areaGraphImgSrc={Images.area}
+        areaGraphImgSrcTop={Images.area_top}
+        areaGraphImgSrcBottom={Images.area_bottom}
         onBack={() => setCurrentView('planning')}
       />
     ),

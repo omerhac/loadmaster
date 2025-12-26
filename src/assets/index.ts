@@ -4,6 +4,7 @@
 
 export const Images = {
   mac: require('../../assets/images/mac.png'),
-  area: require('../../assets/images/area.png'),
+  area_top: require('../../assets/images/area_top.png'),
+  area_bottom: require('../../assets/images/area_bottom.png'),
   deck: require('../../assets/images/deck.jpeg'),
 };
