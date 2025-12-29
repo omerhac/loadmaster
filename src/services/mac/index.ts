@@ -18,6 +18,11 @@ export {
   calculateCargoMACIndex,
   calculateTotalIndex,
   calculateZeroFuelWeight,
+  calculateConfigurationIndex,
+  calculateCrewGearIndex,
+  calculateFoodIndex,
+  calculateSafetyGearIndex,
+  calculateEtcIndex,
 } from './MacCalculationService';
 
 /**

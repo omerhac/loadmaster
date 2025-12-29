@@ -18,6 +18,11 @@ import {
   calculateCargoMACIndex,
   calculateTotalIndex,
   calculateZeroFuelWeight,
+  calculateConfigurationIndex,
+  calculateCrewGearIndex,
+  calculateFoodIndex,
+  calculateSafetyGearIndex,
+  calculateEtcIndex,
 } from '../../services/mac';
 import {
   DEFAULT_SAFETY_GEAR_WEIGHT,
@@ -243,16 +248,28 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   const cv = calculatedValues;
   const fuel = formData.fuelDistribution;
 
-  // Calculate cumulative indices
+  // Calculate individual indices for each item type
   const emptyIdx = cv?.emptyAircraftMACIndex ?? 0;
-  const additionalIdx = cv?.additionalWeightsMACIndex ?? 0;
+  const configIdx = calculateConfigurationIndex(formData.configurationWeights ?? 0);
+  const crewGearIdx = calculateCrewGearIndex(formData.crewGearWeight ?? 0);
+  const foodIdx = calculateFoodIndex(formData.foodWeight ?? 0);
+  const safetyGearIdx = calculateSafetyGearIndex(formData.safetyGearWeight ?? 0);
+  const etcIdx = calculateEtcIndex(formData.etcWeight ?? 0);
   const loadmastersIdx = cv?.loadmastersIndex ?? 0;
-  const baseIdx = emptyIdx + additionalIdx + loadmastersIdx;
   const fuelIdx = cv?.fuelMACIndex ?? 0;
   const cargoIdx = cv?.cargoMACIndex ?? 0;
 
+  // Calculate base index (sum of all base weight indices)
+  const baseIdx = emptyIdx + configIdx + crewGearIdx + foodIdx + safetyGearIdx + etcIdx + loadmastersIdx;
+
+  // Cumulative totals (running total as each row is added)
   let cumulative = 0;
   const emptyCum = (cumulative += emptyIdx);
+  const configCum = (cumulative += configIdx);
+  const crewGearCum = (cumulative += crewGearIdx);
+  const foodCum = (cumulative += foodIdx);
+  const safetyGearCum = (cumulative += safetyGearIdx);
+  const etcCum = (cumulative += etcIdx);
   const loadmastersCum = (cumulative += loadmastersIdx);
   const baseCum = loadmastersCum;
   const fuelCum = (cumulative += fuelIdx);
@@ -331,10 +348,10 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     />
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
+                    <Text style={styles.weightTextCenter}>{fmt(configIdx)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colCum]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
+                    <Text style={styles.weightTextCenter}>{fmt(configCum)}</Text>
                   </View>
                   <View style={[styles.weightCellLast, styles.colAction]} />
                 </View>
@@ -355,10 +372,10 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     />
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
+                    <Text style={styles.weightTextCenter}>{fmt(crewGearIdx)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colCum]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
+                    <Text style={styles.weightTextCenter}>{fmt(crewGearCum)}</Text>
                   </View>
                   <View style={[styles.weightCellLast, styles.colAction]} />
                 </View>
@@ -379,10 +396,10 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     />
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
+                    <Text style={styles.weightTextCenter}>{fmt(foodIdx)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colCum]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
+                    <Text style={styles.weightTextCenter}>{fmt(foodCum)}</Text>
                   </View>
                   <View style={[styles.weightCellLast, styles.colAction]} />
                 </View>
@@ -403,10 +420,10 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     />
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
+                    <Text style={styles.weightTextCenter}>{fmt(safetyGearIdx)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colCum]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
+                    <Text style={styles.weightTextCenter}>{fmt(safetyGearCum)}</Text>
                   </View>
                   <View style={[styles.weightCellLast, styles.colAction]} />
                 </View>
@@ -427,10 +444,10 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     />
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
+                    <Text style={styles.weightTextCenter}>{fmt(etcIdx)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colCum]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
+                    <Text style={styles.weightTextCenter}>{fmt(etcCum)}</Text>
                   </View>
                   <View style={[styles.weightCellLast, styles.colAction]} />
                 </View>
