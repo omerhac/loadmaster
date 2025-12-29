@@ -263,15 +263,16 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   const baseIdx = emptyIdx + configIdx + crewGearIdx + foodIdx + safetyGearIdx + etcIdx + loadmastersIdx;
 
   // Cumulative totals (running total as each row is added)
+  // Order: Empty -> Config -> Loadmasters -> Crew Gear -> Food -> Safety Gear -> ETC -> Base -> Fuel
   let cumulative = 0;
   const emptyCum = (cumulative += emptyIdx);
   const configCum = (cumulative += configIdx);
+  const loadmastersCum = (cumulative += loadmastersIdx);
   const crewGearCum = (cumulative += crewGearIdx);
   const foodCum = (cumulative += foodIdx);
   const safetyGearCum = (cumulative += safetyGearIdx);
   const etcCum = (cumulative += etcIdx);
-  const loadmastersCum = (cumulative += loadmastersIdx);
-  const baseCum = loadmastersCum;
+  const baseCum = etcCum;
   const fuelCum = (cumulative += fuelIdx);
   const cargoCum = (cumulative += cargoIdx);
 
@@ -352,6 +353,33 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                   </View>
                   <View style={[styles.weightCell, styles.colCum]}>
                     <Text style={styles.weightTextCenter}>{fmt(configCum)}</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colAction]} />
+                </View>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colName]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <Text style={styles.weightText}>Loadmasters</Text>
+                      <TextInput
+                        style={[styles.inputSmall, { width: 40 }]}
+                        value={(formData.loadmasters ?? 0).toString()}
+                        onChangeText={(v) => handleNumericChange('loadmasters', v)}
+                        keyboardType="numeric"
+                      />
+                    </View>
+                  </View>
+                  <View style={[styles.weightCell, styles.colFs]}>
+                    <Text style={styles.weightTextCenter} />
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <Text style={styles.weightTextCenter}>{fmt((formData.loadmasters || 0) * 170)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>{fmt(loadmastersIdx)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colCum]}>
+                    <Text style={styles.weightTextCenter}>{fmt(loadmastersCum)}</Text>
                   </View>
                   <View style={[styles.weightCellLast, styles.colAction]} />
                 </View>
@@ -448,33 +476,6 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                   </View>
                   <View style={[styles.weightCell, styles.colCum]}>
                     <Text style={styles.weightTextCenter}>{fmt(etcCum)}</Text>
-                  </View>
-                  <View style={[styles.weightCellLast, styles.colAction]} />
-                </View>
-
-                <View style={styles.weightRow}>
-                  <View style={[styles.weightCell, styles.colName]}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      <Text style={styles.weightText}>Loadmasters</Text>
-                      <TextInput
-                        style={[styles.inputSmall, { width: 40 }]}
-                        value={(formData.loadmasters ?? 0).toString()}
-                        onChangeText={(v) => handleNumericChange('loadmasters', v)}
-                        keyboardType="numeric"
-                      />
-                    </View>
-                  </View>
-                  <View style={[styles.weightCell, styles.colFs]}>
-                    <Text style={styles.weightTextCenter} />
-                  </View>
-                  <View style={[styles.weightCell, styles.colWeight]}>
-                    <Text style={styles.weightTextCenter}>{fmt((formData.loadmasters || 0) * 170)}</Text>
-                  </View>
-                  <View style={[styles.weightCell, styles.colIndex]}>
-                    <Text style={styles.weightTextCenter}>{fmt(loadmastersIdx)}</Text>
-                  </View>
-                  <View style={[styles.weightCell, styles.colCum]}>
-                    <Text style={styles.weightTextCenter}>{fmt(loadmastersCum)}</Text>
                   </View>
                   <View style={[styles.weightCellLast, styles.colAction]} />
                 </View>

@@ -163,15 +163,16 @@ const Preview = ({
   const baseIdx = emptyIdx + configIdx + crewGearIdx + foodIdx + safetyGearIdx + etcIdx + loadmastersIdx;
 
   // Cumulative totals (running total as each row is added)
+  // Order: Empty -> Config -> Loadmasters -> Crew Gear -> Food -> Safety Gear -> ETC -> Base -> Fuel
   let cumulative = 0;
   const emptyCum = (cumulative += emptyIdx);
   const configCum = (cumulative += configIdx);
+  const loadmastersCum = (cumulative += loadmastersIdx);
   const crewGearCum = (cumulative += crewGearIdx);
   const foodCum = (cumulative += foodIdx);
   const safetyGearCum = (cumulative += safetyGearIdx);
   const etcCum = (cumulative += etcIdx);
-  const loadmastersCum = (cumulative += loadmastersIdx);
-  const baseCum = loadmastersCum;
+  const baseCum = etcCum;
   const fuelCum = (cumulative += fuelIdx);
   const cargoCum = (cumulative += cargoIdx);
 
@@ -248,6 +249,25 @@ const Preview = ({
 
                 <View style={styles.weightRow}>
                   <View style={[styles.weightCell, styles.colName]}>
+                    <Text style={styles.weightText}>Loadmasters ({missionSettings?.loadmasters || 0})</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colFs]}>
+                    <Text style={styles.weightTextCenter} />
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <Text style={styles.weightTextCenter}>{fmt((missionSettings?.loadmasters || 0) * 170)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>{fmt(loadmastersIdx)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colCum]}>
+                    <Text style={styles.weightTextCenter}>{fmt(loadmastersCum)}</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colAction]} />
+                </View>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colName]}>
                     <Text style={styles.weightText}>Crew Gear</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colFs]}>
@@ -318,25 +338,6 @@ const Preview = ({
                   </View>
                   <View style={[styles.weightCell, styles.colCum]}>
                     <Text style={styles.weightTextCenter}>{fmt(etcCum)}</Text>
-                  </View>
-                  <View style={[styles.weightCellLast, styles.colAction]} />
-                </View>
-
-                <View style={styles.weightRow}>
-                  <View style={[styles.weightCell, styles.colName]}>
-                    <Text style={styles.weightText}>Loadmasters ({missionSettings?.loadmasters || 0})</Text>
-                  </View>
-                  <View style={[styles.weightCell, styles.colFs]}>
-                    <Text style={styles.weightTextCenter} />
-                  </View>
-                  <View style={[styles.weightCell, styles.colWeight]}>
-                    <Text style={styles.weightTextCenter}>{fmt((missionSettings?.loadmasters || 0) * 170)}</Text>
-                  </View>
-                  <View style={[styles.weightCell, styles.colIndex]}>
-                    <Text style={styles.weightTextCenter}>{fmt(loadmastersIdx)}</Text>
-                  </View>
-                  <View style={[styles.weightCell, styles.colCum]}>
-                    <Text style={styles.weightTextCenter}>{fmt(loadmastersCum)}</Text>
                   </View>
                   <View style={[styles.weightCellLast, styles.colAction]} />
                 </View>
