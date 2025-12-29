@@ -18,6 +18,11 @@ import {
   calculateCargoMACIndex,
   calculateTotalIndex,
   calculateZeroFuelWeight,
+  calculateConfigurationIndex,
+  calculateCrewGearIndex,
+  calculateFoodIndex,
+  calculateSafetyGearIndex,
+  calculateEtcIndex,
 } from '../../services/mac';
 import {
   DEFAULT_SAFETY_GEAR_WEIGHT,
@@ -243,18 +248,31 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
   const cv = calculatedValues;
   const fuel = formData.fuelDistribution;
 
-  // Calculate cumulative indices
+  // Calculate individual indices for each item type
   const emptyIdx = cv?.emptyAircraftMACIndex ?? 0;
-  const additionalIdx = cv?.additionalWeightsMACIndex ?? 0;
+  const configIdx = calculateConfigurationIndex(formData.configurationWeights ?? 0);
+  const crewGearIdx = calculateCrewGearIndex(formData.crewGearWeight ?? 0);
+  const foodIdx = calculateFoodIndex(formData.foodWeight ?? 0);
+  const safetyGearIdx = calculateSafetyGearIndex(formData.safetyGearWeight ?? 0);
+  const etcIdx = calculateEtcIndex(formData.etcWeight ?? 0);
   const loadmastersIdx = cv?.loadmastersIndex ?? 0;
-  const baseIdx = emptyIdx + additionalIdx + loadmastersIdx;
   const fuelIdx = cv?.fuelMACIndex ?? 0;
   const cargoIdx = cv?.cargoMACIndex ?? 0;
 
+  // Calculate base index (sum of all base weight indices)
+  const baseIdx = emptyIdx + configIdx + crewGearIdx + foodIdx + safetyGearIdx + etcIdx + loadmastersIdx;
+
+  // Cumulative totals (running total as each row is added)
+  // Order: Empty -> Config -> Loadmasters -> Crew Gear -> Food -> Safety Gear -> ETC -> Base -> Fuel
   let cumulative = 0;
   const emptyCum = (cumulative += emptyIdx);
+  const configCum = (cumulative += configIdx);
   const loadmastersCum = (cumulative += loadmastersIdx);
-  const baseCum = loadmastersCum;
+  const crewGearCum = (cumulative += crewGearIdx);
+  const foodCum = (cumulative += foodIdx);
+  const safetyGearCum = (cumulative += safetyGearIdx);
+  const etcCum = (cumulative += etcIdx);
+  const baseCum = etcCum;
   const fuelCum = (cumulative += fuelIdx);
   const cargoCum = (cumulative += cargoIdx);
 
@@ -331,106 +349,10 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                     />
                   </View>
                   <View style={[styles.weightCell, styles.colIndex]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
+                    <Text style={styles.weightTextCenter}>{fmt(configIdx)}</Text>
                   </View>
                   <View style={[styles.weightCell, styles.colCum]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
-                  </View>
-                  <View style={[styles.weightCellLast, styles.colAction]} />
-                </View>
-
-                <View style={styles.weightRow}>
-                  <View style={[styles.weightCell, styles.colName]}>
-                    <Text style={styles.weightText}>Crew Gear</Text>
-                  </View>
-                  <View style={[styles.weightCell, styles.colFs]}>
-                    <Text style={styles.weightTextCenter} />
-                  </View>
-                  <View style={[styles.weightCell, styles.colWeight]}>
-                    <TextInput
-                      style={styles.inputSmall}
-                      value={(formData.crewGearWeight ?? 0).toString()}
-                      onChangeText={(v) => handleNumericChange('crewGearWeight', v)}
-                      keyboardType="numeric"
-                    />
-                  </View>
-                  <View style={[styles.weightCell, styles.colIndex]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
-                  </View>
-                  <View style={[styles.weightCell, styles.colCum]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
-                  </View>
-                  <View style={[styles.weightCellLast, styles.colAction]} />
-                </View>
-
-                <View style={styles.weightRow}>
-                  <View style={[styles.weightCell, styles.colName]}>
-                    <Text style={styles.weightText}>Food</Text>
-                  </View>
-                  <View style={[styles.weightCell, styles.colFs]}>
-                    <Text style={styles.weightTextCenter} />
-                  </View>
-                  <View style={[styles.weightCell, styles.colWeight]}>
-                    <TextInput
-                      style={styles.inputSmall}
-                      value={(formData.foodWeight ?? 0).toString()}
-                      onChangeText={(v) => handleNumericChange('foodWeight', v)}
-                      keyboardType="numeric"
-                    />
-                  </View>
-                  <View style={[styles.weightCell, styles.colIndex]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
-                  </View>
-                  <View style={[styles.weightCell, styles.colCum]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
-                  </View>
-                  <View style={[styles.weightCellLast, styles.colAction]} />
-                </View>
-
-                <View style={styles.weightRow}>
-                  <View style={[styles.weightCell, styles.colName]}>
-                    <Text style={styles.weightText}>Safety Gear</Text>
-                  </View>
-                  <View style={[styles.weightCell, styles.colFs]}>
-                    <Text style={styles.weightTextCenter} />
-                  </View>
-                  <View style={[styles.weightCell, styles.colWeight]}>
-                    <TextInput
-                      style={styles.inputSmall}
-                      value={(formData.safetyGearWeight ?? 0).toString()}
-                      onChangeText={(v) => handleNumericChange('safetyGearWeight', v)}
-                      keyboardType="numeric"
-                    />
-                  </View>
-                  <View style={[styles.weightCell, styles.colIndex]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
-                  </View>
-                  <View style={[styles.weightCell, styles.colCum]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
-                  </View>
-                  <View style={[styles.weightCellLast, styles.colAction]} />
-                </View>
-
-                <View style={styles.weightRow}>
-                  <View style={[styles.weightCell, styles.colName]}>
-                    <Text style={styles.weightText}>ETC</Text>
-                  </View>
-                  <View style={[styles.weightCell, styles.colFs]}>
-                    <Text style={styles.weightTextCenter} />
-                  </View>
-                  <View style={[styles.weightCell, styles.colWeight]}>
-                    <TextInput
-                      style={styles.inputSmall}
-                      value={(formData.etcWeight ?? 0).toString()}
-                      onChangeText={(v) => handleNumericChange('etcWeight', v)}
-                      keyboardType="numeric"
-                    />
-                  </View>
-                  <View style={[styles.weightCell, styles.colIndex]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
-                  </View>
-                  <View style={[styles.weightCell, styles.colCum]}>
-                    <Text style={styles.weightTextCenter}>-</Text>
+                    <Text style={styles.weightTextCenter}>{fmt(configCum)}</Text>
                   </View>
                   <View style={[styles.weightCellLast, styles.colAction]} />
                 </View>
@@ -458,6 +380,102 @@ const MissionSettingsComponent: React.FC<MissionSettingsProps> = ({
                   </View>
                   <View style={[styles.weightCell, styles.colCum]}>
                     <Text style={styles.weightTextCenter}>{fmt(loadmastersCum)}</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colAction]} />
+                </View>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colName]}>
+                    <Text style={styles.weightText}>Crew Gear</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colFs]}>
+                    <Text style={styles.weightTextCenter} />
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <TextInput
+                      style={styles.inputSmall}
+                      value={(formData.crewGearWeight ?? 0).toString()}
+                      onChangeText={(v) => handleNumericChange('crewGearWeight', v)}
+                      keyboardType="numeric"
+                    />
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>{fmt(crewGearIdx)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colCum]}>
+                    <Text style={styles.weightTextCenter}>{fmt(crewGearCum)}</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colAction]} />
+                </View>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colName]}>
+                    <Text style={styles.weightText}>Food</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colFs]}>
+                    <Text style={styles.weightTextCenter} />
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <TextInput
+                      style={styles.inputSmall}
+                      value={(formData.foodWeight ?? 0).toString()}
+                      onChangeText={(v) => handleNumericChange('foodWeight', v)}
+                      keyboardType="numeric"
+                    />
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>{fmt(foodIdx)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colCum]}>
+                    <Text style={styles.weightTextCenter}>{fmt(foodCum)}</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colAction]} />
+                </View>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colName]}>
+                    <Text style={styles.weightText}>Safety Gear</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colFs]}>
+                    <Text style={styles.weightTextCenter} />
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <TextInput
+                      style={styles.inputSmall}
+                      value={(formData.safetyGearWeight ?? 0).toString()}
+                      onChangeText={(v) => handleNumericChange('safetyGearWeight', v)}
+                      keyboardType="numeric"
+                    />
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>{fmt(safetyGearIdx)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colCum]}>
+                    <Text style={styles.weightTextCenter}>{fmt(safetyGearCum)}</Text>
+                  </View>
+                  <View style={[styles.weightCellLast, styles.colAction]} />
+                </View>
+
+                <View style={styles.weightRow}>
+                  <View style={[styles.weightCell, styles.colName]}>
+                    <Text style={styles.weightText}>ETC</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colFs]}>
+                    <Text style={styles.weightTextCenter} />
+                  </View>
+                  <View style={[styles.weightCell, styles.colWeight]}>
+                    <TextInput
+                      style={styles.inputSmall}
+                      value={(formData.etcWeight ?? 0).toString()}
+                      onChangeText={(v) => handleNumericChange('etcWeight', v)}
+                      keyboardType="numeric"
+                    />
+                  </View>
+                  <View style={[styles.weightCell, styles.colIndex]}>
+                    <Text style={styles.weightTextCenter}>{fmt(etcIdx)}</Text>
+                  </View>
+                  <View style={[styles.weightCell, styles.colCum]}>
+                    <Text style={styles.weightTextCenter}>{fmt(etcCum)}</Text>
                   </View>
                   <View style={[styles.weightCellLast, styles.colAction]} />
                 </View>

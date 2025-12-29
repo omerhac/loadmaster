@@ -126,6 +126,61 @@ export async function calculateAircraftCG(missionId: number, totalIndex: number)
   return cg;
 }
 
+// Standard fuselage stations for different weight types
+// TODO: Update those values according to the TO
+const CONFIG_STATION = 500.0;
+const CREW_GEAR_STATION = 520.0;
+const FOOD_STATION = 480.0;
+const SAFETY_GEAR_STATION = 733.46;
+const ETC_STATION = 580.54;
+const MAC_REFERENCE = 533.46;
+const MAC_DIVISOR = 50000;
+
+/**
+ * Calculates the MAC index for configuration weights
+ * @param weight - The configuration weight in pounds
+ * @returns The MAC index contribution
+ */
+export function calculateConfigurationIndex(weight: number): number {
+  return (CONFIG_STATION - MAC_REFERENCE) * weight / MAC_DIVISOR;
+}
+
+/**
+ * Calculates the MAC index for crew gear weight
+ * @param weight - The crew gear weight in pounds
+ * @returns The MAC index contribution
+ */
+export function calculateCrewGearIndex(weight: number): number {
+  return (CREW_GEAR_STATION - MAC_REFERENCE) * weight / MAC_DIVISOR;
+}
+
+/**
+ * Calculates the MAC index for food weight
+ * @param weight - The food weight in pounds
+ * @returns The MAC index contribution
+ */
+export function calculateFoodIndex(weight: number): number {
+  return (FOOD_STATION - MAC_REFERENCE) * weight / MAC_DIVISOR;
+}
+
+/**
+ * Calculates the MAC index for safety gear weight
+ * @param weight - The safety gear weight in pounds
+ * @returns The MAC index contribution
+ */
+export function calculateSafetyGearIndex(weight: number): number {
+  return (SAFETY_GEAR_STATION - MAC_REFERENCE) * weight / MAC_DIVISOR;
+}
+
+/**
+ * Calculates the MAC index for ETC weight
+ * @param weight - The ETC weight in pounds
+ * @returns The MAC index contribution
+ */
+export function calculateEtcIndex(weight: number): number {
+  return (ETC_STATION - MAC_REFERENCE) * weight / MAC_DIVISOR;
+}
+
 /**
  * Calculates the MAC contribution from additional weights (crew, food, etc.)
  * @param missionId - The ID of the mission
@@ -143,16 +198,7 @@ export async function calculateAdditionalWeightsMACIndex(missionId: number): Pro
     throw new Error(`Mission data is undefined for mission ID ${missionId}`);
   }
 
-  // 2. Define standard locations for different weight types
-  // These are the x-coordinates (stations) where these weights are typically located
-  // TODO: Update those values according to the TO
-  const CONFIG_STATION = 500.0;
-  const CREW_GEAR_STATION = 520.0;
-  const FOOD_STATION = 480.0;
-  const SAFETY_GEAR_STATION = 733.46;
-  const ETC_STATION = 580.54;
-
-  // 3. Calculate MAC index contributions for each weight type
+  // 2. Calculate MAC index contributions for each weight type
   let totalAdditionalMAC = 0;
 
   // Loadmasters index - use the dedicated function
@@ -160,24 +206,19 @@ export async function calculateAdditionalWeightsMACIndex(missionId: number): Pro
   totalAdditionalMAC += loadmastersIndex;
 
   // Configuration weights
-  const configuration_index = (CONFIG_STATION - 533.46) * mission.configuration_weights / 50000;
-  totalAdditionalMAC += configuration_index;
+  totalAdditionalMAC += calculateConfigurationIndex(mission.configuration_weights);
 
   // Crew gear weight
-  const crew_gear_index = (CREW_GEAR_STATION - 533.46) * mission.crew_gear_weight / 50000;
-  totalAdditionalMAC += crew_gear_index;
+  totalAdditionalMAC += calculateCrewGearIndex(mission.crew_gear_weight);
 
   // Food weight
-  const food_index = (FOOD_STATION - 533.46) * mission.food_weight / 50000;
-  totalAdditionalMAC += food_index;
+  totalAdditionalMAC += calculateFoodIndex(mission.food_weight);
 
   // Safety gear weight
-  const safety_gear_index = (SAFETY_GEAR_STATION - 533.46) * mission.safety_gear_weight / 50000;
-  totalAdditionalMAC += safety_gear_index;
+  totalAdditionalMAC += calculateSafetyGearIndex(mission.safety_gear_weight);
 
   // ETC weight
-  const etc_index = (ETC_STATION - 533.46) * mission.etc_weight / 50000;
-  totalAdditionalMAC += etc_index;
+  totalAdditionalMAC += calculateEtcIndex(mission.etc_weight);
 
   return totalAdditionalMAC;
 }

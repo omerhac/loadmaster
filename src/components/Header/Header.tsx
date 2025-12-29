@@ -28,10 +28,11 @@ interface HeaderProps {
   onPlanningClick: () => void;
   macPercent?: number | null;
   totalWeight?: number | null;
+  cargoWeight?: number | null;
   missionSettings?: MissionSettings | null;
 }
 
-const Header = ({ currentView, onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onDuplicateMissionClick, onPlanningClick, onGraphsClick, macPercent, totalWeight, missionSettings }: HeaderProps) => {
+const Header = ({ currentView, onSettingsClick, onPreviewClick, onNewMissionClick, onLoadMissionClick, onDuplicateMissionClick, onPlanningClick, onGraphsClick, macPercent, totalWeight, cargoWeight, missionSettings }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMacOutOfLimits, setIsMacOutOfLimits] = useState(false);
   const blinkAnimation = useRef(new Animated.Value(1)).current;
@@ -227,6 +228,12 @@ const Header = ({ currentView, onSettingsClick, onPreviewClick, onNewMissionClic
           <View style={styles.metricContainer}>
             <Text style={styles.metricLabel}>ZFW</Text>
             <Text style={styles.metricValue}>{zeroFuelWeight.toFixed(0)} lbs</Text>
+          </View>
+        )}
+        {cargoWeight !== null && cargoWeight !== undefined && cargoWeight > 0 && (
+          <View style={styles.metricContainer}>
+            <Text style={styles.metricLabel}>CARGO</Text>
+            <Text style={styles.metricValue}>{cargoWeight.toFixed(0)} lbs</Text>
           </View>
         )}
       </View>
