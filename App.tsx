@@ -5,12 +5,24 @@
  * @format
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, View, Platform, Dimensions, Text, ActivityIndicator } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Host } from 'react-native-portalize';
-import { CargoItem, MissionSettings, Position } from './src/types';
-import { Aircraft, CargoType as DbCargoType, Mission } from './src/services/db/operations/types';
+import React, {useState, useCallback, useEffect} from 'react';
+import {
+  SafeAreaView,
+  StyleSheet,
+  View,
+  Platform,
+  Dimensions,
+  Text,
+  ActivityIndicator,
+} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {Host} from 'react-native-portalize';
+import {CargoItem, MissionSettings, Position} from './src/types';
+import {
+  Aircraft,
+  CargoType as DbCargoType,
+  Mission,
+} from './src/services/db/operations/types';
 import Header from './src/components/Header/Header';
 import Sidebar from './src/components/Sidebar/Sidebar';
 import LoadingArea from './src/components/LoadingArea/LoadingArea';
@@ -19,28 +31,51 @@ import Preview from './src/components/Preview/Preview';
 import NewMissionModal from './src/components/NewMissionModal/NewMissionModal';
 import LoadMissionModal from './src/components/LoadMissionModal/LoadMissionModal';
 import initAppDatabase from './src/initAppDatabase';
-import { getCargoItemsByMissionId, createCargoItem } from './src/services/db/operations/CargoItemOperations';
-import { createCargoType } from './src/services/db/operations/CargoTypeOperations';
-import { CargoItem as DbCargoItem } from './src/services/db/operations/types';
-import { updateCargoItem } from './src/services/db/operations/CargoItemOperations';
-import { deleteCargoItem } from './src/services/db/operations/CargoItemOperations';
-import { getAircraftById, updateAircraft } from './src/services/db/operations/AircraftOperations';
-import { getMissionById, createMission } from './src/services/db/operations/MissionOperations';
-import { DEFAULT_MISSION_ID, DEFAULT_NEW_MISSION, DEFAULT_Y_POS } from './src/constants';
-import { updateMission } from './src/services/db/operations/MissionOperations';
-import { xPositionToFs, fsToXPosition, updateCargoItemPosition } from './src/utils/cargoUtils';
-import { Graphs } from './src/components/Graphs/Graphs';
-import { Images } from './src/assets';
-import { calculateMACPercent, calculateTotalAircraftWeight, calculateBaseWeight, calculateTotalFuelWeight, calculateCargoWeight } from './src/services/mac';
+import {
+  getCargoItemsByMissionId,
+  createCargoItem,
+} from './src/services/db/operations/CargoItemOperations';
+import {createCargoType} from './src/services/db/operations/CargoTypeOperations';
+import {CargoItem as DbCargoItem} from './src/services/db/operations/types';
+import {updateCargoItem} from './src/services/db/operations/CargoItemOperations';
+import {deleteCargoItem} from './src/services/db/operations/CargoItemOperations';
+import {
+  getAircraftById,
+  updateAircraft,
+} from './src/services/db/operations/AircraftOperations';
+import {
+  getMissionById,
+  createMission,
+} from './src/services/db/operations/MissionOperations';
+import {
+  DEFAULT_MISSION_ID,
+  DEFAULT_NEW_MISSION,
+  DEFAULT_Y_POS,
+} from './src/constants';
+import {updateMission} from './src/services/db/operations/MissionOperations';
+import {
+  xPositionToFs,
+  fsToXPosition,
+  updateCargoItemPosition,
+} from './src/utils/cargoUtils';
+import {Graphs} from './src/components/Graphs/Graphs';
+import {Images} from './src/assets';
+import {
+  calculateMACPercent,
+  calculateTotalAircraftWeight,
+  calculateBaseWeight,
+  calculateTotalFuelWeight,
+  calculateCargoWeight,
+} from './src/services/mac';
 import AddCargoItemModal from './src/components/AddCargoItemModal/AddCargoItemModal';
-import { getAllCargoTypes } from './src/services/db/operations/CargoTypeOperations';
+import {getAllCargoTypes} from './src/services/db/operations/CargoTypeOperations';
 
 function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
   if (!item.id) {
     throw new Error('Cargo item has no id');
   }
   const id = item.id.toString();
-  const position = { x: item.x_start_position, y: item.y_start_position };
+  const position = {x: item.x_start_position, y: item.y_start_position};
   const status = item.status ?? 'inventory';
   const name = item.name;
   const length = item.length ?? 0;
@@ -50,7 +85,8 @@ function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
   const cog = item.cog ?? 0;
   const cargo_type_id = item.cargo_type_id ?? 1;
   // Only calculate FS for items that are onDeck, otherwise default to 0
-  const fs = status === 'onDeck' ? xPositionToFs(item.x_start_position, cog) : 0;
+  const fs =
+    status === 'onDeck' ? xPositionToFs(item.x_start_position, cog) : 0;
   return {
     id,
     cargo_type_id,
@@ -68,7 +104,9 @@ function convertDbCargoItemToCargoItem(item: DbCargoItem): CargoItem {
   };
 }
 
-async function convertDbMissionToMissionSettings(mission: Mission): Promise<MissionSettings> {
+async function convertDbMissionToMissionSettings(
+  mission: Mission,
+): Promise<MissionSettings> {
   if (!mission.id) {
     throw new Error('Mission has no id');
   }
@@ -76,7 +114,7 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
   if (aircraftResponse.results.length === 0) {
     throw new Error('Aircraft not found');
   }
-  const aircraft: Aircraft = (aircraftResponse.results[0].data as Aircraft);
+  const aircraft: Aircraft = aircraftResponse.results[0].data as Aircraft;
 
   // Helper function to safely convert to number
   const toNumber = (value: any): number => {
@@ -94,7 +132,9 @@ async function convertDbMissionToMissionSettings(mission: Mission): Promise<Miss
     departureLocation: 'Nevatim',
     arrivalLocation: 'Ramat David',
     aircraftIndex: toNumber(aircraft.empty_mac),
-    aircraftEmptyWeight: toNumber(mission.aircraft_empty_weight ?? aircraft.empty_weight),
+    aircraftEmptyWeight: toNumber(
+      mission.aircraft_empty_weight ?? aircraft.empty_weight,
+    ),
     loadmasters: toNumber(mission.loadmasters),
     loadmastersFs: toNumber(mission.loadmasters_fs),
     passengers: 0, // TODO: Add passengers field to mission table
@@ -124,54 +164,76 @@ type AppViewType = 'settings' | 'planning' | 'preview' | 'graphs';
 
 function App(): React.JSX.Element {
   const [currentView, setCurrentView] = useState<AppViewType>('settings');
-  const [missionSettings, setMissionSettings] = useState<MissionSettings | null>(null);
+  const [missionSettings, setMissionSettings] =
+    useState<MissionSettings | null>(null);
   const [cargoItems, setCargoItems] = useState<CargoItem[]>([]);
   const [isLandscape, setIsLandscape] = useState(true);
   const [showNewMissionModal, setShowNewMissionModal] = useState(false);
   const [showLoadMissionModal, setShowLoadMissionModal] = useState(false);
-  const [showDuplicateMissionModal, setShowDuplicateMissionModal] = useState(false);
-  const [currentMissionId, setCurrentMissionId] = useState<number>(DEFAULT_MISSION_ID);
+  const [showDuplicateMissionModal, setShowDuplicateMissionModal] =
+    useState(false);
+  const [currentMissionId, setCurrentMissionId] =
+    useState<number>(DEFAULT_MISSION_ID);
   const [macPercent, setMacPercent] = useState<number | null>(null);
   const [totalWeight, setTotalWeight] = useState<number | null>(null);
   const [baseWeight, setBaseWeight] = useState<number | null>(null);
   const [fuelWeight, setFuelWeight] = useState<number | null>(null);
   const [cargoWeight, setCargoWeight] = useState<number | null>(null);
   const [isDatabaseInitialized, setIsDatabaseInitialized] = useState(false);
-  const [initializationError, setInitializationError] = useState<string | null>(null);
+  const [initializationError, setInitializationError] = useState<string | null>(
+    null,
+  );
 
   // Add item modal state
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<CargoItem | null>(null);
   const [savedPresets, setSavedPresets] = useState<CargoItem[]>([]);
 
-  const convertDbCargoTypeToCargoItem = useCallback((dbCargoType: DbCargoType): CargoItem => {
-    const cargoTypeId = typeof dbCargoType.id === 'number' ? dbCargoType.id : 1;
-    return {
-      id: `preset-${dbCargoType.id || Math.random()}`,
-      name: dbCargoType.name,
-      cargo_type_id: cargoTypeId,
-      length: dbCargoType.default_length,
-      width: dbCargoType.default_width,
-      height: dbCargoType.default_height,
-      weight: dbCargoType.default_weight,
-      cog: dbCargoType.default_cog || 0,
-      fs: 0,
-      dock: 'CG',
-      status: 'inventory',
-      position: { x: -1, y: -1 },
-      color: '#4a90e2', // Default blue color for presets
-    };
-  }, []);
+  const convertDbCargoTypeToCargoItem = useCallback(
+    (dbCargoType: DbCargoType): CargoItem => {
+      const cargoTypeId =
+        typeof dbCargoType.id === 'number' ? dbCargoType.id : 1;
+      return {
+        id: `preset-${dbCargoType.id || Math.random()}`,
+        name: dbCargoType.name,
+        cargo_type_id: cargoTypeId,
+        length: dbCargoType.default_length,
+        width: dbCargoType.default_width,
+        height: dbCargoType.default_height,
+        weight: dbCargoType.default_weight,
+        cog: dbCargoType.default_cog || 0,
+        fs: 0,
+        dock: 'CG',
+        status: 'inventory',
+        position: {x: -1, y: -1},
+        color: '#4a90e2', // Default blue color for presets
+      };
+    },
+    [],
+  );
 
-  // Load saved presets from cargo types
-  useEffect(() => {
-    const fetchCargoTypes = async () => {
-      const dbCargoTypes = (await getAllCargoTypes()).results.map(item => item.data) as DbCargoType[];
-      const cargoItemsLocal = dbCargoTypes.map(convertDbCargoTypeToCargoItem);
-      setSavedPresets(cargoItemsLocal);
-    };
-    fetchCargoTypes();
+  const refreshSavedPresets = useCallback(async () => {
+    const response = await getAllCargoTypes();
+    if (response.error) {
+      throw new Error(response.error.message);
+    }
+
+    const dbCargoTypes = response.results
+      .map(item => item.data)
+      .filter((item): item is DbCargoType => Boolean(item));
+    setSavedPresets(dbCargoTypes.map(convertDbCargoTypeToCargoItem));
   }, [convertDbCargoTypeToCargoItem]);
+
+  // Load saved presets only after the schema and seed data exist.
+  useEffect(() => {
+    if (!isDatabaseInitialized) {
+      return;
+    }
+
+    refreshSavedPresets().catch(error => {
+      console.error('Failed to load cargo presets:', error);
+    });
+  }, [isDatabaseInitialized, refreshSavedPresets]);
 
   useEffect(() => {
     const initDatabase = async () => {
@@ -182,7 +244,11 @@ function App(): React.JSX.Element {
         setIsDatabaseInitialized(true);
       } catch (error) {
         console.error('Failed to initialize database:', error);
-        setInitializationError(error instanceof Error ? error.message : 'Failed to initialize database');
+        setInitializationError(
+          error instanceof Error
+            ? error.message
+            : 'Failed to initialize database',
+        );
       }
     };
 
@@ -204,13 +270,19 @@ function App(): React.JSX.Element {
         if (mission.results.length === 0) {
           throw new Error('Mission not found');
         }
-        const settings = await convertDbMissionToMissionSettings(mission.results[0].data as Mission);
+        const settings = await convertDbMissionToMissionSettings(
+          mission.results[0].data as Mission,
+        );
         setMissionSettings(settings);
 
         // Load cargo items
         const cargoResponse = await getCargoItemsByMissionId(currentMissionId);
-        const dbCargoItems: DbCargoItem[] = cargoResponse.results.map(item => item?.data as DbCargoItem);
-        const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
+        const dbCargoItems: DbCargoItem[] = cargoResponse.results.map(
+          item => item?.data as DbCargoItem,
+        );
+        const convertedItems: CargoItem[] = dbCargoItems.map(
+          convertDbCargoItemToCargoItem,
+        );
         setCargoItems(convertedItems);
 
         console.log('Mission data loaded successfully');
@@ -224,13 +296,16 @@ function App(): React.JSX.Element {
 
   useEffect(() => {
     const updateOrientation = () => {
-      const { width, height } = Dimensions.get('window');
+      const {width, height} = Dimensions.get('window');
       setIsLandscape(width > height);
     };
 
     updateOrientation();
 
-    const subscription = Dimensions.addEventListener('change', updateOrientation);
+    const subscription = Dimensions.addEventListener(
+      'change',
+      updateOrientation,
+    );
 
     return () => subscription.remove();
   }, []);
@@ -260,92 +335,114 @@ function App(): React.JSX.Element {
     }
   }, [currentView, currentMissionId, cargoItems, missionSettings]);
 
-  const handleAddItem = useCallback(async (item: CargoItem, status: 'inventory' | 'onStage' | 'onDeck' = 'inventory') => {
-    let x_start_position = -1;
-    let y_start_position = -1;
-    console.log('item', item);
-    if (status === 'onDeck') {
-      if (item.fs > 0) {
-        // item defined in manual cargo insertion or being placed on deck with specific FS
-        x_start_position = fsToXPosition(item.fs, item.cog);
-        y_start_position = DEFAULT_Y_POS;
-      } else {
-        // New item being automatically placed on deck - use default position
-        // Place at FS 400 (middle of loading area) with item's CG
-        const defaultFs = 400;
-        x_start_position = fsToXPosition(defaultFs, item.cog);
-        y_start_position = DEFAULT_Y_POS;
+  const handleAddItem = useCallback(
+    async (
+      item: CargoItem,
+      status: 'inventory' | 'onStage' | 'onDeck' = 'inventory',
+    ) => {
+      let x_start_position = -1;
+      let y_start_position = -1;
+      console.log('item', item);
+      if (status === 'onDeck') {
+        if (item.fs > 0) {
+          // item defined in manual cargo insertion or being placed on deck with specific FS
+          x_start_position = fsToXPosition(item.fs, item.cog);
+          y_start_position = DEFAULT_Y_POS;
+        } else {
+          // New item being automatically placed on deck - use default position
+          // Place at FS 400 (middle of loading area) with item's CG
+          const defaultFs = 400;
+          x_start_position = fsToXPosition(defaultFs, item.cog);
+          y_start_position = DEFAULT_Y_POS;
+        }
       }
-    }
-    let newItem: DbCargoItem = {
-      status: status,
-      x_start_position: x_start_position,
-      y_start_position: y_start_position,
-      mission_id: currentMissionId,
-      cargo_type_id: item.cargo_type_id,
-      name: item.name,
-      length: item.length,
-      width: item.width,
-      height: item.height,
-      weight: item.weight,
-      cog: item.cog,
-      forward_overhang: 0,
-      back_overhang: 0,
-      color: item.color,
-    };
-    try {
-      const response = await createCargoItem(newItem);
-      if (response && response.results && response.results.length > 0) {
-        newItem.id = response.results[0].lastInsertId;
-        const newItemForState = {
-          ...convertDbCargoItemToCargoItem(newItem),
-          dock: item.dock || 'CG', // preserve dock from input item
-          color: item.color || '#4a90e2', // preserve color from input item
-        };
-        setCargoItems(prev => [...prev, newItemForState]);
-      } else {
-        console.error('Failed to add cargo item: Invalid response from createCargoItem', response);
-      }
-    } catch (error) {
-      console.error('Error adding cargo item:', error);
-    }
-  }, [currentMissionId]);
-
-  const handleEditItem = useCallback((item: CargoItem) => {
-    setCargoItems(prev => prev.map(i => {
-      if (i.id !== item.id) {return i;}
-
-      let updatedItem = { ...i, ...item };
-
-      // If FS changed, update position.x accordingly
-      if (i.fs !== item.fs) {
-        updatedItem = updateCargoItemPosition(updatedItem, { ...i.position, x: fsToXPosition(item.fs, item.cog) });
-      }
-      // If CG changed and item is on deck, update position.x to maintain FS
-      else if (i.cog !== item.cog && item.status === 'onDeck') {
-        updatedItem = updateCargoItemPosition(updatedItem, { ...i.position, x: fsToXPosition(item.fs, item.cog) });
-      }
-
-      updateCargoItem({
-        id: parseInt(item.id, 10),
-        status: updatedItem.status,
-        x_start_position: updatedItem.position.x,
-        y_start_position: updatedItem.position.y,
+      let newItem: DbCargoItem = {
+        status: status,
+        x_start_position: x_start_position,
+        y_start_position: y_start_position,
         mission_id: currentMissionId,
-        cargo_type_id: updatedItem.cargo_type_id,
-        name: updatedItem.name,
-        weight: updatedItem.weight,
-        length: updatedItem.length,
-        width: updatedItem.width,
-        height: updatedItem.height,
+        cargo_type_id: item.cargo_type_id,
+        name: item.name,
+        length: item.length,
+        width: item.width,
+        height: item.height,
+        weight: item.weight,
+        cog: item.cog,
         forward_overhang: 0,
         back_overhang: 0,
-        cog: updatedItem.cog,
-        color: updatedItem.color,
-      });
-      return updatedItem;
-    }));
-  }, [currentMissionId]);
+        color: item.color,
+      };
+      try {
+        const response = await createCargoItem(newItem);
+        if (response && response.results && response.results.length > 0) {
+          newItem.id = response.results[0].lastInsertId;
+          const newItemForState = {
+            ...convertDbCargoItemToCargoItem(newItem),
+            dock: item.dock || 'CG', // preserve dock from input item
+            color: item.color || '#4a90e2', // preserve color from input item
+          };
+          setCargoItems(prev => [...prev, newItemForState]);
+        } else {
+          console.error(
+            'Failed to add cargo item: Invalid response from createCargoItem',
+            response,
+          );
+        }
+      } catch (error) {
+        console.error('Error adding cargo item:', error);
+      }
+    },
+    [currentMissionId],
+  );
+
+  const handleEditItem = useCallback(
+    (item: CargoItem) => {
+      setCargoItems(prev =>
+        prev.map(i => {
+          if (i.id !== item.id) {
+            return i;
+          }
+
+          let updatedItem = {...i, ...item};
+
+          // If FS changed, update position.x accordingly
+          if (i.fs !== item.fs) {
+            updatedItem = updateCargoItemPosition(updatedItem, {
+              ...i.position,
+              x: fsToXPosition(item.fs, item.cog),
+            });
+          }
+          // If CG changed and item is on deck, update position.x to maintain FS
+          else if (i.cog !== item.cog && item.status === 'onDeck') {
+            updatedItem = updateCargoItemPosition(updatedItem, {
+              ...i.position,
+              x: fsToXPosition(item.fs, item.cog),
+            });
+          }
+
+          updateCargoItem({
+            id: parseInt(item.id, 10),
+            status: updatedItem.status,
+            x_start_position: updatedItem.position.x,
+            y_start_position: updatedItem.position.y,
+            mission_id: currentMissionId,
+            cargo_type_id: updatedItem.cargo_type_id,
+            name: updatedItem.name,
+            weight: updatedItem.weight,
+            length: updatedItem.length,
+            width: updatedItem.width,
+            height: updatedItem.height,
+            forward_overhang: 0,
+            back_overhang: 0,
+            cog: updatedItem.cog,
+            color: updatedItem.color,
+          });
+          return updatedItem;
+        }),
+      );
+    },
+    [currentMissionId],
+  );
 
   const handleDeleteItem = useCallback((id: string) => {
     // Remove from state
@@ -359,108 +456,137 @@ function App(): React.JSX.Element {
     }
   }, []);
 
-  const handleDuplicateItem = useCallback(async (id: string) => {
-    const itemToDuplicate = cargoItems.find(item => item.id === id);
-    if (!itemToDuplicate) {
-      console.warn(`Item with id ${id} not found for duplication.`);
-      return;
-    }
-
-    let newDbItem: DbCargoItem = {
-      name: `${itemToDuplicate.name} (copy)`,
-      status: 'inventory' as const,
-      x_start_position: -1,
-      y_start_position: -1,
-      mission_id: currentMissionId,
-      cargo_type_id: itemToDuplicate.cargo_type_id,
-      length: itemToDuplicate.length,
-      width: itemToDuplicate.width,
-      height: itemToDuplicate.height,
-      weight: itemToDuplicate.weight,
-      cog: itemToDuplicate.cog,
-      forward_overhang: 0, // TODO: Add forward overhang
-      back_overhang: 0, // TODO: Add back overhang
-      color: itemToDuplicate.color,
-    };
-
-    try {
-      const response = await createCargoItem(newDbItem);
-      if (response && response.results && response.results.length > 0) {
-        newDbItem.id = response.results[0].lastInsertId;
-        const newItemForState = convertDbCargoItemToCargoItem(newDbItem);
-        setCargoItems(prev => [...prev, newItemForState]);
-      } else {
-        console.error('Failed to duplicate item: Invalid response from createCargoItem', response);
+  const handleDuplicateItem = useCallback(
+    async (id: string) => {
+      const itemToDuplicate = cargoItems.find(item => item.id === id);
+      if (!itemToDuplicate) {
+        console.warn(`Item with id ${id} not found for duplication.`);
+        return;
       }
-    } catch (error) {
-      console.error('Error duplicating item:', error);
-    }
-  }, [cargoItems, currentMissionId]);
 
-  const handleUpdateItemStatus = useCallback((
-    id: string,
-    status: 'onStage' | 'onDeck' | 'inventory',
-    position?: Position
-  ) => {
-    setCargoItems(prev => prev.map(i => {
-      if (i.id !== id) { return i; }
-
-      const newPosition = status === 'onDeck'
-        ? (position || i.position)
-        : { x: -1, y: -1 };
-
-      updateCargoItem({
-        id: parseInt(id, 10),
-        status: status as 'onStage' | 'onDeck' | 'inventory',
-        x_start_position: newPosition.x,
-        y_start_position: newPosition.y,
+      let newDbItem: DbCargoItem = {
+        name: `${itemToDuplicate.name} (copy)`,
+        status: 'inventory' as const,
+        x_start_position: -1,
+        y_start_position: -1,
         mission_id: currentMissionId,
-        cargo_type_id: i.cargo_type_id,
-        name: i.name,
-        weight: i.weight,
-        length: i.length,
-        width: i.width,
-        height: i.height,
+        cargo_type_id: itemToDuplicate.cargo_type_id,
+        length: itemToDuplicate.length,
+        width: itemToDuplicate.width,
+        height: itemToDuplicate.height,
+        weight: itemToDuplicate.weight,
+        cog: itemToDuplicate.cog,
         forward_overhang: 0, // TODO: Add forward overhang
         back_overhang: 0, // TODO: Add back overhang
-        cog: i.cog,
-        color: i.color,
-      });
+        color: itemToDuplicate.color,
+      };
 
-      // Use utility function to update position and sync fs
-      const updatedItem = updateCargoItemPosition(i, newPosition);
-      // Only keep FS for onDeck items, reset to 0 for others
-      const finalFs = status === 'onDeck' ? updatedItem.fs : 0;
-      return { ...updatedItem, status, fs: finalFs };
-    }));
-  }, [currentMissionId]);
+      try {
+        const response = await createCargoItem(newDbItem);
+        if (response && response.results && response.results.length > 0) {
+          newDbItem.id = response.results[0].lastInsertId;
+          const newItemForState = convertDbCargoItemToCargoItem(newDbItem);
+          setCargoItems(prev => [...prev, newItemForState]);
+        } else {
+          console.error(
+            'Failed to duplicate item: Invalid response from createCargoItem',
+            response,
+          );
+        }
+      } catch (error) {
+        console.error('Error duplicating item:', error);
+      }
+    },
+    [cargoItems, currentMissionId],
+  );
 
-  const handleSaveAsPreset = useCallback((item: CargoItem) => {
-    const cargoType: DbCargoType = {
-      name: item.name,
-      default_weight: item.weight,
-      default_length: item.length,
-      default_width: item.width,
-      default_height: item.height,
-      default_cog: item.cog,
-      default_forward_overhang: 0, // TODO: Add forward overhang
-      default_back_overhang: 0, // TODO: Add back overhang
-      type: 'bulk',
-    };
-    createCargoType(cargoType);
-  }, []);
+  const handleUpdateItemStatus = useCallback(
+    (
+      id: string,
+      status: 'onStage' | 'onDeck' | 'inventory',
+      position?: Position,
+    ) => {
+      setCargoItems(prev =>
+        prev.map(i => {
+          if (i.id !== id) {
+            return i;
+          }
 
-  const handleAddToStage = useCallback((id: string) => {
-    handleUpdateItemStatus(id, 'onStage');
-  }, [handleUpdateItemStatus]);
+          const newPosition =
+            status === 'onDeck' ? position || i.position : {x: -1, y: -1};
 
-  const handleRemoveFromStage = useCallback((id: string) => {
-    handleUpdateItemStatus(id, 'inventory');
-  }, [handleUpdateItemStatus]);
+          updateCargoItem({
+            id: parseInt(id, 10),
+            status: status as 'onStage' | 'onDeck' | 'inventory',
+            x_start_position: newPosition.x,
+            y_start_position: newPosition.y,
+            mission_id: currentMissionId,
+            cargo_type_id: i.cargo_type_id,
+            name: i.name,
+            weight: i.weight,
+            length: i.length,
+            width: i.width,
+            height: i.height,
+            forward_overhang: 0, // TODO: Add forward overhang
+            back_overhang: 0, // TODO: Add back overhang
+            cog: i.cog,
+            color: i.color,
+          });
 
-  const handleRemoveFromDeck = useCallback((id: string) => {
-    handleUpdateItemStatus(id, 'inventory');
-  }, [handleUpdateItemStatus]);
+          // Use utility function to update position and sync fs
+          const updatedItem = updateCargoItemPosition(i, newPosition);
+          // Only keep FS for onDeck items, reset to 0 for others
+          const finalFs = status === 'onDeck' ? updatedItem.fs : 0;
+          return {...updatedItem, status, fs: finalFs};
+        }),
+      );
+    },
+    [currentMissionId],
+  );
+
+  const handleSaveAsPreset = useCallback(
+    async (item: CargoItem) => {
+      const cargoType: DbCargoType = {
+        name: item.name,
+        default_weight: item.weight,
+        default_length: item.length,
+        default_width: item.width,
+        default_height: item.height,
+        default_cog: item.cog,
+        default_forward_overhang: 0, // TODO: Add forward overhang
+        default_back_overhang: 0, // TODO: Add back overhang
+        type: 'bulk',
+      };
+      const response = await createCargoType(cargoType);
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      await refreshSavedPresets();
+    },
+    [refreshSavedPresets],
+  );
+
+  const handleAddToStage = useCallback(
+    (id: string) => {
+      handleUpdateItemStatus(id, 'onStage');
+    },
+    [handleUpdateItemStatus],
+  );
+
+  const handleRemoveFromStage = useCallback(
+    (id: string) => {
+      handleUpdateItemStatus(id, 'inventory');
+    },
+    [handleUpdateItemStatus],
+  );
+
+  const handleRemoveFromDeck = useCallback(
+    (id: string) => {
+      handleUpdateItemStatus(id, 'inventory');
+    },
+    [handleUpdateItemStatus],
+  );
 
   const handleMissionSave = useCallback(async (settings: MissionSettings) => {
     setMissionSettings(settings);
@@ -485,7 +611,7 @@ function App(): React.JSX.Element {
       aircraft_empty_weight: settings.aircraftEmptyWeight,
     };
     try {
-    await updateMission(mission);
+      await updateMission(mission);
 
       const aircraftResult = await getAircraftById(settings.aircraftId);
       if (aircraftResult.results.length > 0 && aircraftResult.results[0].data) {
@@ -515,11 +641,18 @@ function App(): React.JSX.Element {
       setCurrentMissionId(newMissionId);
       setCargoItems([]);
       newMission.id = newMissionId;
-      const newMissionSettings = await convertDbMissionToMissionSettings(newMission);
+      const newMissionSettings = await convertDbMissionToMissionSettings(
+        newMission,
+      );
       setMissionSettings(newMissionSettings);
 
       setShowNewMissionModal(false);
-      console.log('New mission created:', missionName, 'with ID:', newMissionId);
+      console.log(
+        'New mission created:',
+        missionName,
+        'with ID:',
+        newMissionId,
+      );
     } catch (error) {
       console.error('Error creating new mission:', error);
     }
@@ -537,12 +670,20 @@ function App(): React.JSX.Element {
     try {
       setCurrentMissionId(mission.id as number);
 
-      const loadedMissionSettings = await convertDbMissionToMissionSettings(mission);
+      const loadedMissionSettings = await convertDbMissionToMissionSettings(
+        mission,
+      );
       setMissionSettings(loadedMissionSettings);
 
-      const cargoResponse = await getCargoItemsByMissionId(mission.id as number);
-      const dbCargoItems: DbCargoItem[] = cargoResponse.results.map(item => item?.data as DbCargoItem);
-      const convertedItems: CargoItem[] = dbCargoItems.map(convertDbCargoItemToCargoItem);
+      const cargoResponse = await getCargoItemsByMissionId(
+        mission.id as number,
+      );
+      const dbCargoItems: DbCargoItem[] = cargoResponse.results.map(
+        item => item?.data as DbCargoItem,
+      );
+      const convertedItems: CargoItem[] = dbCargoItems.map(
+        convertDbCargoItemToCargoItem,
+      );
       setCargoItems(convertedItems);
 
       setShowLoadMissionModal(false);
@@ -561,79 +702,95 @@ function App(): React.JSX.Element {
     setShowLoadMissionModal(false);
   }, []);
 
-  const handleDuplicateMission = useCallback(async (newMissionName: string) => {
-    try {
-      if (!missionSettings) {
-        console.error('No current mission to duplicate');
-        return;
-      }
+  const handleDuplicateMission = useCallback(
+    async (newMissionName: string) => {
+      try {
+        if (!missionSettings) {
+          console.error('No current mission to duplicate');
+          return;
+        }
 
-      // Create a new mission with the duplicated settings but new name
-      const duplicatedMission: Mission = {
-        name: newMissionName,
-        created_date: new Date().toISOString(),
-        modified_date: new Date().toISOString(),
-        loadmasters: missionSettings.loadmasters,
-        loadmasters_fs: missionSettings.loadmastersFs,
-        configuration_weights: missionSettings.configurationWeights,
-        crew_gear_weight: missionSettings.crewGearWeight,
-        food_weight: missionSettings.foodWeight,
-        safety_gear_weight: missionSettings.safetyGearWeight,
-        etc_weight: missionSettings.etcWeight,
-        outboard_fuel: missionSettings.fuelDistribution.outbd,
-        inboard_fuel: missionSettings.fuelDistribution.inbd,
-        fuselage_fuel: missionSettings.fuelDistribution.fuselage,
-        auxiliary_fuel: missionSettings.fuelDistribution.aux,
-        external_fuel: missionSettings.fuelDistribution.ext,
-        aircraft_id: missionSettings.aircraftId,
-        aircraft_empty_weight: missionSettings.aircraftEmptyWeight,
-      };
-
-      // Create the new mission in the database
-      const missionResponse = await createMission(duplicatedMission);
-      const newMissionId = missionResponse.results[0].lastInsertId as number;
-
-      // Duplicate all cargo items for the new mission
-      const duplicatedCargoItems: CargoItem[] = [];
-      for (const item of cargoItems) {
-        const duplicatedDbItem: DbCargoItem = {
-          mission_id: newMissionId,
-          cargo_type_id: item.cargo_type_id,
-          name: item.name,
-          weight: item.weight,
-          length: item.length,
-          width: item.width,
-          height: item.height,
-          cog: item.cog,
-          x_start_position: item.position.x,
-          y_start_position: item.position.y,
-          status: item.status,
-          forward_overhang: 0,
-          back_overhang: 0,
-          color: item.color,
+        // Create a new mission with the duplicated settings but new name
+        const duplicatedMission: Mission = {
+          name: newMissionName,
+          created_date: new Date().toISOString(),
+          modified_date: new Date().toISOString(),
+          loadmasters: missionSettings.loadmasters,
+          loadmasters_fs: missionSettings.loadmastersFs,
+          configuration_weights: missionSettings.configurationWeights,
+          crew_gear_weight: missionSettings.crewGearWeight,
+          food_weight: missionSettings.foodWeight,
+          safety_gear_weight: missionSettings.safetyGearWeight,
+          etc_weight: missionSettings.etcWeight,
+          outboard_fuel: missionSettings.fuelDistribution.outbd,
+          inboard_fuel: missionSettings.fuelDistribution.inbd,
+          fuselage_fuel: missionSettings.fuelDistribution.fuselage,
+          auxiliary_fuel: missionSettings.fuelDistribution.aux,
+          external_fuel: missionSettings.fuelDistribution.ext,
+          aircraft_id: missionSettings.aircraftId,
+          aircraft_empty_weight: missionSettings.aircraftEmptyWeight,
         };
 
-        const itemResponse = await createCargoItem(duplicatedDbItem);
-        if (itemResponse && itemResponse.results && itemResponse.results.length > 0) {
-          duplicatedDbItem.id = itemResponse.results[0].lastInsertId;
-          duplicatedCargoItems.push(convertDbCargoItemToCargoItem(duplicatedDbItem));
+        // Create the new mission in the database
+        const missionResponse = await createMission(duplicatedMission);
+        const newMissionId = missionResponse.results[0].lastInsertId as number;
+
+        // Duplicate all cargo items for the new mission
+        const duplicatedCargoItems: CargoItem[] = [];
+        for (const item of cargoItems) {
+          const duplicatedDbItem: DbCargoItem = {
+            mission_id: newMissionId,
+            cargo_type_id: item.cargo_type_id,
+            name: item.name,
+            weight: item.weight,
+            length: item.length,
+            width: item.width,
+            height: item.height,
+            cog: item.cog,
+            x_start_position: item.position.x,
+            y_start_position: item.position.y,
+            status: item.status,
+            forward_overhang: 0,
+            back_overhang: 0,
+            color: item.color,
+          };
+
+          const itemResponse = await createCargoItem(duplicatedDbItem);
+          if (
+            itemResponse &&
+            itemResponse.results &&
+            itemResponse.results.length > 0
+          ) {
+            duplicatedDbItem.id = itemResponse.results[0].lastInsertId;
+            duplicatedCargoItems.push(
+              convertDbCargoItemToCargoItem(duplicatedDbItem),
+            );
+          }
         }
+
+        // Set the new mission as current
+        setCurrentMissionId(newMissionId);
+        setCargoItems(duplicatedCargoItems);
+
+        duplicatedMission.id = newMissionId;
+        const newMissionSettings = await convertDbMissionToMissionSettings(
+          duplicatedMission,
+        );
+        setMissionSettings(newMissionSettings);
+
+        setShowDuplicateMissionModal(false);
+        console.log(
+          'Mission duplicated:',
+          newMissionName,
+          'with ID:',
+          newMissionId,
+        );
+      } catch (error) {
+        console.error('Error duplicating mission:', error);
       }
-
-      // Set the new mission as current
-      setCurrentMissionId(newMissionId);
-      setCargoItems(duplicatedCargoItems);
-
-      duplicatedMission.id = newMissionId;
-      const newMissionSettings = await convertDbMissionToMissionSettings(duplicatedMission);
-      setMissionSettings(newMissionSettings);
-
-      setShowDuplicateMissionModal(false);
-      console.log('Mission duplicated:', newMissionName, 'with ID:', newMissionId);
-    } catch (error) {
-      console.error('Error duplicating mission:', error);
-    }
-  }, [missionSettings, cargoItems]);
+    },
+    [missionSettings, cargoItems],
+  );
 
   const handleDuplicateMissionClick = useCallback(() => {
     if (!missionSettings) {
@@ -658,16 +815,19 @@ function App(): React.JSX.Element {
     setIsAddModalVisible(true);
   }, []);
 
-  const handleSaveItemModal = useCallback((item: CargoItem) => {
-    if (editingItem) {
-      handleEditItem(item);
-    } else {
-      // Automatically place new items on deck
-      handleAddItem(item, 'onDeck');
-    }
-    setIsAddModalVisible(false);
-    setEditingItem(null);
-  }, [editingItem, handleEditItem, handleAddItem]);
+  const handleSaveItemModal = useCallback(
+    (item: CargoItem) => {
+      if (editingItem) {
+        handleEditItem(item);
+      } else {
+        // Automatically place new items on deck
+        handleAddItem(item, 'onDeck');
+      }
+      setIsAddModalVisible(false);
+      setEditingItem(null);
+    },
+    [editingItem, handleEditItem, handleAddItem],
+  );
 
   const handleCancelItemModal = useCallback(() => {
     setIsAddModalVisible(false);
@@ -683,7 +843,9 @@ function App(): React.JSX.Element {
             <View style={styles.loadingTextContainer}>
               {initializationError ? (
                 <>
-                  <Text style={styles.errorText}>Database initialization failed</Text>
+                  <Text style={styles.errorText}>
+                    Database initialization failed
+                  </Text>
                   <Text style={styles.errorDetails}>{initializationError}</Text>
                 </>
               ) : (
@@ -709,7 +871,11 @@ function App(): React.JSX.Element {
       />
     ),
     planning: (
-      <View style={[styles.planningContainer, isLandscape ? styles.landscapeContainer : null]}>
+      <View
+        style={[
+          styles.planningContainer,
+          isLandscape ? styles.landscapeContainer : null,
+        ]}>
         <View style={styles.contentContainer}>
           <Sidebar
             items={cargoItems}

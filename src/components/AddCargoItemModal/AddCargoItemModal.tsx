@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,10 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { CargoItem } from '../../types';
-import { styles } from './AddCargoItemModal.styles';
+import {CargoItem} from '../../types';
+import {styles} from './AddCargoItemModal.styles';
 import PlatformSlider from '../shared/PlatformSlider';
-import ColorPicker, { CARGO_COLORS } from './ColorPicker';
+import ColorPicker, {CARGO_COLORS} from './ColorPicker';
 
 interface AddCargoItemModalProps {
   initialItem?: CargoItem;
@@ -25,6 +25,7 @@ interface AddCargoItemModalProps {
 
 // Form data type matching the pattern from MissionSettings
 type CargoFormData = {
+  cargoTypeId: number;
   name: string;
   length: string;
   width: string;
@@ -36,6 +37,7 @@ type CargoFormData = {
 };
 
 const DEFAULT_FORM_DATA: CargoFormData = {
+  cargoTypeId: 1,
   name: '',
   length: '',
   width: '',
@@ -46,22 +48,31 @@ const DEFAULT_FORM_DATA: CargoFormData = {
   showPresets: false,
 };
 
-const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }: AddCargoItemModalProps) => {
+const AddCargoItemModal = ({
+  initialItem,
+  onSave,
+  onCancel,
+  savedPresets = [],
+}: AddCargoItemModalProps) => {
   // Single state object like MissionSettings
   const [formData, setFormData] = useState<CargoFormData>(DEFAULT_FORM_DATA);
 
   // Single onChange handler like MissionSettings
-  const handleChange = useCallback((name: string, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  }, []);
+  const handleChange = useCallback(
+    (name: string, value: string | boolean | number) => {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    },
+    [],
+  );
 
   // Initialize form data when initialItem changes
   useEffect(() => {
     if (initialItem) {
       setFormData({
+        cargoTypeId: initialItem.cargo_type_id,
         name: initialItem.name,
         length: initialItem.length.toString(),
         width: initialItem.width.toString(),
@@ -96,7 +107,9 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
     parseFloat(formData.weight || '0') > 0;
 
   const handleSubmit = useCallback(() => {
-    if (!isDataValid) {return;}
+    if (!isDataValid) {
+      return;
+    }
 
     const cogValue = parseFloat(formData.cog || '0');
     const lengthValue = parseFloat(formData.length);
@@ -104,7 +117,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
     const itemToSave: CargoItem = {
       id: initialItem?.id || '',
       name: formData.name,
-      cargo_type_id: initialItem?.cargo_type_id || 1,
+      cargo_type_id: formData.cargoTypeId,
       length: parseFloat(formData.length),
       width: parseFloat(formData.width),
       height: parseFloat(formData.height),
@@ -113,7 +126,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
       fs: initialItem?.fs ?? 0,
       dock: initialItem?.dock ?? 'CG',
       status: initialItem?.status || 'inventory',
-      position: initialItem?.position || { x: -1, y: -1 },
+      position: initialItem?.position || {x: -1, y: -1},
       color: formData.color,
     };
 
@@ -122,6 +135,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
 
   const handleLoadPreset = useCallback((preset: CargoItem) => {
     setFormData({
+      cargoTypeId: preset.cargo_type_id,
       name: preset.name,
       length: preset.length.toString(),
       width: preset.width.toString(),
@@ -138,32 +152,41 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
       Alert.alert(
         'No Presets Available',
         "You haven't saved any presets yet. You can save an item as a preset from the item's menu.",
-        [{ text: 'OK' }]
+        [{text: 'OK'}],
       );
       return;
     }
     handleChange('showPresets', !formData.showPresets);
   }, [savedPresets.length, formData.showPresets, handleChange]);
 
-  const renderPresetItem = useCallback(({ item }: { item: CargoItem }) => (
-    <TouchableOpacity
-      style={styles.presetItem}
-      onPress={() => handleLoadPreset(item)}
-    >
-      <Text style={styles.presetItemName}>{item.name}</Text>
-      <Text style={styles.presetItemDimensions}>
-        {`${item.length}" x ${item.width}" x ${item.height}"`}
-      </Text>
-    </TouchableOpacity>
-  ), [handleLoadPreset]);
+  const renderPresetItem = useCallback(
+    ({item}: {item: CargoItem}) => (
+      <TouchableOpacity
+        style={styles.presetItem}
+        onPress={() => handleLoadPreset(item)}>
+        <Text style={styles.presetItemName}>{item.name}</Text>
+        <Text style={styles.presetItemDimensions}>
+          {`${item.length}" x ${item.width}" x ${item.height}"`}
+        </Text>
+      </TouchableOpacity>
+    ),
+    [handleLoadPreset],
+  );
 
-  const handleSliderChange = useCallback((value: number) => {
-    handleChange('cog', value.toFixed(1));
-  }, [handleChange]);
+  const handleSliderChange = useCallback(
+    (value: number) => {
+      handleChange('cog', value.toFixed(1));
+    },
+    [handleChange],
+  );
 
   // Remove Portal wrapper and animations - use simple modal structure like MissionSettings
   const isWindows = Platform.OS === 'windows';
-  const keyboardBehavior = isWindows ? 'padding' : (Platform.OS === 'ios' ? 'padding' : 'height');
+  const keyboardBehavior = isWindows
+    ? 'padding'
+    : Platform.OS === 'ios'
+    ? 'padding'
+    : 'height';
 
   return (
     <View style={styles.modalOverlay}>
@@ -172,14 +195,12 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
       </TouchableWithoutFeedback>
       <KeyboardAvoidingView
         behavior={keyboardBehavior}
-        style={styles.keyboardAvoidingView}
-      >
+        style={styles.keyboardAvoidingView}>
         <View style={styles.modalContent}>
           <ScrollView
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={{flexGrow: 1}}
             showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+            keyboardShouldPersistTaps="handled">
             <TouchableOpacity style={styles.closeButton} onPress={onCancel}>
               <Text style={styles.closeButtonText}>×</Text>
             </TouchableOpacity>
@@ -191,15 +212,14 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
             <View style={styles.presetContainer}>
               <TouchableOpacity
                 style={styles.loadPresetButton}
-                onPress={togglePresetDropdown}
-              >
+                onPress={togglePresetDropdown}>
                 <Text style={styles.loadPresetText}>Load Preset</Text>
               </TouchableOpacity>
               {formData.showPresets && savedPresets.length > 0 && (
                 <View style={styles.presetDropdown}>
                   <FlatList
                     data={savedPresets}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={item => item.id}
                     renderItem={renderPresetItem}
                     style={styles.presetList}
                   />
@@ -216,7 +236,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
                   <TextInput
                     style={styles.input}
                     value={formData.name}
-                    onChangeText={(value) => handleChange('name', value)}
+                    onChangeText={value => handleChange('name', value)}
                     placeholder="Item Name"
                   />
                 </View>
@@ -229,7 +249,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
                   <TextInput
                     style={styles.input}
                     value={formData.length}
-                    onChangeText={(value) => handleChange('length', value)}
+                    onChangeText={value => handleChange('length', value)}
                     keyboardType="numeric"
                     placeholder="Length"
                   />
@@ -239,7 +259,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
                   <TextInput
                     style={styles.input}
                     value={formData.width}
-                    onChangeText={(value) => handleChange('width', value)}
+                    onChangeText={value => handleChange('width', value)}
                     keyboardType="numeric"
                     placeholder="Width"
                   />
@@ -249,7 +269,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
                   <TextInput
                     style={styles.input}
                     value={formData.height}
-                    onChangeText={(value) => handleChange('height', value)}
+                    onChangeText={value => handleChange('height', value)}
                     keyboardType="numeric"
                     placeholder="Height"
                   />
@@ -259,7 +279,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
                   <TextInput
                     style={styles.input}
                     value={formData.weight}
-                    onChangeText={(value) => handleChange('weight', value)}
+                    onChangeText={value => handleChange('weight', value)}
                     keyboardType="numeric"
                     placeholder="Weight"
                   />
@@ -272,7 +292,11 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
                   <Text style={styles.labelSmall}>CG (inches from front)</Text>
                   <PlatformSlider
                     minimumValue={0}
-                    maximumValue={parseFloat(formData.length || '0') > 0 ? parseFloat(formData.length) : 1}
+                    maximumValue={
+                      parseFloat(formData.length || '0') > 0
+                        ? parseFloat(formData.length)
+                        : 1
+                    }
                     step={0.1}
                     value={parseFloat(formData.cog || '0')}
                     onValueChange={handleSliderChange}
@@ -291,7 +315,7 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
                 <View style={styles.formFullWidth}>
                   <ColorPicker
                     selectedColor={formData.color}
-                    onColorSelect={(color) => handleChange('color', color)}
+                    onColorSelect={color => handleChange('color', color)}
                   />
                 </View>
               </View>
@@ -299,10 +323,12 @@ const AddCargoItemModal = ({ initialItem, onSave, onCancel, savedPresets = [] }:
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity
-                style={[styles.saveButton, !isDataValid && styles.saveButtonDisabled]}
+                style={[
+                  styles.saveButton,
+                  !isDataValid && styles.saveButtonDisabled,
+                ]}
                 onPress={handleSubmit}
-                disabled={!isDataValid}
-              >
+                disabled={!isDataValid}>
                 <Text style={styles.saveButtonText}>
                   {initialItem ? 'Update Item' : 'Add Item'}
                 </Text>
