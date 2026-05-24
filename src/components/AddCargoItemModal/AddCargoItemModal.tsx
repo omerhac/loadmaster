@@ -21,6 +21,7 @@ interface AddCargoItemModalProps {
   onSave: (item: CargoItem) => void;
   onCancel: () => void;
   savedPresets?: CargoItem[];
+  onDeletePreset?: (preset: CargoItem) => Promise<void> | void;
 }
 
 // Form data type matching the pattern from MissionSettings
@@ -53,6 +54,7 @@ const AddCargoItemModal = ({
   onSave,
   onCancel,
   savedPresets = [],
+  onDeletePreset,
 }: AddCargoItemModalProps) => {
   // Single state object like MissionSettings
   const [formData, setFormData] = useState<CargoFormData>(DEFAULT_FORM_DATA);
@@ -147,6 +149,52 @@ const AddCargoItemModal = ({
     });
   }, []);
 
+  const handleDeletePreset = useCallback(
+    (preset: CargoItem) => {
+      if (!onDeletePreset) {
+        return;
+      }
+
+      if (preset.cargo_type_id === 1) {
+        Alert.alert(
+          'Default Preset',
+          'The built-in default preset cannot be deleted.',
+          [{text: 'OK'}],
+        );
+        return;
+      }
+
+      Alert.alert(
+        'Delete Preset',
+        `Delete "${preset.name}" from saved presets?`,
+        [
+          {text: 'Cancel', style: 'cancel'},
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await onDeletePreset(preset);
+                if (formData.cargoTypeId === preset.cargo_type_id) {
+                  handleChange('cargoTypeId', 1);
+                }
+              } catch (error) {
+                Alert.alert(
+                  'Delete Failed',
+                  error instanceof Error
+                    ? error.message
+                    : 'Could not delete preset.',
+                  [{text: 'OK'}],
+                );
+              }
+            },
+          },
+        ],
+      );
+    },
+    [formData.cargoTypeId, handleChange, onDeletePreset],
+  );
+
   const togglePresetDropdown = useCallback(() => {
     if (savedPresets.length === 0) {
       Alert.alert(
@@ -161,16 +209,27 @@ const AddCargoItemModal = ({
 
   const renderPresetItem = useCallback(
     ({item}: {item: CargoItem}) => (
-      <TouchableOpacity
-        style={styles.presetItem}
-        onPress={() => handleLoadPreset(item)}>
-        <Text style={styles.presetItemName}>{item.name}</Text>
-        <Text style={styles.presetItemDimensions}>
-          {`${item.length}" x ${item.width}" x ${item.height}"`}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.presetItem}>
+        <TouchableOpacity
+          style={styles.presetItemContent}
+          onPress={() => handleLoadPreset(item)}>
+          <Text style={styles.presetItemName}>{item.name}</Text>
+          <Text style={styles.presetItemDimensions}>
+            {`${item.length}" x ${item.width}" x ${item.height}"`}
+          </Text>
+        </TouchableOpacity>
+        {item.cargo_type_id === 1 ? (
+          <Text style={styles.presetBuiltinText}>Built-in</Text>
+        ) : (
+          <TouchableOpacity
+            style={styles.presetDeleteButton}
+            onPress={() => handleDeletePreset(item)}>
+            <Text style={styles.presetDeleteText}>Delete</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     ),
-    [handleLoadPreset],
+    [handleDeletePreset, handleLoadPreset],
   );
 
   const handleSliderChange = useCallback(

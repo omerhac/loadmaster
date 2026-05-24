@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import {StyleSheet} from 'react-native';
 
 export const styles = StyleSheet.create({
   modalContainer: {
@@ -90,7 +90,7 @@ export const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 3,
@@ -100,9 +100,16 @@ export const styles = StyleSheet.create({
     maxHeight: 150,
   },
   presetItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  presetItemContent: {
+    flex: 1,
+    paddingRight: 12,
   },
   presetItemName: {
     fontSize: 14,
@@ -113,6 +120,23 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginTop: 2,
+  },
+  presetBuiltinText: {
+    fontSize: 12,
+    color: '#888',
+  },
+  presetDeleteButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 4,
+    backgroundColor: '#ffebee',
+    borderWidth: 1,
+    borderColor: '#ffcdd2',
+  },
+  presetDeleteText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#c62828',
   },
   compactFormContainer: {
     padding: 5,
