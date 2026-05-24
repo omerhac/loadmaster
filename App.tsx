@@ -35,7 +35,10 @@ import {
   getCargoItemsByMissionId,
   createCargoItem,
 } from './src/services/db/operations/CargoItemOperations';
-import {createCargoType} from './src/services/db/operations/CargoTypeOperations';
+import {
+  createCargoType,
+  deleteCargoType,
+} from './src/services/db/operations/CargoTypeOperations';
 import {CargoItem as DbCargoItem} from './src/services/db/operations/types';
 import {updateCargoItem} from './src/services/db/operations/CargoItemOperations';
 import {deleteCargoItem} from './src/services/db/operations/CargoItemOperations';
@@ -567,6 +570,22 @@ function App(): React.JSX.Element {
     [refreshSavedPresets],
   );
 
+  const handleDeletePreset = useCallback(
+    async (preset: CargoItem) => {
+      if (preset.cargo_type_id === 1) {
+        throw new Error('The default cargo preset cannot be deleted.');
+      }
+
+      const response = await deleteCargoType(preset.cargo_type_id);
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      await refreshSavedPresets();
+    },
+    [refreshSavedPresets],
+  );
+
   const handleAddToStage = useCallback(
     (id: string) => {
       handleUpdateItemStatus(id, 'onStage');
@@ -961,6 +980,7 @@ function App(): React.JSX.Element {
               onSave={handleSaveItemModal}
               onCancel={handleCancelItemModal}
               savedPresets={savedPresets}
+              onDeletePreset={handleDeletePreset}
             />
           )}
         </SafeAreaView>
